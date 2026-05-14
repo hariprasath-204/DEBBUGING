@@ -31,6 +31,7 @@ const EditorPage = () => {
   const editorContainerRef = useRef(null);
   const codeRef = useRef(code);
   const errorStatsRef = useRef({ total: 0, cleared: 0, remaining: 0, currentLines: 0, targetLines: 0 });
+  const ignoreCheatRef = useRef(false);
 
   // Sync state to ref for auto-save and submission closures
   useEffect(() => {
@@ -150,7 +151,7 @@ const EditorPage = () => {
 
     const handleFullscreenChange = () => {
       setIsFullScreen(!!document.fullscreenElement);
-      if (!document.fullscreenElement) {
+      if (!document.fullscreenElement && !ignoreCheatRef.current) {
         cheatingRef.current.tabSwitches += 1;
         setPopup({ message: "WARNING: Exiting Fullscreen is recorded as a violation!", type: "warning" });
         if (userId) updateDoc(doc(db, 'users', userId), { tabSwitches: increment(1) });
@@ -255,10 +256,12 @@ const EditorPage = () => {
 
       if (isAutoSubmit) {
         setPopup({ message: "TIME IS UP! Your code has been automatically submitted.", type: "warning" });
+        ignoreCheatRef.current = true;
         if (document.fullscreenElement) await document.exitFullscreen();
         setTimeout(() => navigate('/timer-finished'), 2000);
       } else {
         setPopup({ message: isOutputCorrect ? `Success! Output matched. Score awarded: ${score}` : 'Output did not match expected output. Code Submitted.', type: isOutputCorrect ? 'success' : 'warning' });
+        ignoreCheatRef.current = true;
         if (document.fullscreenElement) await document.exitFullscreen();
         setTimeout(() => navigate('/timer-finished'), 2000);
       }

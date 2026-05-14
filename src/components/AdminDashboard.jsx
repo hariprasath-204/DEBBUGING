@@ -4,7 +4,7 @@ import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc, updateDoc, on
 import { Link } from 'react-router-dom';
 import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
-import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2, RefreshCw } from 'lucide-react';
+import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2, RefreshCw, Edit } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('questions');
@@ -25,10 +25,12 @@ const AdminDashboard = () => {
   const [status, setStatus] = useState('');
   const [variantTab, setVariantTab] = useState('cpp');
   const [questionsList, setQuestionsList] = useState([]);
+  const [editingQuestionId, setEditingQuestionId] = useState(null);
 
   // User Form State
   const [userForm, setUserForm] = useState({ name: '', rollNo: '' });
   const [userStatus, setUserStatus] = useState('');
+  const [editingUserId, setEditingUserId] = useState(null);
 
   // Event State
   const [eventStatus, setEventStatus] = useState('waiting');
@@ -113,43 +115,87 @@ const AdminDashboard = () => {
         processedVariants[lang].errorLinesArray = processedVariants[lang].errorLines
           .split(',').map(line => parseInt(line.trim())).filter(n => !isNaN(n));
       }
-      await addDoc(collection(db, 'questions'), {
-        title: formData.title, description: formData.description, expectedOutput: formData.expectedOutput,
-        points: parseInt(formData.points), phase: formData.phase, variants: processedVariants, createdAt: serverTimestamp()
-      });
-      showPopup('Question added successfully!', 'success');
-      setStatus('Question added successfully!');
+      
+      if (editingQuestionId) {
+        await updateDoc(doc(db, 'questions', editingQuestionId), {
+          title: formData.title, description: formData.description, expectedOutput: formData.expectedOutput,
+          points: parseInt(formData.points), phase: formData.phase, variants: processedVariants
+        });
+        showPopup('Question updated successfully!', 'success');
+        setStatus('Question updated successfully!');
+        setEditingQuestionId(null);
+      } else {
+        await addDoc(collection(db, 'questions'), {
+          title: formData.title, description: formData.description, expectedOutput: formData.expectedOutput,
+          points: parseInt(formData.points), phase: formData.phase, variants: processedVariants, createdAt: serverTimestamp()
+        });
+        showPopup('Question added successfully!', 'success');
+        setStatus('Question added successfully!');
+      }
+
       setFormData({
         title: '', description: '', expectedOutput: '', points: 100, phase: 'easy',
         variants: { c: { initialCode: '', correctCode: '', errorLines: '' }, cpp: { initialCode: '', correctCode: '', errorLines: '' }, java: { initialCode: '', correctCode: '', errorLines: '' } }
       });
     } catch (error) {
       console.error(error);
-      showPopup('Error adding question.', 'error');
-      setStatus('Error adding question.');
+      showPopup(editingQuestionId ? 'Error updating question.' : 'Error adding question.', 'error');
+      setStatus(editingQuestionId ? 'Error updating question.' : 'Error adding question.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleEditQuestion = (q) => {
+    setFormData({
+      title: q.title || '',
+      description: q.description || '',
+      expectedOutput: q.expectedOutput || '',
+      points: q.points || 100,
+      phase: q.phase || 'easy',
+      variants: {
+        c: { initialCode: q.variants?.c?.initialCode || '', correctCode: q.variants?.c?.correctCode || '', errorLines: q.variants?.c?.errorLines || '' },
+        cpp: { initialCode: q.variants?.cpp?.initialCode || '', correctCode: q.variants?.cpp?.correctCode || '', errorLines: q.variants?.cpp?.errorLines || '' },
+        java: { initialCode: q.variants?.java?.initialCode || '', correctCode: q.variants?.java?.correctCode || '', errorLines: q.variants?.java?.errorLines || '' }
+      }
+    });
+    setEditingQuestionId(q.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleAddUser = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setUserStatus('Adding user...');
+    setUserStatus('Saving user...');
     try {
-      await addDoc(collection(db, 'users'), {
-        name: userForm.name, rollNo: userForm.rollNo, selectedLanguage: null,
-        tabSwitches: 0, copyPasteCount: 0, score: 0, currentCode: '', isFinished: false, joinedAt: serverTimestamp()
-      });
-      showPopup('User added successfully!', 'success');
-      setUserStatus('User added successfully!');
+      if (editingUserId) {
+        await updateDoc(doc(db, 'users', editingUserId), {
+          name: userForm.name, rollNo: userForm.rollNo
+        });
+        showPopup('User updated successfully!', 'success');
+        setUserStatus('User updated successfully!');
+        setEditingUserId(null);
+      } else {
+        await addDoc(collection(db, 'users'), {
+          name: userForm.name, rollNo: userForm.rollNo, selectedLanguage: null,
+          tabSwitches: 0, copyPasteCount: 0, score: 0, currentCode: '', isFinished: false, joinedAt: serverTimestamp()
+        });
+        showPopup('User added successfully!', 'success');
+        setUserStatus('User added successfully!');
+      }
       setUserForm({ name: '', rollNo: '' });
     } catch (err) {
-      showPopup('Failed to add user.', 'error');
-      setUserStatus('Failed to add user.');
+      showPopup(editingUserId ? 'Failed to update user.' : 'Failed to add user.', 'error');
+      setUserStatus(editingUserId ? 'Failed to update user.' : 'Failed to add user.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEditUser = (u) => {
+    setUserForm({ name: u.name || '', rollNo: u.rollNo || '' });
+    setEditingUserId(u.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleStartEvent = async () => {
@@ -240,7 +286,7 @@ const AdminDashboard = () => {
       case 'questions':
         return (
           <div className="glass-panel" style={{ padding: '2rem' }}>
-            <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>ADD NEW QUESTION</h2>
+            <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>{editingQuestionId ? 'EDIT QUESTION' : 'ADD NEW QUESTION'}</h2>
             <form onSubmit={handleAddQuestion} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 2 }}><label>TITLE</label><input type="text" name="title" className="input-field" value={formData.title} onChange={handleQuestionChange} required /></div>
@@ -273,7 +319,15 @@ const AdminDashboard = () => {
 
               <div><label>EXPECTED OUTPUT</label><textarea name="expectedOutput" className="input-field" value={formData.expectedOutput} onChange={handleQuestionChange} rows="2" required style={{ fontFamily: 'var(--font-mono)' }} /></div>
               <div><label>POINTS</label><input type="number" name="points" className="input-field" value={formData.points} onChange={handleQuestionChange} required /></div>
-              <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }}>ADD QUESTION</button>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button type="submit" className="btn-primary">{editingQuestionId ? 'UPDATE QUESTION' : 'ADD QUESTION'}</button>
+                {editingQuestionId && (
+                  <button type="button" className="btn-secondary" onClick={() => {
+                    setEditingQuestionId(null);
+                    setFormData({ title: '', description: '', expectedOutput: '', points: 100, phase: 'easy', variants: { c: { initialCode: '', correctCode: '', errorLines: '' }, cpp: { initialCode: '', correctCode: '', errorLines: '' }, java: { initialCode: '', correctCode: '', errorLines: '' } } });
+                  }}>CANCEL</button>
+                )}
+              </div>
               {status && <p style={{ color: 'var(--accent-cyan)', marginTop: '1rem' }}>{status}</p>}
             </form>
 
@@ -285,7 +339,10 @@ const AdminDashboard = () => {
                     <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>{q.title}</h4>
                     <span style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: '12px', background: 'var(--bg-deep-navy)', border: '1px solid var(--accent-cyan)', textTransform: 'uppercase' }}>{q.phase}</span>
                   </div>
-                  <button onClick={async () => { if(window.confirm('Delete question?')) await deleteDoc(doc(db, 'questions', q.id)) }} className="btn-secondary" style={{ padding: '5px 10px', fontSize: '0.8rem' }}><Trash2 size={16} /></button>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button onClick={() => handleEditQuestion(q)} className="btn-secondary" style={{ padding: '5px 10px', fontSize: '0.8rem', color: 'var(--accent-cyan)', border: '1px solid var(--accent-cyan)' }}><Edit size={16} /></button>
+                    <button onClick={async () => { if(window.confirm('Delete question?')) await deleteDoc(doc(db, 'questions', q.id)) }} className="btn-secondary" style={{ padding: '5px 10px', fontSize: '0.8rem', color: 'var(--accent-magenta)', border: '1px solid var(--accent-magenta)' }}><Trash2 size={16} /></button>
+                  </div>
                 </div>
               ))}
               {questionsList.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>No questions added yet.</p>}
@@ -296,12 +353,20 @@ const AdminDashboard = () => {
       case 'users':
         return (
           <div className="glass-panel" style={{ padding: '2rem' }}>
-              <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>MANUAL USER REGISTRATION</h2>
+              <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>{editingUserId ? 'EDIT USER' : 'MANUAL USER REGISTRATION'}</h2>
               <form onSubmit={handleAddUser} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '500px' }}>
                 <div><label>PARTICIPANT NAME</label><input type="text" className="input-field" value={userForm.name} onChange={(e) => setUserForm({ ...userForm, name: e.target.value })} required /></div>
                 <div><label>TEAM IDENTIFIER (LOT #)</label><input type="text" className="input-field" value={userForm.rollNo} onChange={(e) => setUserForm({ ...userForm, rollNo: e.target.value })} required /></div>
                 
-                <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }}>ADD USER</button>
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                  <button type="submit" className="btn-primary">{editingUserId ? 'UPDATE USER' : 'ADD USER'}</button>
+                  {editingUserId && (
+                    <button type="button" className="btn-secondary" onClick={() => {
+                      setEditingUserId(null);
+                      setUserForm({ name: '', rollNo: '' });
+                    }}>CANCEL</button>
+                  )}
+                </div>
                 {userStatus && <p style={{ color: 'var(--accent-cyan)', marginTop: '1rem' }}>{userStatus}</p>}
               </form>
 
@@ -326,7 +391,8 @@ const AdminDashboard = () => {
                         <td style={{ padding: '1rem' }}>
                             {u.clearedErrors?.length || 0} / {(u.clearedErrors?.length || 0) + (u.remainingErrors?.length || 0)}
                         </td>
-                        <td style={{ padding: '1rem' }}>
+                        <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
+                          <button onClick={() => handleEditUser(u)} style={{ background: 'transparent', border: 'none', color: 'var(--accent-cyan)', cursor: 'pointer' }}><Edit size={18} /></button>
                           <button onClick={async () => { if(window.confirm('Delete user?')) await deleteDoc(doc(db, 'users', u.id)) }} style={{ background: 'transparent', border: 'none', color: 'var(--accent-magenta)', cursor: 'pointer' }}><Trash2 size={18} /></button>
                         </td>
                       </tr>
