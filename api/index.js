@@ -20,29 +20,26 @@ app.post('/api/compile', async (req, res) => {
       return res.status(400).json({ error: 'Code and compiler parameters are required' });
     }
 
-    // Build Wandbox payload
+    const isJava = compiler.includes('openjdk');
+
     const payload = {
       code,
       compiler,
-      save: false
+      save: false,
+      // Java on Wandbox requires filename to match the class name
+      ...(isJava && { filename: 'Main.java' })
     };
 
-    // Java REQUIRES filename to match the public class name
-    const isJava = compiler.includes('openjdk') || compiler.includes('java');
-    if (isJava) {
-      payload.filename = 'Main.java';
-    }
-
     const response = await axios.post('https://wandbox.org/api/compile.json', payload, {
-      timeout: 20000, // 20 second timeout
+      timeout: 30000,
       headers: { 'Content-Type': 'application/json' }
     });
 
     res.json(response.data);
   } catch (error) {
-    const msg = error?.response?.data || error?.message || 'Unknown error';
-    console.error("Compilation error:", msg);
-    res.status(500).json({ error: 'Failed to compile', detail: msg });
+    const detail = error?.response?.data || error?.message || 'Unknown error';
+    console.error("Compilation error:", JSON.stringify(detail));
+    res.status(500).json({ error: 'Failed to compile', detail });
   }
 });
 
