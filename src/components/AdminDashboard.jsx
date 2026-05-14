@@ -38,7 +38,6 @@ const AdminDashboard = () => {
   
   // Settings State
   const [langSettings, setLangSettings] = useState({ c: true, cpp: true, java: true });
-  const [newsText, setNewsText] = useState('');
   
   // Live Data
   const [liveUsers, setLiveUsers] = useState([]);
@@ -66,14 +65,6 @@ const AdminDashboard = () => {
       }
     });
 
-    // Listen to News
-    const newsDocRef = doc(db, 'settings', 'news');
-    const unsubNews = onSnapshot(newsDocRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setNewsText(docSnap.data().text || '');
-      }
-    });
-
     // Listen to Live Users
     const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
       const users = [];
@@ -94,7 +85,6 @@ const AdminDashboard = () => {
     return () => {
       unsubEvent();
       unsubLang();
-      unsubNews();
       unsubUsers();
       unsubQuestions();
     };
@@ -255,14 +245,6 @@ const AdminDashboard = () => {
         setIsLoading(false);
       }
     }
-  };
-
-  const handleUpdateNews = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    await setDoc(doc(db, 'settings', 'news'), { text: newsText });
-    setIsLoading(false);
-    showPopup("News broadcasted successfully!", "success");
   };
 
   const handleLanguageToggle = async (lang) => {
@@ -430,20 +412,6 @@ const AdminDashboard = () => {
           </div>
         );
 
-      case 'news':
-        return (
-          <div className="glass-panel" style={{ padding: '2rem' }}>
-            <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>BREAKING NEWS</h2>
-            <form onSubmit={handleUpdateNews} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div>
-                <label>NEWS TICKER TEXT</label>
-                <textarea className="input-field" rows="4" value={newsText} onChange={(e) => setNewsText(e.target.value)} placeholder="Enter important announcements for participants..." />
-              </div>
-              <button type="submit" className="btn-primary" style={{ alignSelf: 'flex-start' }}>BROADCAST NEWS</button>
-            </form>
-          </div>
-        );
-
       case 'languages':
         return (
           <div className="glass-panel" style={{ padding: '2rem' }}>
@@ -569,7 +537,6 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('event')} className={`sidebar-btn ${activeTab === 'event' ? 'active' : ''}`}><Clock size={18} /> Round Setting</button>
           <button onClick={() => setActiveTab('questions')} className={`sidebar-btn ${activeTab === 'questions' ? 'active' : ''}`}><FileText size={18} /> Questions</button>
           <button onClick={() => setActiveTab('users')} className={`sidebar-btn ${activeTab === 'users' ? 'active' : ''}`}><Users size={18} /> User Management</button>
-          <button onClick={() => setActiveTab('news')} className={`sidebar-btn ${activeTab === 'news' ? 'active' : ''}`}><Activity size={18} /> Breaking News</button>
           <button onClick={() => setActiveTab('results')} className={`sidebar-btn ${activeTab === 'results' ? 'active' : ''}`}><FileDown size={18} /> Results & PDF</button>
           <button onClick={() => setActiveTab('submissions')} className={`sidebar-btn ${activeTab === 'submissions' ? 'active' : ''}`}><Code size={18} /> Submissions</button>
           <button onClick={() => setActiveTab('tracker')} className={`sidebar-btn ${activeTab === 'tracker' ? 'active' : ''}`}><MonitorPlay size={18} /> Live Code</button>

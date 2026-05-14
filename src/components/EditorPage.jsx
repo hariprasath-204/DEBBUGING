@@ -25,7 +25,6 @@ const EditorPage = () => {
   const lockedLanguage = localStorage.getItem('debugEventLanguage') || 'cpp'; // Default fallback
 
   const [violations, setViolations] = useState({ tabSwitches: 0, copyPasteCount: 0 });
-  const [newsText, setNewsText] = useState('');
 
   const cheatingRef = useRef({ tabSwitches: 0, copyPasteCount: 0 });
   const editorContainerRef = useRef(null);
@@ -110,11 +109,6 @@ const EditorPage = () => {
           return () => clearInterval(timerInterval);
         }
       }
-    });
-
-    // Listen to News
-    const unsubNews = onSnapshot(doc(db, 'settings', 'news'), (docSnap) => {
-      if (docSnap.exists()) setNewsText(docSnap.data().text || '');
     });
 
     // 3. Auto-save every 3 seconds
@@ -365,11 +359,6 @@ const EditorPage = () => {
     <>
       <LoadingOverlay isLoading={!question || isCompiling || isSubmitting} />
       {popup && <PopupMessage message={popup.message} type={popup.type} onClose={() => setPopup(null)} />}
-      {newsText && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', background: 'var(--accent-magenta)', color: 'var(--text-primary)', padding: '5px 0', zIndex: 99999, fontFamily: 'var(--font-mono)', fontWeight: 'bold' }}>
-          <marquee scrollamount="8">{newsText}</marquee>
-        </div>
-      )}
       <div ref={editorContainerRef} style={{ display: 'flex', flexDirection: 'column', height: isFullScreen ? '100vh' : '90vh' }}>
       
       {!isFullScreen && (
