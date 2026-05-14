@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import LoadingOverlay from './LoadingOverlay';
 
 const LandingPage = () => {
@@ -10,7 +10,33 @@ const LandingPage = () => {
   const [rollNo, setRollNo] = useState('');
   const [language, setLanguage] = useState('cpp');
   const [loading, setLoading] = useState(false);
+  const [langSettings, setLangSettings] = useState({ c: true, cpp: true, java: true });
+  const [newsText, setNewsText] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubLang = onSnapshot(doc(db, 'settings', 'language'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setLangSettings(data);
+        // Ensure selected language is allowed
+        if (!data[language]) {
+          if (data.cpp) setLanguage('cpp');
+          else if (data.c) setLanguage('c');
+          else if (data.java) setLanguage('java');
+        }
+      }
+    });
+    
+    const unsubNews = onSnapshot(doc(db, 'settings', 'news'), (docSnap) => {
+      if (docSnap.exists()) setNewsText(docSnap.data().text || '');
+    });
+
+    return () => {
+      unsubLang();
+      unsubNews();
+    };
+  }, [language]);
 
   const handleInitiateSession = async (e) => {
     e.preventDefault();
@@ -61,7 +87,12 @@ const LandingPage = () => {
   return (
     <>
       <LoadingOverlay isLoading={loading} />
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '90vh', position: 'relative' }}>
+      {newsText && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', background: 'var(--accent-magenta)', color: 'var(--text-primary)', padding: '5px 0', zIndex: 9999, fontFamily: 'var(--font-mono)', fontWeight: 'bold' }}>
+          <marquee scrollamount="8">{newsText}</marquee>
+        </div>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', position: 'relative' }}>
       
       {/* Step 1: Main Title Screen */}
       <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'opacity 0.3s', opacity: showModal ? 0.2 : 1, pointerEvents: showModal ? 'none' : 'auto' }}>
@@ -120,9 +151,9 @@ const LandingPage = () => {
                   onChange={(e) => setLanguage(e.target.value)}
                   required
                 >
-                  <option value="c">C</option>
-                  <option value="cpp">C++</option>
-                  <option value="java">Java</option>
+                  {langSettings.c && <option value="c">C</option>}
+                  {langSettings.cpp && <option value="cpp">C++</option>}
+                  {langSettings.java && <option value="java">Java</option>}
                 </select>
               </div>
               
