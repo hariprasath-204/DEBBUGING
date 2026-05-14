@@ -255,12 +255,37 @@ const EditorPage = () => {
     }
 
     try {
-      await updateDoc(doc(db, 'users', userId), {
+      const userDocSnap = await getDoc(doc(db, 'users', userId));
+      let userData = {};
+      if (userDocSnap.exists()) {
+        userData = userDocSnap.data();
+      }
+
+      const completedQs = userData.completedQuestions || [];
+      const newCompletedQs = [...completedQs, questionId];
+      
+      const prevFinalCode = userData.finalCode || '';
+      const newFinalCode = prevFinalCode + `\n\n// ====== MISSION: ${question.title || questionId} ======\n` + codeRef.current;
+      
+      const newCumulCleared = (userData.cumulativeClearedErrors || 0) + errorStatsRef.current.clearedErrors;
+      const newCumulTotal = (userData.cumulativeTotalErrors || 0) + errorStatsRef.current.totalErrors;
+
+      const updatePayload = {
         score: increment(score),
-        isFinished: true,
-        finalCode: codeRef.current,
-        elapsedTimeMs: elapsedTimeMs
-      });
+        finalCode: newFinalCode,
+        elapsedTimeMs: elapsedTimeMs,
+        completedQuestions: newCompletedQs,
+        cumulativeClearedErrors: newCumulCleared,
+        cumulativeTotalErrors: newCumulTotal
+      };
+
+      if (isAutoSubmit) {
+        updatePayload.isFinished = true;
+      } else {
+        updatePayload.selectedQuestionId = null;
+      }
+
+      await updateDoc(doc(db, 'users', userId), updatePayload);
 
       if (isAutoSubmit) {
         setPopup({ message: "TIME IS UP! Your code has been automatically submitted.", type: "warning" });
@@ -271,7 +296,7 @@ const EditorPage = () => {
         setPopup({ message: isOutputCorrect ? `Success! Output matched. Score awarded: ${score}` : 'Output did not match expected output. Code Submitted.', type: isOutputCorrect ? 'success' : 'warning' });
         ignoreCheatRef.current = true;
         if (document.fullscreenElement) await document.exitFullscreen();
-        setTimeout(() => navigate('/timer-finished'), 2000);
+        setTimeout(() => navigate('/selection'), 2000);
       }
     } catch (err) {
       console.error("Error submitting:", err);

@@ -24,8 +24,8 @@ const Leaderboard = () => {
           if (aCheated && !bCheated) return 1;
           if (!aCheated && bCheated) return -1;
           
-          const aCleared = a.clearedErrors || 0;
-          const bCleared = b.clearedErrors || 0;
+          const aCleared = (a.cumulativeClearedErrors || 0) + (a.clearedErrors || 0);
+          const bCleared = (b.cumulativeClearedErrors || 0) + (b.clearedErrors || 0);
           
           if (bCleared !== aCleared) {
             return bCleared - aCleared; // Highest cleared errors first
@@ -99,7 +99,9 @@ const Leaderboard = () => {
                     <td style={{ padding: '1rem', fontWeight: 'bold' }}>{user.name}</td>
                     <td style={{ padding: '1rem' }}>{user.rollNo}</td>
                     <td style={{ padding: '1rem' }}>
-                      <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>{user.clearedErrors || 0}</span> / {user.totalErrors || 0}
+                      <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>
+                        {(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)}
+                      </span> / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}
                     </td>
                     <td style={{ padding: '1rem' }}>{user.score}</td>
                     <td style={{ padding: '1rem' }}>

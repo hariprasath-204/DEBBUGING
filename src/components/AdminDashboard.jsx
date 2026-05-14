@@ -239,7 +239,10 @@ const AdminDashboard = () => {
             clearedErrors: 0,
             remainingErrors: 0,
             totalErrors: 0,
-            elapsedTimeMs: 0
+            elapsedTimeMs: 0,
+            completedQuestions: [],
+            cumulativeClearedErrors: 0,
+            cumulativeTotalErrors: 0
           }));
         });
         await Promise.all(updatePromises);
@@ -396,7 +399,7 @@ const AdminDashboard = () => {
                         <td style={{ padding: '1rem' }}>{u.name}</td>
                         <td style={{ padding: '1rem', textTransform: 'uppercase' }}>{u.selectedLanguage || 'PENDING'}</td>
                         <td style={{ padding: '1rem' }}>
-                            {u.clearedErrors?.length || 0} / {(u.clearedErrors?.length || 0) + (u.remainingErrors?.length || 0)}
+                            {(u.cumulativeClearedErrors || 0) + (u.clearedErrors || 0)} / {(u.cumulativeTotalErrors || 0) + (u.totalErrors || 0)}
                         </td>
                         <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
                           <button onClick={() => handleEditUser(u)} style={{ background: 'transparent', border: 'none', color: 'var(--accent-cyan)', cursor: 'pointer' }}><Edit size={18} /></button>
@@ -532,7 +535,7 @@ const AdminDashboard = () => {
                     <span>Copy/Paste: <strong style={{ color: user.copyPasteCount > 0 ? 'var(--accent-magenta)' : 'inherit' }}>{user.copyPasteCount || 0}</strong></span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-primary)', marginBottom: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '4px 8px', borderRadius: '4px' }}>
-                    <span>Errors Fixed: <strong style={{ color: 'var(--accent-cyan)' }}>{user.clearedErrors || 0} / {user.totalErrors || 0}</strong></span>
+                    <span>Errors Fixed: <strong style={{ color: 'var(--accent-cyan)' }}>{(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)} / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}</strong></span>
                     <span>Line Count: <strong style={{ color: 'var(--accent-pink)' }}>{user.currentLinesCount || 0} / {user.targetLinesCount || 0}</strong></span>
                   </div>
                   <div style={{ background: 'var(--bg-deep-navy)', padding: '0.5rem', borderRadius: '4px', fontSize: '0.8rem', height: '120px', overflowY: 'auto' }}>

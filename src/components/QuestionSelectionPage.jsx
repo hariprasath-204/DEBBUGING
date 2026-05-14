@@ -32,20 +32,43 @@ const QuestionSelectionPage = () => {
 
       // Check User's existing selection
       const userSnap = await getDoc(doc(db, 'users', userId));
-      if (userSnap.exists() && userSnap.data().selectedQuestionId) {
-        navigate(`/editor/${userSnap.data().selectedQuestionId}`);
-        return;
+      let completedQs = [];
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        if (userData.isFinished) {
+          navigate('/timer-finished');
+          return;
+        }
+        if (userData.selectedQuestionId) {
+          navigate(`/editor/${userData.selectedQuestionId}`);
+          return;
+        }
+        completedQs = userData.completedQuestions || [];
       }
 
       // Fetch all questions
       const qSnap = await getDocs(collection(db, 'questions'));
       const qData = { easy: [], medium: [], hard: [] };
+      let totalQuestionsCount = 0;
+      
       qSnap.forEach(doc => {
         const data = doc.data();
         if (data.phase && qData[data.phase]) {
-          qData[data.phase].push({ id: doc.id, ...data });
+          totalQuestionsCount++;
+          // Only add to the list if they haven't completed it yet
+          if (!completedQs.includes(doc.id)) {
+            qData[data.phase].push({ id: doc.id, ...data });
+          }
         }
       });
+
+      if (totalQuestionsCount > 0 && completedQs.length >= totalQuestionsCount) {
+        // User has completed all available questions
+        await updateDoc(doc(db, 'users', userId), { isFinished: true });
+        navigate('/timer-finished');
+        return;
+      }
+
       setQuestions(qData);
       setLoading(false);
     };
