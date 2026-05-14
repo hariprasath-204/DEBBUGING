@@ -1,22 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg-deep-navy: #081036; 
-  --bg-panel: #162057; 
-  --bg-panel-hover: #1F2D7A; 
+  --bg-deep-navy: #0B0E14; 
+  --bg-panel: #151A23; 
+  --bg-panel-hover: #1F2633; 
   
-  --text-primary: #D0E8FF; 
-  --text-secondary: #84A3D1; 
+  --text-primary: #E2E8F0; 
+  --text-secondary: #94A3B8; 
   
-  --accent-cyan: #00F0FF; 
-  --accent-cyan-glow: rgba(0, 240, 255, 0.5);
+  --accent-cyan: #38BDF8; 
+  --accent-cyan-glow: rgba(56, 189, 248, 0.4);
   
-  --accent-magenta: #FF00FF; 
-  --accent-magenta-glow: rgba(255, 0, 255, 0.5);
+  --accent-magenta: #818CF8; 
+  --accent-magenta-glow: rgba(129, 140, 248, 0.4);
   
-  --accent-purple: #9D00FF; 
+  --accent-purple: #C084FC; 
+  --accent-pink: #F472B6;
   
-  --border-subtle: #2C3A8C; 
+  --border-subtle: #334155; 
   
   --radius-sm: 4px;
   --radius-md: 12px;
@@ -31,7 +32,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2300F0FF" stroke="%23FF00FF" stroke-width="1.5" d="M4 2v18l5-5h8z"/></svg>'), auto !important;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2338BDF8" stroke="%23818CF8" stroke-width="1.5" d="M4 2v18l5-5h8z"/></svg>'), auto !important;
 }
 
 body {
@@ -85,8 +86,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary:hover {
-  background: rgba(0, 240, 255, 0.1);
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.4) inset, 0 0 20px rgba(0, 240, 255, 0.4);
+  background: rgba(56, 189, 248, 0.1);
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.3) inset, 0 0 15px rgba(56, 189, 248, 0.3);
   transform: translateY(-2px);
 }
 
@@ -105,8 +106,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 0, 255, 0.1);
-  box-shadow: 0 0 20px rgba(255, 0, 255, 0.4) inset, 0 0 20px rgba(255, 0, 255, 0.4);
+  background: rgba(129, 140, 248, 0.1);
+  box-shadow: 0 0 15px rgba(129, 140, 248, 0.3) inset, 0 0 15px rgba(129, 140, 248, 0.3);
 }
 
 .sidebar-btn {
@@ -190,11 +191,16 @@ h1, h2, h3, h4, h5, h6 {
   text-shadow: 0 0 15px var(--accent-magenta-glow);
 }
 
+.glow-text-pink {
+  color: var(--accent-pink);
+  text-shadow: 0 0 15px rgba(244, 114, 182, 0.5);
+}
+
 .gradient-title {
-  background: linear-gradient(90deg, #00F0FF 0%, #9D00FF 100%);
+  background: linear-gradient(90deg, #38BDF8 0%, #818CF8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.6));
+  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));
 }
 
 .loading-overlay {
