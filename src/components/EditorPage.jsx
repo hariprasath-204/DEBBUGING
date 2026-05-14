@@ -189,8 +189,9 @@ const EditorPage = () => {
       if (lockedLanguage === 'c') compiler = 'gcc-head-c';
       if (lockedLanguage === 'java') compiler = 'openjdk-head';
 
-      const baseUrl = import.meta.env.VITE_API_URL || '';
-      const response = await axios.post(`${baseUrl}/api/compile`, {
+      // Use relative path so Vite proxy forwards to localhost:3000 in dev,
+      // and Vercel naturally hits the Serverless Function in prod.
+      const response = await axios.post(`/api/compile`, {
         code: codeRef.current,
         compiler: compiler
       });
