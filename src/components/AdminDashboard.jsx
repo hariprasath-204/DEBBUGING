@@ -11,7 +11,7 @@ const AdminDashboard = () => {
   
   // Question Form State
   const [formData, setFormData] = useState({
-    title: '', description: '', expectedOutput: '', points: 100,
+    title: '', description: '', expectedOutput: '', points: 100, phase: 'easy',
     variants: {
       c: { initialCode: '', correctCode: '', errorLines: '' },
       cpp: { initialCode: '', correctCode: '', errorLines: '' },
@@ -20,6 +20,7 @@ const AdminDashboard = () => {
   });
   const [status, setStatus] = useState('');
   const [variantTab, setVariantTab] = useState('cpp');
+  const [questionsList, setQuestionsList] = useState([]);
 
   // User Form State
   const [userForm, setUserForm] = useState({ name: '', rollNo: '' });
@@ -77,11 +78,19 @@ const AdminDashboard = () => {
       setLiveUsers(users);
     });
 
+    // Listen to Questions
+    const unsubQuestions = onSnapshot(collection(db, 'questions'), (snapshot) => {
+      const qs = [];
+      snapshot.forEach(doc => qs.push({ id: doc.id, ...doc.data() }));
+      setQuestionsList(qs);
+    });
+
     return () => {
       unsubEvent();
       unsubLang();
       unsubNews();
       unsubUsers();
+      unsubQuestions();
     };
   }, []);
 
@@ -102,11 +111,11 @@ const AdminDashboard = () => {
       }
       await addDoc(collection(db, 'questions'), {
         title: formData.title, description: formData.description, expectedOutput: formData.expectedOutput,
-        points: parseInt(formData.points), variants: processedVariants, createdAt: serverTimestamp()
+        points: parseInt(formData.points), phase: formData.phase, variants: processedVariants, createdAt: serverTimestamp()
       });
       setStatus('Question added successfully!');
       setFormData({
-        title: '', description: '', expectedOutput: '', points: 100,
+        title: '', description: '', expectedOutput: '', points: 100, phase: 'easy',
         variants: { c: { initialCode: '', correctCode: '', errorLines: '' }, cpp: { initialCode: '', correctCode: '', errorLines: '' }, java: { initialCode: '', correctCode: '', errorLines: '' } }
       });
     } catch (error) {
@@ -193,7 +202,17 @@ const AdminDashboard = () => {
           <div className="glass-panel" style={{ padding: '2rem' }}>
             <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>ADD NEW QUESTION</h2>
             <form onSubmit={handleAddQuestion} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div><label>TITLE</label><input type="text" name="title" className="input-field" value={formData.title} onChange={handleQuestionChange} required /></div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ flex: 2 }}><label>TITLE</label><input type="text" name="title" className="input-field" value={formData.title} onChange={handleQuestionChange} required /></div>
+                <div style={{ flex: 1 }}>
+                  <label>PHASE (DIFFICULTY)</label>
+                  <select name="phase" className="input-field" value={formData.phase} onChange={handleQuestionChange} required>
+                    <option value="easy">EASY</option>
+                    <option value="medium">MEDIUM</option>
+                    <option value="hard">HARD</option>
+                  </select>
+                </div>
+              </div>
               <div><label>DESCRIPTION</label><textarea name="description" className="input-field" value={formData.description} onChange={handleQuestionChange} rows="2" required /></div>
               
               <div style={{ border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '1rem', marginTop: '1rem' }}>
@@ -217,6 +236,20 @@ const AdminDashboard = () => {
               <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }}>ADD QUESTION</button>
               {status && <p style={{ color: 'var(--accent-cyan)', marginTop: '1rem' }}>{status}</p>}
             </form>
+
+            <h2 className="glow-text-cyan" style={{ margin: '3rem 0 1.5rem 0' }}>EXISTING QUESTIONS</h2>
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              {questionsList.map(q => (
+                <div key={q.id} style={{ padding: '1rem', border: '1px solid var(--border-subtle)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h4 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>{q.title}</h4>
+                    <span style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: '12px', background: 'var(--bg-deep-navy)', border: '1px solid var(--accent-cyan)', textTransform: 'uppercase' }}>{q.phase}</span>
+                  </div>
+                  <button onClick={async () => { if(window.confirm('Delete question?')) await deleteDoc(doc(db, 'questions', q.id)) }} className="btn-secondary" style={{ padding: '5px 10px', fontSize: '0.8rem' }}><Trash2 size={16} /></button>
+                </div>
+              ))}
+              {questionsList.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>No questions added yet.</p>}
+            </div>
           </div>
         );
 
@@ -231,6 +264,32 @@ const AdminDashboard = () => {
                 <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }}>ADD USER</button>
                 {userStatus && <p style={{ color: 'var(--accent-cyan)', marginTop: '1rem' }}>{userStatus}</p>}
               </form>
+
+              <h2 className="glow-text-cyan" style={{ margin: '3rem 0 1.5rem 0' }}>REGISTERED USERS</h2>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--accent-cyan)' }}>
+                      <th style={{ padding: '1rem' }}>LOT #</th>
+                      <th style={{ padding: '1rem' }}>NAME</th>
+                      <th style={{ padding: '1rem' }}>LANGUAGE</th>
+                      <th style={{ padding: '1rem' }}>ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {liveUsers.map(u => (
+                      <tr key={u.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '1rem' }}>{u.rollNo}</td>
+                        <td style={{ padding: '1rem' }}>{u.name}</td>
+                        <td style={{ padding: '1rem', textTransform: 'uppercase' }}>{u.selectedLanguage || 'PENDING'}</td>
+                        <td style={{ padding: '1rem' }}>
+                          <button onClick={async () => { if(window.confirm('Delete user?')) await deleteDoc(doc(db, 'users', u.id)) }} style={{ background: 'transparent', border: 'none', color: 'var(--accent-magenta)', cursor: 'pointer' }}><Trash2 size={18} /></button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
           </div>
         );
 

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Editor from "@monaco-editor/react";
 import axios from 'axios';
 import { db } from '../firebase';
-import { doc, getDocs, collection, updateDoc, increment, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, updateDoc, increment, onSnapshot } from 'firebase/firestore';
 import LoadingOverlay from './LoadingOverlay';
 
 const EditorPage = () => {
@@ -43,21 +43,31 @@ const EditorPage = () => {
     // 1. Fetch Question
     const fetchQuestion = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "questions"));
-        if (!querySnapshot.empty) {
-          const doc = querySnapshot.docs[0];
-          const data = doc.data();
-          setQuestion({ id: doc.id, ...data });
-          
-          // Set initial code based on locked language
-          if (data.variants && data.variants[lockedLanguage]) {
-            setCode(data.variants[lockedLanguage].initialCode || '// No code provided for this language.');
+        if (questionId && questionId !== 'default_question') {
+          const docSnap = await getDoc(doc(db, "questions", questionId));
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setQuestion({ id: docSnap.id, ...data });
+            
+            if (data.variants && data.variants[lockedLanguage]) {
+              setCode(data.variants[lockedLanguage].initialCode || '// No code provided for this language.');
+            } else {
+              setCode(data.initialCode || '');
+            }
           } else {
-             // Fallback for old questions created before Phase 3
-            setCode(data.initialCode || '');
+            setCode('// Mission not found.');
           }
         } else {
-          setCode('// No questions available. Waiting for admin...');
+          // Fallback if they somehow skip selection
+          const querySnapshot = await getDocs(collection(db, "questions"));
+          if (!querySnapshot.empty) {
+            const docSnap = querySnapshot.docs[0];
+            const data = docSnap.data();
+            setQuestion({ id: docSnap.id, ...data });
+            if (data.variants && data.variants[lockedLanguage]) setCode(data.variants[lockedLanguage].initialCode || '');
+          } else {
+            setCode('// No missions available.');
+          }
         }
       } catch (err) {
         console.error("Error fetching question:", err);
@@ -294,15 +304,17 @@ const EditorPage = () => {
         <div style={{ color: 'var(--accent-pink)' }}>USER: {userName}</div>
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem', flex: 1, padding: '1rem' }}>
-        {/* Left Panel: Question */}
-        <div className="glass-panel" style={{ flex: 1, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>{question?.title || 'Loading...'}</h3>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>{question?.description}</p>
+      <div style={{ display: 'flex', gap: '1rem', flex: 1, padding: '1rem', overflow: 'hidden' }}>
+        {/* Left Panel: Question Info */}
+        <div className="glass-panel" style={{ flex: '0 0 35%', padding: '1.5rem', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+          <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', fontSize: '1.5rem' }}>{question?.title || 'Loading...'}</h3>
+          <span style={{ display: 'inline-block', marginBottom: '1.5rem', fontSize: '0.8rem', color: 'var(--accent-cyan)', border: '1px solid var(--accent-cyan)', padding: '2px 8px', borderRadius: '12px', textTransform: 'uppercase', alignSelf: 'flex-start' }}>PHASE: {question?.phase || 'UNKNOWN'}</span>
+          
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '1.1rem', lineHeight: '1.6' }}>{question?.description}</p>
           
           <div style={{ marginTop: 'auto' }}>
-            <h4 style={{ color: 'var(--accent-pink)', marginBottom: '0.5rem' }}>EXPECTED OUTPUT</h4>
-            <pre style={{ background: 'var(--bg-deep-navy)', padding: '1rem', borderRadius: '4px', color: 'var(--text-secondary)' }}>
+            <h4 style={{ color: 'var(--accent-magenta)', marginBottom: '0.5rem' }}>EXPECTED OUTPUT</h4>
+            <pre style={{ background: 'var(--bg-deep-navy)', padding: '1rem', borderRadius: '4px', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}>
               {question?.expectedOutput}
             </pre>
             
@@ -315,50 +327,57 @@ const EditorPage = () => {
           </div>
         </div>
 
-        {/* Middle Panel: Editor */}
-        <div className="glass-panel" style={{ flex: 2, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '0.5rem 1rem', background: 'var(--bg-panel-hover)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            
-            <div style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', textTransform: 'uppercase' }}>
-              LANGUAGE: {lockedLanguage === 'cpp' ? 'C++' : lockedLanguage} (LOCKED)
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button onClick={compileCode} disabled={isCompiling} className="btn-secondary" style={{ padding: '5px 15px', fontSize: '0.8rem' }}>
-                {isCompiling ? 'RUNNING...' : 'RUN CODE'}
-              </button>
-              <button onClick={() => handleSubmit(false)} disabled={isSubmitting || !question} className="btn-primary" style={{ padding: '5px 15px', fontSize: '0.8rem' }}>
-                {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
-              </button>
-            </div>
-          </div>
+        {/* Right Panel: Editor & Console Stack */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden' }}>
           
-          <div style={{ flex: 1 }}>
-            <Editor
-              height="100%"
-              theme="vs-dark"
-              language={lockedLanguage === 'cpp' || lockedLanguage === 'c' ? 'cpp' : lockedLanguage}
-              value={code}
-              onChange={(value) => setCode(value)}
-              options={{ minimap: { enabled: false }, fontSize: 16 }}
-            />
-          </div>
-        </div>
+          {/* Top: Editor */}
+          <div className="glass-panel" style={{ flex: 2, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ padding: '0.5rem 1rem', background: 'var(--bg-panel-hover)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)' }}>
+              
+              <div style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                LANGUAGE: {lockedLanguage === 'cpp' ? 'C++' : lockedLanguage} (LOCKED)
+              </div>
 
-        {/* Right Panel: Output */}
-        <div className="glass-panel" style={{ flex: 1, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ color: 'var(--accent-cyan)', marginBottom: '1rem' }}>CONSOLE</h3>
-          <pre style={{ 
-            flex: 1, 
-            background: 'var(--bg-deep-navy)', 
-            padding: '1rem', 
-            borderRadius: '4px', 
-            color: output.includes('error') ? 'var(--accent-pink)' : 'var(--text-primary)',
-            overflowY: 'auto',
-            whiteSpace: 'pre-wrap'
-          }}>
-            {output}
-          </pre>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button onClick={compileCode} disabled={isCompiling} className="btn-secondary" style={{ padding: '5px 15px', fontSize: '0.8rem' }}>
+                  {isCompiling ? 'RUNNING...' : 'RUN CODE'}
+                </button>
+                <button onClick={() => handleSubmit(false)} disabled={isSubmitting || !question} className="btn-primary" style={{ padding: '5px 15px', fontSize: '0.8rem' }}>
+                  {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
+                </button>
+              </div>
+            </div>
+            
+            <div style={{ flex: 1 }}>
+              <Editor
+                height="100%"
+                theme="vs-dark"
+                language={lockedLanguage === 'cpp' || lockedLanguage === 'c' ? 'cpp' : lockedLanguage}
+                value={code}
+                onChange={(value) => setCode(value)}
+                options={{ minimap: { enabled: false }, fontSize: 16 }}
+              />
+            </div>
+          </div>
+
+          {/* Bottom: Console Output */}
+          <div className="glass-panel" style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column' }}>
+            <h4 style={{ color: 'var(--accent-cyan)', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)' }}>CONSOLE OUTPUT</h4>
+            <pre style={{ 
+              flex: 1, 
+              background: 'var(--bg-deep-navy)', 
+              padding: '1rem', 
+              borderRadius: '4px', 
+              color: output.includes('error') ? 'var(--accent-magenta)' : 'var(--text-primary)',
+              overflowY: 'auto',
+              whiteSpace: 'pre-wrap',
+              border: '1px solid var(--border-subtle)',
+              margin: 0
+            }}>
+              {output}
+            </pre>
+          </div>
+
         </div>
       </div>
     </div>

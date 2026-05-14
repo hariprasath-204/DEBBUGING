@@ -87,7 +87,7 @@ const LandingPage = () => {
       } else {
         const eventData = eventDocSnap.data();
         if (eventData.status === 'active') {
-          navigate('/editor/default_question');
+          navigate('/selection');
         } else if (eventData.status === 'ended') {
           navigate('/thank-you');
         } else {

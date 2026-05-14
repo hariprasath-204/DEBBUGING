@@ -15,13 +15,13 @@ const WaitingPage = () => {
     }
 
     // Subscribe to global event status
-    const unsub = onSnapshot(doc(db, "settings", "event"), (doc) => {
-      if (doc.exists()) {
-        const data = doc.data();
-        setStatus(data.status);
-        if (data.status === 'active') {
-          navigate('/editor/default_question');
-        } else if (data.status === 'ended') {
+    const unsub = onSnapshot(doc(db, "settings", "event"), (docSnap) => {
+      if (docSnap.exists()) {
+        const eventData = docSnap.data();
+        setStatus(eventData.status);
+        if (eventData.status === 'active') {
+          navigate('/selection');
+        } else if (eventData.status === 'ended') {
           navigate('/thank-you');
         }
       }

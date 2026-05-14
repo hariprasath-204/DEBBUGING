@@ -7,6 +7,7 @@ import Leaderboard from './components/Leaderboard';
 import WaitingPage from './components/WaitingPage';
 import TimerFinishedPage from './components/TimerFinishedPage';
 import ThankYouPage from './components/ThankYouPage';
+import QuestionSelectionPage from './components/QuestionSelectionPage';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/waiting" element={<WaitingPage />} />
+          <Route path="/selection" element={<QuestionSelectionPage />} />
           <Route path="/editor/:questionId" element={<EditorPage />} />
           <Route path="/timer-finished" element={<TimerFinishedPage />} />
           <Route path="/thank-you" element={<ThankYouPage />} />
