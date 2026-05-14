@@ -45,17 +45,28 @@ const EditorPage = () => {
       return;
     }
 
-    // 1. Fetch Question
+    // 1. Fetch Question (and verify language from Firestore user doc)
     const fetchQuestion = async () => {
       try {
+        // Read the user's chosen language FROM FIRESTORE (source of truth)
+        // in case localStorage is stale from a previous session
+        let lang = lockedLanguage;
+        if (userId) {
+          const userSnap = await getDoc(doc(db, 'users', userId));
+          if (userSnap.exists() && userSnap.data().selectedLanguage) {
+            lang = userSnap.data().selectedLanguage;
+            // Sync localStorage with the real value
+            localStorage.setItem('debugEventLanguage', lang);
+          }
+        }
+
         if (questionId && questionId !== 'default_question') {
           const docSnap = await getDoc(doc(db, "questions", questionId));
           if (docSnap.exists()) {
             const data = docSnap.data();
             setQuestion({ id: docSnap.id, ...data });
-            
-            if (data.variants && data.variants[lockedLanguage]) {
-              setCode(data.variants[lockedLanguage].initialCode || '// No code provided for this language.');
+            if (data.variants && data.variants[lang]) {
+              setCode(data.variants[lang].initialCode || '// No code provided for this language.');
             } else {
               setCode(data.initialCode || '');
             }
@@ -63,13 +74,12 @@ const EditorPage = () => {
             setCode('// Mission not found.');
           }
         } else {
-          // Fallback if they somehow skip selection
           const querySnapshot = await getDocs(collection(db, "questions"));
           if (!querySnapshot.empty) {
             const docSnap = querySnapshot.docs[0];
             const data = docSnap.data();
             setQuestion({ id: docSnap.id, ...data });
-            if (data.variants && data.variants[lockedLanguage]) setCode(data.variants[lockedLanguage].initialCode || '');
+            if (data.variants && data.variants[lang]) setCode(data.variants[lang].initialCode || '');
           } else {
             setCode('// No missions available.');
           }
@@ -185,10 +195,12 @@ const EditorPage = () => {
     setIsCompiling(true);
     setOutput('Compiling...');
     try {
+      // Always read language fresh (Firestore syncs this during question load)
+      const lang = localStorage.getItem('debugEventLanguage') || 'cpp';
       let compiler = 'gcc-head';
-      if (lockedLanguage === 'cpp') compiler = 'gcc-head';
-      if (lockedLanguage === 'c') compiler = 'gcc-head-c';
-      if (lockedLanguage === 'java') compiler = 'openjdk-head';
+      if (lang === 'cpp') compiler = 'gcc-head';
+      if (lang === 'c') compiler = 'gcc-head-c';
+      if (lang === 'java') compiler = 'openjdk-jdk21-full'; // Use stable Java 21
 
       // Use relative path so Vite proxy forwards to localhost:3000 in dev,
       // and Vercel naturally hits the Serverless Function in prod.
