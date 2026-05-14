@@ -13,6 +13,7 @@ function App() {
   return (
     <Router>
       <div className="particles"></div>
+      <div className="scanner-line"></div>
       <div className="app-container" style={{ minHeight: '100vh', padding: '2rem' }}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
