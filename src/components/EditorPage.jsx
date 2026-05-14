@@ -272,6 +272,45 @@ const EditorPage = () => {
     currentErrorLines = question.errorLines; // Fallback
   }
 
+  // Calculate Error Stats
+  let totalErrors = currentErrorLines.length;
+  let clearedErrors = 0;
+
+  if (question && totalErrors > 0) {
+    let initialCode = '';
+    if (question.variants && question.variants[lockedLanguage]) {
+      initialCode = question.variants[lockedLanguage].initialCode || '';
+    } else {
+      initialCode = question.initialCode || '';
+    }
+    const initialLines = initialCode.split('\n');
+    const currentLines = code.split('\n');
+
+    currentErrorLines.forEach(lineNum => {
+      const idx = parseInt(lineNum) - 1;
+      if (initialLines[idx] !== undefined && currentLines[idx] !== undefined) {
+        if (initialLines[idx].trim() !== currentLines[idx].trim()) {
+          clearedErrors++;
+        }
+      }
+    });
+  }
+  let remainingErrors = totalErrors - clearedErrors;
+  if (remainingErrors < 0) remainingErrors = 0;
+
+  // Calculate Line Counts
+  let targetLinesCount = 0;
+  if (question) {
+    let correctCode = '';
+    if (question.variants && question.variants[lockedLanguage]) {
+      correctCode = question.variants[lockedLanguage].correctCode || '';
+    } else {
+      correctCode = question.correctCode || '';
+    }
+    targetLinesCount = correctCode.split('\n').filter(line => line.trim() !== '').length;
+  }
+  const currentLinesCount = code.split('\n').filter(line => line.trim() !== '').length;
+
   return (
     <>
       <LoadingOverlay isLoading={!question || isCompiling || isSubmitting} />
@@ -318,12 +357,43 @@ const EditorPage = () => {
               {question?.expectedOutput}
             </pre>
             
-            {currentErrorLines.length > 0 && (
-              <div style={{ marginTop: '1rem' }}>
-                <h4 style={{ color: 'var(--accent-cyan)' }}>KNOWN ERROR LINES ({lockedLanguage.toUpperCase()})</h4>
-                <p style={{ color: 'var(--text-secondary)' }}>Lines: {currentErrorLines.join(', ')}</p>
+            {totalErrors > 0 && (
+              <div style={{ marginTop: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <h4 style={{ color: 'var(--accent-cyan)', marginBottom: '0.5rem' }}>ERROR TRACKER</h4>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Known Error Lines: {currentErrorLines.join(', ')}</p>
+                
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                  <div style={{ flex: 1, textAlign: 'center', background: 'var(--bg-deep-navy)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--accent-magenta)' }}>
+                    <div style={{ fontSize: '1.5rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>{totalErrors}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Total Errors</div>
+                  </div>
+                  <div style={{ flex: 1, textAlign: 'center', background: 'var(--bg-deep-navy)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--accent-cyan)' }}>
+                    <div style={{ fontSize: '1.5rem', color: 'var(--accent-cyan)', fontWeight: 'bold' }}>{clearedErrors}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Cleared</div>
+                  </div>
+                  <div style={{ flex: 1, textAlign: 'center', background: 'var(--bg-deep-navy)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--accent-pink)' }}>
+                    <div style={{ fontSize: '1.5rem', color: 'var(--accent-pink)', fontWeight: 'bold' }}>{remainingErrors}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Remaining</div>
+                  </div>
+                </div>
               </div>
             )}
+
+            <div style={{ marginTop: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+              <h4 style={{ color: 'var(--accent-cyan)', marginBottom: '0.5rem' }}>LINE COUNT</h4>
+              
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ flex: 1, textAlign: 'center', background: 'var(--bg-deep-navy)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '1.5rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>{currentLinesCount}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Your Lines</div>
+                </div>
+                <div style={{ flex: 1, textAlign: 'center', background: 'var(--bg-deep-navy)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '1.5rem', color: 'var(--accent-cyan)', fontWeight: 'bold' }}>{targetLinesCount}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Target Lines</div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
