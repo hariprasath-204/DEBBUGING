@@ -4,6 +4,7 @@ import Editor from "@monaco-editor/react";
 import axios from 'axios';
 import { db } from '../firebase';
 import { doc, getDocs, collection, updateDoc, increment, onSnapshot } from 'firebase/firestore';
+import LoadingOverlay from './LoadingOverlay';
 
 const EditorPage = () => {
   const { questionId } = useParams();
@@ -254,7 +255,9 @@ const EditorPage = () => {
   }
 
   return (
-    <div ref={editorContainerRef} style={{ display: 'flex', flexDirection: 'column', height: isFullScreen ? '100vh' : '90vh', background: 'var(--bg-deep-navy)' }}>
+    <>
+      <LoadingOverlay isLoading={!question || isCompiling || isSubmitting} />
+      <div ref={editorContainerRef} style={{ display: 'flex', flexDirection: 'column', height: isFullScreen ? '100vh' : '90vh', background: 'var(--bg-deep-navy)' }}>
       
       {!isFullScreen && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(9, 11, 26, 0.9)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -346,6 +349,7 @@ const EditorPage = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

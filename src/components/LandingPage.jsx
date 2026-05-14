@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from 'firebase/firestore';
+import LoadingOverlay from './LoadingOverlay';
 
 const LandingPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -58,7 +59,9 @@ const LandingPage = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '90vh', position: 'relative' }}>
+    <>
+      <LoadingOverlay isLoading={loading} />
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '90vh', position: 'relative' }}>
       
       {/* Step 1: Main Title Screen */}
       <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'opacity 0.3s', opacity: showModal ? 0.2 : 1, pointerEvents: showModal ? 'none' : 'auto' }}>
@@ -139,6 +142,7 @@ const LandingPage = () => {
         © 2026 Ayya Nadar Janaki Ammal College. Dept. of Computer Applications. All rights reserved.
       </p>
     </div>
+    </>
   );
 };
 
