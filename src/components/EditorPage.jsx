@@ -200,7 +200,7 @@ const EditorPage = () => {
       let compiler = 'gcc-head';
       if (lang === 'cpp') compiler = 'gcc-head';
       if (lang === 'c') compiler = 'gcc-head-c';
-      if (lang === 'java') compiler = 'openjdk-jdk21-full'; // Use stable Java 21
+      if (lang === 'java') compiler = 'openjdk-head'; // Wandbox Java compiler
 
       // Use relative path so Vite proxy forwards to localhost:3000 in dev,
       // and Vercel naturally hits the Serverless Function in prod.
