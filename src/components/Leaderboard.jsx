@@ -24,7 +24,14 @@ const Leaderboard = () => {
           if (aCheated && !bCheated) return 1;
           if (!aCheated && bCheated) return -1;
           
-          return b.score - a.score;
+          const aCleared = a.clearedErrors || 0;
+          const bCleared = b.clearedErrors || 0;
+          
+          if (bCleared !== aCleared) {
+            return bCleared - aCleared; // Highest cleared errors first
+          }
+          
+          return b.score - a.score; // Tie-breaker: Score
         });
 
         setUsers(fetchedUsers);
@@ -53,6 +60,7 @@ const Leaderboard = () => {
               <th style={{ padding: '1rem' }}>RANK</th>
               <th style={{ padding: '1rem' }}>NAME</th>
               <th style={{ padding: '1rem' }}>ROLL NO</th>
+              <th style={{ padding: '1rem' }}>ERRORS FIXED</th>
               <th style={{ padding: '1rem' }}>SCORE</th>
               <th style={{ padding: '1rem' }}>WARNINGS</th>
               <th style={{ padding: '1rem' }}>STATUS</th>
@@ -60,7 +68,7 @@ const Leaderboard = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="6" style={{ padding: '2rem', textAlign: 'center' }}>Loading Data...</td></tr>
+              <tr><td colSpan="7" style={{ padding: '2rem', textAlign: 'center' }}>Loading Data...</td></tr>
             ) : (
               users.map((user, index) => {
                 const isCheater = user.tabSwitches > 2 || user.copyPasteCount > 2;
@@ -81,6 +89,9 @@ const Leaderboard = () => {
                     </td>
                     <td style={{ padding: '1rem', fontWeight: 'bold' }}>{user.name}</td>
                     <td style={{ padding: '1rem' }}>{user.rollNo}</td>
+                    <td style={{ padding: '1rem' }}>
+                      <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>{user.clearedErrors || 0}</span> / {user.totalErrors || 0}
+                    </td>
                     <td style={{ padding: '1rem' }}>{user.score}</td>
                     <td style={{ padding: '1rem' }}>
                       Tab Switches: {user.tabSwitches || 0} <br/>

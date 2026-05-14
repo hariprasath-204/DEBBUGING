@@ -281,6 +281,7 @@ const AdminDashboard = () => {
                       <th style={{ padding: '1rem' }}>LOT #</th>
                       <th style={{ padding: '1rem' }}>NAME</th>
                       <th style={{ padding: '1rem' }}>LANGUAGE</th>
+                      <th style={{ padding: '1rem' }}>PROGRESS</th>
                       <th style={{ padding: '1rem' }}>ACTION</th>
                     </tr>
                   </thead>
@@ -290,6 +291,9 @@ const AdminDashboard = () => {
                         <td style={{ padding: '1rem' }}>{u.rollNo}</td>
                         <td style={{ padding: '1rem' }}>{u.name}</td>
                         <td style={{ padding: '1rem', textTransform: 'uppercase' }}>{u.selectedLanguage || 'PENDING'}</td>
+                        <td style={{ padding: '1rem' }}>
+                            {u.clearedErrors?.length || 0} / {(u.clearedErrors?.length || 0) + (u.remainingErrors?.length || 0)}
+                        </td>
                         <td style={{ padding: '1rem' }}>
                           <button onClick={async () => { if(window.confirm('Delete user?')) await deleteDoc(doc(db, 'users', u.id)) }} style={{ background: 'transparent', border: 'none', color: 'var(--accent-magenta)', cursor: 'pointer' }}><Trash2 size={18} /></button>
                         </td>
@@ -417,6 +421,10 @@ const AdminDashboard = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
                     <span>Tab Switches: <strong style={{ color: user.tabSwitches > 0 ? 'var(--accent-magenta)' : 'inherit' }}>{user.tabSwitches || 0}</strong></span>
                     <span>Copy/Paste: <strong style={{ color: user.copyPasteCount > 0 ? 'var(--accent-magenta)' : 'inherit' }}>{user.copyPasteCount || 0}</strong></span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-primary)', marginBottom: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '4px 8px', borderRadius: '4px' }}>
+                    <span>Errors Fixed: <strong style={{ color: 'var(--accent-cyan)' }}>{user.clearedErrors || 0} / {user.totalErrors || 0}</strong></span>
+                    <span>Line Count: <strong style={{ color: 'var(--accent-pink)' }}>{user.currentLinesCount || 0} / {user.targetLinesCount || 0}</strong></span>
                   </div>
                   <div style={{ background: 'var(--bg-deep-navy)', padding: '0.5rem', borderRadius: '4px', fontSize: '0.8rem', height: '120px', overflowY: 'auto' }}>
                     <pre style={{ margin: 0, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>{user.currentCode || '// No code typed yet...'}</pre>
