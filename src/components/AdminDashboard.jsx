@@ -4,7 +4,7 @@ import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc, updateDoc, on
 import { Link } from 'react-router-dom';
 import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
-import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2 } from 'lucide-react';
+import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2, RefreshCw } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('questions');
@@ -169,6 +169,38 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleResetRound = async () => {
+    if (window.confirm("WARNING: Are you sure you want to RESET THE ROUND? This clears all submissions and scores, but keeps users registered.")) {
+      setIsLoading(true);
+      try {
+        const usersSnap = await getDocs(collection(db, 'users'));
+        const updatePromises = [];
+        usersSnap.forEach(docSnap => {
+          updatePromises.push(updateDoc(doc(db, 'users', docSnap.id), {
+            isFinished: false,
+            currentCode: '',
+            finalCode: '',
+            score: 0,
+            tabSwitches: 0,
+            copyPasteCount: 0,
+            selectedQuestionId: null,
+            clearedErrors: 0,
+            remainingErrors: 0,
+            totalErrors: 0
+          }));
+        });
+        await Promise.all(updatePromises);
+        await updateDoc(doc(db, 'settings', 'event'), { status: 'waiting', endTime: null });
+        showPopup("Round has been reset successfully.", "success");
+      } catch (err) {
+        console.error(err);
+        showPopup("Failed to reset round.", "error");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
   const handleUpdateNews = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -310,10 +342,14 @@ const AdminDashboard = () => {
           <div className="glass-panel" style={{ padding: '2rem' }}>
             <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>ROUND SETTING & EVENT CONTROLS</h2>
             <h3 style={{ marginBottom: '2rem' }}>STATUS: <span className={eventStatus === 'active' ? 'glow-text-cyan' : 'glow-text-magenta'}>{eventStatus.toUpperCase()}</span></h3>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginBottom: '2rem' }}>
               <div><label>DURATION (MINUTES)</label><input type="number" className="input-field" value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} disabled={eventStatus === 'active'} /></div>
               <button onClick={handleStartEvent} disabled={eventStatus === 'active'} className="btn-primary">START EVENT</button>
               <button onClick={handleStopEvent} disabled={eventStatus !== 'active'} className="btn-secondary" style={{ background: 'var(--accent-magenta)', color: 'var(--bg-deep-navy)' }}>STOP EVENT</button>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '2rem' }}>
+              <button onClick={handleResetRound} className="sidebar-btn" style={{ color: 'var(--accent-pink)', border: '1px solid var(--accent-pink)', maxWidth: '250px', justifyContent: 'center' }}><RefreshCw size={18} style={{ marginRight: '8px' }}/> RESET ROUND</button>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>Clears all submissions and scores, but keeps users registered for another round.</p>
             </div>
           </div>
         );

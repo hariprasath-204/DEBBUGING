@@ -12,10 +12,6 @@ const ThankYouPage = () => {
         <p style={{ color: 'var(--text-primary)', marginBottom: '2rem' }}>
           Thank you for participating in the Debugging Challenge. The event has officially ended.
         </p>
-        
-        <button className="btn-primary" onClick={() => navigate('/leaderboard')}>
-          VIEW LEADERBOARD
-        </button>
       </div>
     </div>
   );

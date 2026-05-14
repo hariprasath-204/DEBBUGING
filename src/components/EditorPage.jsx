@@ -259,7 +259,7 @@ const EditorPage = () => {
       } else {
         setPopup({ message: isOutputCorrect ? `Success! Output matched. Score awarded: ${score}` : 'Output did not match expected output. Code Submitted.', type: isOutputCorrect ? 'success' : 'warning' });
         if (document.fullscreenElement) await document.exitFullscreen();
-        setTimeout(() => navigate('/leaderboard'), 2000);
+        setTimeout(() => navigate('/timer-finished'), 2000);
       }
     } catch (err) {
       console.error("Error submitting:", err);
