@@ -69,6 +69,7 @@ const Leaderboard = () => {
               <th style={{ padding: '1rem' }}>NAME</th>
               <th style={{ padding: '1rem' }}>ROLL NO</th>
               <th style={{ padding: '1rem' }}>ERRORS FIXED</th>
+              <th style={{ padding: '1rem' }}>LINES</th>
               <th style={{ padding: '1rem' }}>SCORE</th>
               <th style={{ padding: '1rem' }}>TIME TAKEN</th>
               <th style={{ padding: '1rem' }}>WARNINGS</th>
@@ -102,6 +103,12 @@ const Leaderboard = () => {
                       <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>
                         {(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)}
                       </span> / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}
+                    </td>
+                    <td style={{ padding: '1rem' }}>
+                      <span style={{ color: user.currentLinesCount > user.targetLinesCount ? 'var(--accent-magenta)' : 'var(--accent-cyan)' }}>
+                        {user.currentLinesCount || 0}
+                      </span>
+                      <span style={{ color: 'var(--text-secondary)' }}> / {user.targetLinesCount || 0}</span>
                     </td>
                     <td style={{ padding: '1rem' }}>{user.score}</td>
                     <td style={{ padding: '1rem' }}>
