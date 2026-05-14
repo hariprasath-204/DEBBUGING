@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, getDoc, setDoc, onSnapshot, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import LoadingOverlay from './LoadingOverlay';
 
 const LandingPage = () => {
@@ -44,22 +44,40 @@ const LandingPage = () => {
     
     setLoading(true);
     try {
-      const userRef = await addDoc(collection(db, 'users'), {
-        name,
-        rollNo,
-        selectedLanguage: language,
-        tabSwitches: 0,
-        copyPasteCount: 0,
-        score: 0,
-        currentCode: '',
-        isFinished: false,
-        joinedAt: serverTimestamp()
+      // 1. Query for the existing user by rollNo
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where("rollNo", "==", rollNo));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        alert("Invalid Lot #! Please contact the Admin to register your Lot #.");
+        setLoading(false);
+        return;
+      }
+      
+      // 2. Find the user with matching name (case-insensitive)
+      const userDocSnap = querySnapshot.docs.find(d => d.data().name.toLowerCase() === name.toLowerCase());
+      
+      if (!userDocSnap) {
+        alert("Lot # found, but Participant Name does not match. Please verify.");
+        setLoading(false);
+        return;
+      }
+      
+      const userDocData = userDocSnap.data();
+      const userId = userDocSnap.id;
+      
+      // 3. Update the user with their selected language
+      await updateDoc(doc(db, 'users', userId), {
+        selectedLanguage: language
       });
       
-      localStorage.setItem('debugEventUserId', userRef.id);
-      localStorage.setItem('debugEventUserName', name);
+      // 4. Save to local storage for the Editor page
+      localStorage.setItem('debugEventUserId', userId);
+      localStorage.setItem('debugEventUserName', userDocData.name);
       localStorage.setItem('debugEventLanguage', language);
       
+      // 5. Check Event Status and Navigate
       const eventDocRef = doc(db, 'settings', 'event');
       const eventDocSnap = await getDoc(eventDocRef);
       
@@ -77,8 +95,8 @@ const LandingPage = () => {
         }
       }
     } catch (error) {
-      console.error("Error registering user: ", error);
-      alert("Failed to register. Please try again.");
+      console.error("Error connecting user: ", error);
+      alert("Failed to connect. Please try again.");
     } finally {
       setLoading(false);
     }

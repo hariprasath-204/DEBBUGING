@@ -22,7 +22,7 @@ const AdminDashboard = () => {
   const [variantTab, setVariantTab] = useState('cpp');
 
   // User Form State
-  const [userForm, setUserForm] = useState({ name: '', rollNo: '', language: 'cpp' });
+  const [userForm, setUserForm] = useState({ name: '', rollNo: '' });
   const [userStatus, setUserStatus] = useState('');
 
   // Event State
@@ -123,11 +123,11 @@ const AdminDashboard = () => {
     setUserStatus('Adding user...');
     try {
       await addDoc(collection(db, 'users'), {
-        name: userForm.name, rollNo: userForm.rollNo, selectedLanguage: userForm.language,
+        name: userForm.name, rollNo: userForm.rollNo, selectedLanguage: null,
         tabSwitches: 0, copyPasteCount: 0, score: 0, currentCode: '', isFinished: false, joinedAt: serverTimestamp()
       });
       setUserStatus('User added successfully!');
-      setUserForm({ name: '', rollNo: '', language: 'cpp' });
+      setUserForm({ name: '', rollNo: '' });
     } catch (err) {
       setUserStatus('Failed to add user.');
     } finally {
@@ -223,20 +223,14 @@ const AdminDashboard = () => {
       case 'users':
         return (
           <div className="glass-panel" style={{ padding: '2rem' }}>
-            <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>MANUAL USER REGISTRATION</h2>
-            <form onSubmit={handleAddUser} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '500px' }}>
-              <div><label>PARTICIPANT NAME</label><input type="text" className="input-field" value={userForm.name} onChange={(e) => setUserForm({ ...userForm, name: e.target.value })} required /></div>
-              <div><label>TEAM IDENTIFIER (LOT #)</label><input type="text" className="input-field" value={userForm.rollNo} onChange={(e) => setUserForm({ ...userForm, rollNo: e.target.value })} required /></div>
-              <div><label>SYSTEM LANGUAGE</label>
-                <select className="input-field" value={userForm.language} onChange={(e) => setUserForm({ ...userForm, language: e.target.value })} required>
-                  {langSettings.c && <option value="c">C</option>}
-                  {langSettings.cpp && <option value="cpp">C++</option>}
-                  {langSettings.java && <option value="java">Java</option>}
-                </select>
-              </div>
-              <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }}>ADD USER</button>
-              {userStatus && <p style={{ color: 'var(--accent-cyan)', marginTop: '1rem' }}>{userStatus}</p>}
-            </form>
+              <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>MANUAL USER REGISTRATION</h2>
+              <form onSubmit={handleAddUser} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '500px' }}>
+                <div><label>PARTICIPANT NAME</label><input type="text" className="input-field" value={userForm.name} onChange={(e) => setUserForm({ ...userForm, name: e.target.value })} required /></div>
+                <div><label>TEAM IDENTIFIER (LOT #)</label><input type="text" className="input-field" value={userForm.rollNo} onChange={(e) => setUserForm({ ...userForm, rollNo: e.target.value })} required /></div>
+                
+                <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }}>ADD USER</button>
+                {userStatus && <p style={{ color: 'var(--accent-cyan)', marginTop: '1rem' }}>{userStatus}</p>}
+              </form>
           </div>
         );
 
@@ -275,7 +269,7 @@ const AdminDashboard = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {['c', 'cpp', 'java'].map(lang => (
                 <div key={lang} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <button onClick={() => handleLanguageToggle(lang)} className={langSettings[lang] ? 'btn-primary' : 'btn-secondary'} style={{ width: '100px' }}>
+                  <button onClick={() => handleLanguageToggle(lang)} className={langSettings[lang] ? 'btn-primary' : 'btn-secondary'} style={{ width: '150px' }}>
                     {langSettings[lang] ? 'ENABLED' : 'DISABLED'}
                   </button>
                   <span style={{ textTransform: 'uppercase', fontSize: '1.2rem' }}>{lang === 'cpp' ? 'C++' : lang}</span>

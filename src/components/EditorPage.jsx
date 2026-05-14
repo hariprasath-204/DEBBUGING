@@ -270,7 +270,7 @@ const EditorPage = () => {
           <marquee scrollamount="8">{newsText}</marquee>
         </div>
       )}
-      <div ref={editorContainerRef} style={{ display: 'flex', flexDirection: 'column', height: isFullScreen ? '100vh' : '90vh', background: 'var(--bg-deep-navy)' }}>
+      <div ref={editorContainerRef} style={{ display: 'flex', flexDirection: 'column', height: isFullScreen ? '100vh' : '90vh' }}>
       
       {!isFullScreen && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(9, 11, 26, 0.9)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
