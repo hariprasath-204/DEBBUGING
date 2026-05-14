@@ -4,19 +4,19 @@ import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from 'firebase/firestore';
 
 const LandingPage = () => {
+  const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState('');
   const [rollNo, setRollNo] = useState('');
   const [language, setLanguage] = useState('cpp');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleStart = async (e) => {
+  const handleInitiateSession = async (e) => {
     e.preventDefault();
     if (!name || !rollNo || !language) return;
     
     setLoading(true);
     try {
-      // Create user entry
       const userRef = await addDoc(collection(db, 'users'), {
         name,
         rollNo,
@@ -29,17 +29,14 @@ const LandingPage = () => {
         joinedAt: serverTimestamp()
       });
       
-      // Store user ID in local storage to keep track of the current session
       localStorage.setItem('debugEventUserId', userRef.id);
       localStorage.setItem('debugEventUserName', name);
       localStorage.setItem('debugEventLanguage', language);
       
-      // Fetch Event Status
       const eventDocRef = doc(db, 'settings', 'event');
       const eventDocSnap = await getDoc(eventDocRef);
       
       if (!eventDocSnap.exists()) {
-        // Initialize if doesn't exist
         await setDoc(eventDocRef, { status: 'waiting', endTime: null, durationMinutes: 60 });
         navigate('/waiting');
       } else {
@@ -52,7 +49,6 @@ const LandingPage = () => {
           navigate('/waiting');
         }
       }
-      
     } catch (error) {
       console.error("Error registering user: ", error);
       alert("Failed to register. Please try again.");
@@ -62,62 +58,85 @@ const LandingPage = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
-      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <h2 style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>COLLEGE NAME</h2>
-        <h3 style={{ fontSize: '1rem', color: 'var(--accent-pink)', marginBottom: '2rem' }}>DEPARTMENT OF COMPUTER APPLICATIONS</h3>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '90vh', position: 'relative' }}>
+      
+      {/* Step 1: Main Title Screen */}
+      <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'opacity 0.3s', opacity: showModal ? 0.2 : 1, pointerEvents: showModal ? 'none' : 'auto' }}>
         
-        <h1 className="glow-text-cyan" style={{ fontSize: '4rem', margin: '1rem 0' }}>DEBUGGING</h1>
-        <h1 className="glow-text-pink" style={{ fontSize: '3rem', margin: '0' }}>CHALLENGE</h1>
+        <div style={{ border: '1px solid var(--accent-orange)', padding: '1.5rem 3rem', marginBottom: '4rem', background: 'rgba(10, 7, 16, 0.5)' }}>
+          <h2 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', marginBottom: '0.5rem', letterSpacing: '4px' }}>AYYA NADAR JANAKI AMMAL COLLEGE</h2>
+          <h3 style={{ fontSize: '1rem', color: 'var(--accent-orange)', letterSpacing: '3px' }}>DEPARTMENT OF COMPUTER APPLICATIONS</h3>
+        </div>
+        
+        <h1 className="gradient-title" style={{ fontSize: '6rem', margin: '0', lineHeight: '1.1', fontFamily: 'var(--font-heading)' }}>SOFTTECH</h1>
+        <h1 className="glow-text-yellow" style={{ fontSize: '4.5rem', margin: '0 0 2rem 0', letterSpacing: '10px' }}>ASSOCIATION</h1>
+        
+        <h4 style={{ color: 'var(--text-secondary)', letterSpacing: '8px', fontSize: '1.2rem', marginBottom: '4rem', textTransform: 'uppercase' }}>
+          THE ULTIMATE DEBUGGING CHALLENGE
+        </h4>
+
+        <button className="btn-primary" onClick={() => setShowModal(true)}>
+          &gt; START_SYSTEM
+        </button>
       </div>
 
-      <div className="glass-panel" style={{ padding: '2rem', width: '100%', maxWidth: '400px' }}>
-        <form onSubmit={handleStart} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--accent-cyan)' }}>NAME</label>
-            <input 
-              type="text" 
-              className="input-field" 
-              placeholder="Enter your name" 
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required 
-            />
+      {/* Step 2: System Access Modal */}
+      {showModal && (
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div className="glass-panel" style={{ padding: '3rem', width: '100%', maxWidth: '500px', textAlign: 'center' }}>
+            <h2 className="glow-text-orange" style={{ fontSize: '2rem', marginBottom: '2.5rem' }}>SYSTEM ACCESS</h2>
+            
+            <form onSubmit={handleInitiateSession} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'left' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--accent-orange)', fontSize: '0.9rem', letterSpacing: '1px' }}>PARTICIPANT NAME</label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  placeholder="Enter Name" 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required 
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--accent-orange)', fontSize: '0.9rem', letterSpacing: '1px' }}>TEAM IDENTIFIER (LOT #)</label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  placeholder="# 00" 
+                  value={rollNo}
+                  onChange={(e) => setRollNo(e.target.value)}
+                  required 
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--accent-orange)', fontSize: '0.9rem', letterSpacing: '1px' }}>SYSTEM LANGUAGE</label>
+                <select 
+                  className="input-field" 
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  required
+                >
+                  <option value="c">C</option>
+                  <option value="cpp">C++</option>
+                  <option value="java">Java</option>
+                </select>
+              </div>
+              
+              <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '1.5rem', background: '#25110E', borderColor: '#3A211D', color: 'var(--accent-orange)' }}>
+                {loading ? 'CONNECTING...' : 'INITIATE_SESSION'}
+              </button>
+            </form>
+
+            <button onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', marginTop: '2rem', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: '0.9rem' }}>
+              [ ESCAPE_SEQUENCE ]
+            </button>
           </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--accent-pink)' }}>ROLL NO / LOT ID</label>
-            <input 
-              type="text" 
-              className="input-field" 
-              placeholder="Enter your roll number" 
-              value={rollNo}
-              onChange={(e) => setRollNo(e.target.value)}
-              required 
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>SELECT LANGUAGE</label>
-            <select 
-              className="input-field" 
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              required
-              style={{ background: 'var(--bg-deep-navy)' }}
-            >
-              <option value="c">C</option>
-              <option value="cpp">C++</option>
-              <option value="java">Java</option>
-            </select>
-          </div>
-          
-          <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '1rem' }}>
-            {loading ? 'INITIALIZING...' : '> START_SYSTEM'}
-          </button>
-        </form>
-      </div>
+        </div>
+      )}
       
-      <p style={{ marginTop: '3rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-        © 2026 College Name. Dept. of Computer Applications. All rights reserved.
+      <p style={{ position: 'absolute', bottom: '-20px', color: 'var(--text-secondary)', fontSize: '0.8rem', letterSpacing: '1px' }}>
+        © 2026 Ayya Nadar Janaki Ammal College. Dept. of Computer Applications. All rights reserved.
       </p>
     </div>
   );

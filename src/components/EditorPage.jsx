@@ -166,10 +166,10 @@ const EditorPage = () => {
       if (lockedLanguage === 'c') compiler = 'gcc-head-c';
       if (lockedLanguage === 'java') compiler = 'openjdk-head';
 
-      const response = await axios.post('https://wandbox.org/api/compile.json', {
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const response = await axios.post(`${baseUrl}/api/compile`, {
         code: codeRef.current,
-        compiler: compiler,
-        save: false
+        compiler: compiler
       });
 
       const result = response.data.program_message || response.data.compiler_error || "No output";
