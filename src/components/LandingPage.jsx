@@ -63,13 +63,13 @@ const LandingPage = () => {
       {/* Step 1: Main Title Screen */}
       <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'opacity 0.3s', opacity: showModal ? 0.2 : 1, pointerEvents: showModal ? 'none' : 'auto' }}>
         
-        <div style={{ border: '1px solid var(--accent-orange)', padding: '1.5rem 3rem', marginBottom: '4rem', background: 'rgba(10, 7, 16, 0.5)' }}>
+        <div style={{ border: '1px solid var(--accent-cyan)', padding: '1.5rem 3rem', marginBottom: '4rem', background: 'rgba(10, 7, 16, 0.5)' }}>
           <h2 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', marginBottom: '0.5rem', letterSpacing: '4px' }}>AYYA NADAR JANAKI AMMAL COLLEGE</h2>
-          <h3 style={{ fontSize: '1rem', color: 'var(--accent-orange)', letterSpacing: '3px' }}>DEPARTMENT OF COMPUTER APPLICATIONS</h3>
+          <h3 style={{ fontSize: '1rem', color: 'var(--accent-cyan)', letterSpacing: '3px' }}>DEPARTMENT OF COMPUTER APPLICATIONS</h3>
         </div>
         
         <h1 className="gradient-title" style={{ fontSize: '6rem', margin: '0', lineHeight: '1.1', fontFamily: 'var(--font-heading)' }}>SOFTTECH</h1>
-        <h1 className="glow-text-yellow" style={{ fontSize: '4.5rem', margin: '0 0 2rem 0', letterSpacing: '10px' }}>ASSOCIATION</h1>
+        <h1 className="glow-text-magenta" style={{ fontSize: '4.5rem', margin: '0 0 2rem 0', letterSpacing: '10px' }}>ASSOCIATION</h1>
         
         <h4 style={{ color: 'var(--text-secondary)', letterSpacing: '8px', fontSize: '1.2rem', marginBottom: '4rem', textTransform: 'uppercase' }}>
           THE ULTIMATE DEBUGGING CHALLENGE
@@ -84,11 +84,11 @@ const LandingPage = () => {
       {showModal && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div className="glass-panel" style={{ padding: '3rem', width: '100%', maxWidth: '500px', textAlign: 'center' }}>
-            <h2 className="glow-text-orange" style={{ fontSize: '2rem', marginBottom: '2.5rem' }}>SYSTEM ACCESS</h2>
+            <h2 className="glow-text-cyan" style={{ fontSize: '2rem', marginBottom: '2.5rem' }}>SYSTEM ACCESS</h2>
             
             <form onSubmit={handleInitiateSession} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'left' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--accent-orange)', fontSize: '0.9rem', letterSpacing: '1px' }}>PARTICIPANT NAME</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--accent-cyan)', fontSize: '0.9rem', letterSpacing: '1px' }}>PARTICIPANT NAME</label>
                 <input 
                   type="text" 
                   className="input-field" 
@@ -99,7 +99,7 @@ const LandingPage = () => {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--accent-orange)', fontSize: '0.9rem', letterSpacing: '1px' }}>TEAM IDENTIFIER (LOT #)</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--accent-cyan)', fontSize: '0.9rem', letterSpacing: '1px' }}>TEAM IDENTIFIER (LOT #)</label>
                 <input 
                   type="text" 
                   className="input-field" 
@@ -110,7 +110,7 @@ const LandingPage = () => {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--accent-orange)', fontSize: '0.9rem', letterSpacing: '1px' }}>SYSTEM LANGUAGE</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--accent-cyan)', fontSize: '0.9rem', letterSpacing: '1px' }}>SYSTEM LANGUAGE</label>
                 <select 
                   className="input-field" 
                   value={language}
@@ -123,7 +123,7 @@ const LandingPage = () => {
                 </select>
               </div>
               
-              <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '1.5rem', background: '#25110E', borderColor: '#3A211D', color: 'var(--accent-orange)' }}>
+              <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '1.5rem', background: '#091A40', borderColor: '#1A246B', color: 'var(--accent-cyan)' }}>
                 {loading ? 'CONNECTING...' : 'INITIATE_SESSION'}
               </button>
             </form>
