@@ -37,7 +37,7 @@ app.post('/api/compile', async (req, res) => {
 app.use(express.static(path.join(__dirname, '../dist')));
 
 // Fallback for SPA routing
-app.get('*', (req, res) => {
+app.get(/^(.*)$/, (req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
