@@ -25,6 +25,7 @@ const EditorPage = () => {
   const lockedLanguage = localStorage.getItem('debugEventLanguage') || 'cpp'; // Default fallback
 
   const [violations, setViolations] = useState({ tabSwitches: 0, copyPasteCount: 0 });
+  const [fullscreenRequired, setFullscreenRequired] = useState(true);
 
   const cheatingRef = useRef({ tabSwitches: 0, copyPasteCount: 0 });
   const editorContainerRef = useRef(null);
@@ -84,6 +85,8 @@ const EditorPage = () => {
     const unsubEvent = onSnapshot(eventDocRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
+        // Read fullscreen requirement setting
+        if (data.fullscreenRequired !== undefined) setFullscreenRequired(data.fullscreenRequired);
         if (data.status === 'ended') {
           // Event over -> force submit
           handleSubmit(true);
@@ -147,7 +150,8 @@ const EditorPage = () => {
 
     const handleFullscreenChange = () => {
       setIsFullScreen(!!document.fullscreenElement);
-      if (!document.fullscreenElement && !ignoreCheatRef.current) {
+      // Only flag as violation if fullscreen is required AND not intentional exit
+      if (!document.fullscreenElement && !ignoreCheatRef.current && fullscreenRequired) {
         cheatingRef.current.tabSwitches += 1;
         setPopup({ message: "WARNING: Exiting Fullscreen is recorded as a violation!", type: "warning" });
         if (userId) updateDoc(doc(db, 'users', userId), { tabSwitches: increment(1) });
@@ -361,7 +365,7 @@ const EditorPage = () => {
       {popup && <PopupMessage message={popup.message} type={popup.type} onClose={() => setPopup(null)} />}
       <div ref={editorContainerRef} style={{ display: 'flex', flexDirection: 'column', height: isFullScreen ? '100vh' : '90vh' }}>
       
-      {!isFullScreen && (
+      {!isFullScreen && fullscreenRequired && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(9, 11, 26, 0.9)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
             <h2 className="glow-text-pink" style={{ marginBottom: '2rem' }}>FULLSCREEN REQUIRED</h2>
