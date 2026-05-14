@@ -31,7 +31,15 @@ const Leaderboard = () => {
             return bCleared - aCleared; // Highest cleared errors first
           }
           
-          return b.score - a.score; // Tie-breaker: Score
+          if (b.score !== a.score) {
+            return b.score - a.score; // Tie-breaker 1: Score
+          }
+
+          // Tie-breaker 2: Time taken (faster is better)
+          // Default to Infinity if they haven't submitted yet
+          const aTime = a.elapsedTimeMs || Infinity;
+          const bTime = b.elapsedTimeMs || Infinity;
+          return aTime - bTime;
         });
 
         setUsers(fetchedUsers);
@@ -62,6 +70,7 @@ const Leaderboard = () => {
               <th style={{ padding: '1rem' }}>ROLL NO</th>
               <th style={{ padding: '1rem' }}>ERRORS FIXED</th>
               <th style={{ padding: '1rem' }}>SCORE</th>
+              <th style={{ padding: '1rem' }}>TIME TAKEN</th>
               <th style={{ padding: '1rem' }}>WARNINGS</th>
               <th style={{ padding: '1rem' }}>STATUS</th>
             </tr>
@@ -93,6 +102,15 @@ const Leaderboard = () => {
                       <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>{user.clearedErrors || 0}</span> / {user.totalErrors || 0}
                     </td>
                     <td style={{ padding: '1rem' }}>{user.score}</td>
+                    <td style={{ padding: '1rem' }}>
+                      {user.elapsedTimeMs ? (
+                        <span style={{ color: 'var(--text-secondary)' }}>
+                          {Math.floor(user.elapsedTimeMs / 60000)}m {Math.floor((user.elapsedTimeMs % 60000) / 1000)}s
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--text-secondary)' }}>N/A</span>
+                      )}
+                    </td>
                     <td style={{ padding: '1rem' }}>
                       Tab Switches: {user.tabSwitches || 0} <br/>
                       Copy/Paste: {user.copyPasteCount || 0}

@@ -32,6 +32,7 @@ const EditorPage = () => {
   const codeRef = useRef(code);
   const errorStatsRef = useRef({ total: 0, cleared: 0, remaining: 0, currentLines: 0, targetLines: 0 });
   const ignoreCheatRef = useRef(false);
+  const eventStartTimeRef = useRef(null);
 
   // Sync state to ref for auto-save and submission closures
   useEffect(() => {
@@ -88,6 +89,7 @@ const EditorPage = () => {
           // Event over -> force submit
           handleSubmit(true);
         } else if (data.status === 'active' && data.endTime) {
+          if (data.startTime) eventStartTimeRef.current = data.startTime;
           // Setup timer
           const end = new Date(data.endTime).getTime();
           const timerInterval = setInterval(() => {
@@ -247,11 +249,17 @@ const EditorPage = () => {
       score = -9999;
     }
 
+    let elapsedTimeMs = 0;
+    if (eventStartTimeRef.current) {
+      elapsedTimeMs = new Date().getTime() - eventStartTimeRef.current;
+    }
+
     try {
       await updateDoc(doc(db, 'users', userId), {
         score: increment(score),
         isFinished: true,
-        finalCode: codeRef.current
+        finalCode: codeRef.current,
+        elapsedTimeMs: elapsedTimeMs
       });
 
       if (isAutoSubmit) {

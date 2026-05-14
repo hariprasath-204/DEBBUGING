@@ -201,8 +201,14 @@ const AdminDashboard = () => {
   const handleStartEvent = async () => {
     if (window.confirm(`Start event for ${durationMinutes} minutes? All users in waiting room will enter the IDE.`)) {
       setIsLoading(true);
-      const endTime = new Date(new Date().getTime() + durationMinutes * 60000);
-      await updateDoc(doc(db, 'settings', 'event'), { status: 'active', durationMinutes: parseInt(durationMinutes), endTime: endTime.toISOString() });
+      const now = new Date().getTime();
+      const endTime = new Date(now + durationMinutes * 60000);
+      await updateDoc(doc(db, 'settings', 'event'), { 
+        status: 'active', 
+        durationMinutes: parseInt(durationMinutes), 
+        startTime: now,
+        endTime: endTime.toISOString() 
+      });
       setIsLoading(false);
     }
   };
@@ -232,11 +238,12 @@ const AdminDashboard = () => {
             selectedQuestionId: null,
             clearedErrors: 0,
             remainingErrors: 0,
-            totalErrors: 0
+            totalErrors: 0,
+            elapsedTimeMs: 0
           }));
         });
         await Promise.all(updatePromises);
-        await updateDoc(doc(db, 'settings', 'event'), { status: 'waiting', endTime: null });
+        await updateDoc(doc(db, 'settings', 'event'), { status: 'waiting', startTime: null, endTime: null });
         showPopup("Round has been reset successfully.", "success");
       } catch (err) {
         console.error(err);
