@@ -118,15 +118,38 @@ const LandingPage = () => {
       {/* Step 1: Main Title Screen */}
       <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'opacity 0.3s', opacity: showModal ? 0.2 : 1, pointerEvents: showModal ? 'none' : 'auto' }}>
         
-        <div style={{ border: '1px solid var(--accent-cyan)', padding: '1.5rem 3rem', marginBottom: '4rem', background: 'rgba(10, 7, 16, 0.5)' }}>
-          <h2 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', marginBottom: '0.5rem', letterSpacing: '4px' }}>AYYA NADAR JANAKI AMMAL COLLEGE</h2>
-          <h3 style={{ fontSize: '1rem', color: 'var(--accent-cyan)', letterSpacing: '3px' }}>DEPARTMENT OF COMPUTER APPLICATIONS</h3>
+        <div style={{
+          border: '1px solid var(--accent-cyan)',
+          borderTop: '3px solid var(--accent-cyan)',
+          padding: '1.2rem 2.5rem',
+          marginBottom: '2rem',
+          background: 'rgba(0, 240, 255, 0.04)',
+          boxShadow: '0 0 20px rgba(0,240,255,0.1)',
+          borderRadius: '4px'
+        }}>
+          <h2 style={{
+            fontSize: '1rem',
+            color: 'var(--text-primary)',
+            marginBottom: '0.4rem',
+            letterSpacing: '3px',
+            fontFamily: 'var(--font-body)',
+            fontWeight: '600',
+            textTransform: 'uppercase'
+          }}>Ayya Nadar Janaki Ammal College</h2>
+          <h3 style={{
+            fontSize: '0.85rem',
+            color: 'var(--accent-cyan)',
+            letterSpacing: '2px',
+            fontFamily: 'var(--font-body)',
+            fontWeight: '500',
+            textTransform: 'uppercase'
+          }}>Department of Computer Applications</h3>
         </div>
         
         <h1 className="gradient-title" style={{ fontSize: '6rem', margin: '0', lineHeight: '1.1', fontFamily: 'var(--font-heading)' }}>SOFTTECH</h1>
-        <h1 className="glow-text-magenta" style={{ fontSize: '4.5rem', margin: '0 0 2rem 0', letterSpacing: '10px' }}>ASSOCIATION</h1>
+        <h1 className="glow-text-magenta" style={{ fontSize: '4.5rem', margin: '0 0 1.5rem 0', letterSpacing: '10px' }}>ASSOCIATION</h1>
         
-        <h4 style={{ color: 'var(--text-secondary)', letterSpacing: '8px', fontSize: '1.2rem', marginBottom: '4rem', textTransform: 'uppercase' }}>
+        <h4 style={{ color: 'var(--text-secondary)', letterSpacing: '8px', fontSize: '1.1rem', marginBottom: '3rem', textTransform: 'uppercase', fontFamily: 'var(--font-body)', fontWeight: '400' }}>
           THE ULTIMATE DEBUGGING CHALLENGE
         </h4>
 
