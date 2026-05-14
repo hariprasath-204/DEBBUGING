@@ -1,7 +1,7 @@
 import React from 'react';
 import { AlertCircle, CheckCircle2, Info } from 'lucide-react';
 
-const PopupMessage = ({ message, type = 'info', onClose }) => {
+const PopupMessage = ({ message, type = 'info', onClose, onConfirm }) => {
   if (!message) return null;
 
   let borderColor = 'var(--accent-cyan)';
@@ -60,13 +60,32 @@ const PopupMessage = ({ message, type = 'info', onClose }) => {
         }}>
           {message}
         </h3>
-        <button 
-          onClick={onClose}
-          className="btn-primary" 
-          style={{ width: '100%', borderColor: borderColor, color: borderColor }}
-        >
-          ACKNOWLEDGE
-        </button>
+        {onConfirm ? (
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button 
+              onClick={onClose}
+              className="btn-secondary" 
+              style={{ flex: 1, borderColor: borderColor, color: borderColor }}
+            >
+              CANCEL
+            </button>
+            <button 
+              onClick={() => { onConfirm(); onClose(); }}
+              className="btn-primary" 
+              style={{ flex: 1, borderColor: borderColor, color: borderColor }}
+            >
+              CONFIRM
+            </button>
+          </div>
+        ) : (
+          <button 
+            onClick={onClose}
+            className="btn-primary" 
+            style={{ width: '100%', borderColor: borderColor, color: borderColor }}
+          >
+            ACKNOWLEDGE
+          </button>
+        )}
       </div>
 
       <style>

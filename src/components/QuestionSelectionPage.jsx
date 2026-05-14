@@ -71,27 +71,31 @@ const QuestionSelectionPage = () => {
     }
   };
 
-  const handleSelectQuestion = async (questionId) => {
-    if (window.confirm("Are you sure you want to select this question? You CANNOT change it later!")) {
-      setLoading(true);
-      try {
-        await updateDoc(doc(db, 'users', userId), {
-          selectedQuestionId: questionId
-        });
-        navigate(`/editor/${questionId}`);
-      } catch (err) {
-        console.error(err);
-        setPopup({ message: "Failed to lock in question.", type: "error" });
-        setLoading(false);
+  const handleSelectQuestion = (questionId) => {
+    setPopup({
+      message: "Are you sure you want to select this question? You CANNOT change it later!",
+      type: "warning",
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          await updateDoc(doc(db, 'users', userId), {
+            selectedQuestionId: questionId
+          });
+          navigate(`/editor/${questionId}`);
+        } catch (err) {
+          console.error(err);
+          setPopup({ message: "Failed to lock in question.", type: "error" });
+          setLoading(false);
+        }
       }
-    }
+    });
   };
 
   if (loading) return <LoadingOverlay isLoading={true} />;
 
   return (
     <>
-    {popup && <PopupMessage message={popup.message} type={popup.type} onClose={() => setPopup(null)} />}
+    {popup && <PopupMessage message={popup.message} type={popup.type} onClose={() => setPopup(null)} onConfirm={popup.onConfirm} />}
     <div style={{ minHeight: '100vh', background: 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
       
       {!isFullScreen ? (
