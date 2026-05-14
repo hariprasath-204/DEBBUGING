@@ -3,12 +3,16 @@ import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc, updateDoc, onSnapshot, deleteDoc, getDocs } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import LoadingOverlay from './LoadingOverlay';
+import PopupMessage from './PopupMessage';
 import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2 } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('questions');
   const [isLoading, setIsLoading] = useState(false);
+  const [popup, setPopup] = useState(null);
   
+  const showPopup = (message, type = 'info') => setPopup({ message, type });
+
   // Question Form State
   const [formData, setFormData] = useState({
     title: '', description: '', expectedOutput: '', points: 100, phase: 'easy',
@@ -113,6 +117,7 @@ const AdminDashboard = () => {
         title: formData.title, description: formData.description, expectedOutput: formData.expectedOutput,
         points: parseInt(formData.points), phase: formData.phase, variants: processedVariants, createdAt: serverTimestamp()
       });
+      showPopup('Question added successfully!', 'success');
       setStatus('Question added successfully!');
       setFormData({
         title: '', description: '', expectedOutput: '', points: 100, phase: 'easy',
@@ -120,6 +125,7 @@ const AdminDashboard = () => {
       });
     } catch (error) {
       console.error(error);
+      showPopup('Error adding question.', 'error');
       setStatus('Error adding question.');
     } finally {
       setIsLoading(false);
@@ -135,9 +141,11 @@ const AdminDashboard = () => {
         name: userForm.name, rollNo: userForm.rollNo, selectedLanguage: null,
         tabSwitches: 0, copyPasteCount: 0, score: 0, currentCode: '', isFinished: false, joinedAt: serverTimestamp()
       });
+      showPopup('User added successfully!', 'success');
       setUserStatus('User added successfully!');
       setUserForm({ name: '', rollNo: '' });
     } catch (err) {
+      showPopup('Failed to add user.', 'error');
       setUserStatus('Failed to add user.');
     } finally {
       setIsLoading(false);
@@ -166,7 +174,7 @@ const AdminDashboard = () => {
     setIsLoading(true);
     await setDoc(doc(db, 'settings', 'news'), { text: newsText });
     setIsLoading(false);
-    alert("News broadcasted successfully!");
+    showPopup("News broadcasted successfully!", "success");
   };
 
   const handleLanguageToggle = async (lang) => {
@@ -185,10 +193,10 @@ const AdminDashboard = () => {
         usersSnap.forEach(docSnap => deletePromises.push(deleteDoc(doc(db, 'users', docSnap.id))));
         await Promise.all(deletePromises);
         await setDoc(doc(db, 'settings', 'event'), { status: 'waiting', endTime: null, durationMinutes: 60 });
-        alert("All user data has been wiped.");
+        showPopup("All user data has been wiped.", "warning");
       } catch (err) {
         console.error(err);
-        alert("Failed to reset data.");
+        showPopup("Failed to reset data.", "error");
       } finally {
         setIsLoading(false);
       }
@@ -427,6 +435,7 @@ const AdminDashboard = () => {
   return (
     <>
       <LoadingOverlay isLoading={isLoading} />
+      {popup && <PopupMessage message={popup.message} type={popup.type} onClose={() => setPopup(null)} />}
       <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
         
         {/* Sidebar Navigation */}

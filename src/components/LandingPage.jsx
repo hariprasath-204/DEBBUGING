@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, serverTimestamp, doc, getDoc, setDoc, onSnapshot, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import LoadingOverlay from './LoadingOverlay';
+import PopupMessage from './PopupMessage';
 
 const LandingPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -12,6 +13,7 @@ const LandingPage = () => {
   const [loading, setLoading] = useState(false);
   const [langSettings, setLangSettings] = useState({ c: true, cpp: true, java: true });
   const [newsText, setNewsText] = useState('');
+  const [popup, setPopup] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,7 +52,7 @@ const LandingPage = () => {
       const querySnapshot = await getDocs(q);
       
       if (querySnapshot.empty) {
-        alert("Invalid Lot #! Please contact the Admin to register your Lot #.");
+        setPopup({ message: "Invalid Lot #! Please contact the Admin to register your Lot #.", type: "error" });
         setLoading(false);
         return;
       }
@@ -59,7 +61,7 @@ const LandingPage = () => {
       const userDocSnap = querySnapshot.docs.find(d => d.data().name.toLowerCase() === name.toLowerCase());
       
       if (!userDocSnap) {
-        alert("Lot # found, but Participant Name does not match. Please verify.");
+        setPopup({ message: "Lot # found, but Participant Name does not match. Please verify.", type: "error" });
         setLoading(false);
         return;
       }
@@ -96,7 +98,7 @@ const LandingPage = () => {
       }
     } catch (error) {
       console.error("Error connecting user: ", error);
-      alert("Failed to connect. Please try again.");
+      setPopup({ message: "Failed to connect. Please try again.", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -105,6 +107,7 @@ const LandingPage = () => {
   return (
     <>
       <LoadingOverlay isLoading={loading} />
+      {popup && <PopupMessage message={popup.message} type={popup.type} onClose={() => setPopup(null)} />}
       {newsText && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', background: 'var(--accent-magenta)', color: 'var(--text-primary)', padding: '5px 0', zIndex: 9999, fontFamily: 'var(--font-mono)', fontWeight: 'bold' }}>
           <marquee scrollamount="8">{newsText}</marquee>

@@ -5,6 +5,7 @@ import axios from 'axios';
 import { db } from '../firebase';
 import { doc, getDoc, getDocs, collection, updateDoc, increment, onSnapshot } from 'firebase/firestore';
 import LoadingOverlay from './LoadingOverlay';
+import PopupMessage from './PopupMessage';
 
 const EditorPage = () => {
   const { questionId } = useParams();
@@ -17,6 +18,7 @@ const EditorPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [popup, setPopup] = useState(null);
   
   const userId = localStorage.getItem('debugEventUserId');
   const userName = localStorage.getItem('debugEventUserName');
@@ -128,7 +130,7 @@ const EditorPage = () => {
     const handleVisibilityChange = async () => {
       if (document.hidden) {
         cheatingRef.current.tabSwitches += 1;
-        alert("WARNING: Tab switching detected! This is recorded as a cheating violation.");
+        setPopup({ message: "WARNING: Tab switching detected! This is recorded as a cheating violation.", type: "warning" });
         if (userId) {
           await updateDoc(doc(db, 'users', userId), { tabSwitches: increment(1) });
         }
@@ -137,7 +139,7 @@ const EditorPage = () => {
 
     const handleCopyPaste = async (e) => {
       cheatingRef.current.copyPasteCount += 1;
-      alert("WARNING: Copy/Pasting is strictly prohibited!");
+      setPopup({ message: "WARNING: Copy/Pasting is strictly prohibited!", type: "warning" });
       e.preventDefault();
       if (userId) {
         await updateDoc(doc(db, 'users', userId), { copyPasteCount: increment(1) });
@@ -148,7 +150,7 @@ const EditorPage = () => {
       setIsFullScreen(!!document.fullscreenElement);
       if (!document.fullscreenElement) {
         cheatingRef.current.tabSwitches += 1;
-        alert("WARNING: Exiting Fullscreen is recorded as a violation!");
+        setPopup({ message: "WARNING: Exiting Fullscreen is recorded as a violation!", type: "warning" });
         if (userId) updateDoc(doc(db, 'users', userId), { tabSwitches: increment(1) });
       }
     };
@@ -249,17 +251,17 @@ const EditorPage = () => {
       });
 
       if (isAutoSubmit) {
-        alert("TIME IS UP! Your code has been automatically submitted.");
+        setPopup({ message: "TIME IS UP! Your code has been automatically submitted.", type: "warning" });
         if (document.fullscreenElement) await document.exitFullscreen();
-        navigate('/timer-finished');
+        setTimeout(() => navigate('/timer-finished'), 2000);
       } else {
-        alert(isOutputCorrect ? `Success! Output matched. Score awarded: ${score}` : 'Output did not match expected output. Code Submitted.');
+        setPopup({ message: isOutputCorrect ? `Success! Output matched. Score awarded: ${score}` : 'Output did not match expected output. Code Submitted.', type: isOutputCorrect ? 'success' : 'warning' });
         if (document.fullscreenElement) await document.exitFullscreen();
-        navigate('/leaderboard');
+        setTimeout(() => navigate('/leaderboard'), 2000);
       }
     } catch (err) {
       console.error("Error submitting:", err);
-      alert("Submission failed.");
+      setPopup({ message: "Submission failed.", type: "error" });
       setIsSubmitting(false);
     }
   };
@@ -314,6 +316,7 @@ const EditorPage = () => {
   return (
     <>
       <LoadingOverlay isLoading={!question || isCompiling || isSubmitting} />
+      {popup && <PopupMessage message={popup.message} type={popup.type} onClose={() => setPopup(null)} />}
       {newsText && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', background: 'var(--accent-magenta)', color: 'var(--text-primary)', padding: '5px 0', zIndex: 99999, fontFamily: 'var(--font-mono)', fontWeight: 'bold' }}>
           <marquee scrollamount="8">{newsText}</marquee>

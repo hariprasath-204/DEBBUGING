@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, doc, getDoc, updateDoc, onSnapshot, query, where, getDocs } from 'firebase/firestore';
 import LoadingOverlay from './LoadingOverlay';
+import PopupMessage from './PopupMessage';
 import { Code, Maximize } from 'lucide-react';
 
 const QuestionSelectionPage = () => {
@@ -10,6 +11,7 @@ const QuestionSelectionPage = () => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [questions, setQuestions] = useState({ easy: [], medium: [], hard: [] });
   const [selectedPhase, setSelectedPhase] = useState(null);
+  const [popup, setPopup] = useState(null);
   
   const navigate = useNavigate();
   const userId = localStorage.getItem('debugEventUserId');
@@ -65,7 +67,7 @@ const QuestionSelectionPage = () => {
       await document.documentElement.requestFullscreen();
       setIsFullScreen(true);
     } catch (err) {
-      alert('Failed to enter full screen. Please allow full screen permissions.');
+      setPopup({ message: 'Failed to enter full screen. Please allow full screen permissions.', type: 'error' });
     }
   };
 
@@ -79,7 +81,7 @@ const QuestionSelectionPage = () => {
         navigate(`/editor/${questionId}`);
       } catch (err) {
         console.error(err);
-        alert("Failed to lock in question.");
+        setPopup({ message: "Failed to lock in question.", type: "error" });
         setLoading(false);
       }
     }
@@ -88,7 +90,9 @@ const QuestionSelectionPage = () => {
   if (loading) return <LoadingOverlay isLoading={true} />;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-deep-navy)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+    <>
+    {popup && <PopupMessage message={popup.message} type={popup.type} onClose={() => setPopup(null)} />}
+    <div style={{ minHeight: '100vh', background: 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
       
       {!isFullScreen ? (
         <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', maxWidth: '600px' }}>
@@ -152,6 +156,7 @@ const QuestionSelectionPage = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 
