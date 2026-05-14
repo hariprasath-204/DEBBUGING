@@ -15,6 +15,7 @@ const QuestionSelectionPage = () => {
   
   const navigate = useNavigate();
   const userId = localStorage.getItem('debugEventUserId');
+  const lockedLanguage = localStorage.getItem('debugEventLanguage') || 'cpp';
 
   useEffect(() => {
     if (!userId) {
@@ -54,6 +55,10 @@ const QuestionSelectionPage = () => {
       qSnap.forEach(doc => {
         const data = doc.data();
         if (data.phase && qData[data.phase]) {
+          // Only count this question if it has a variant for the user's language
+          const hasVariant = data.variants && data.variants[lockedLanguage] && data.variants[lockedLanguage].initialCode;
+          if (!hasVariant) return; // skip questions without the user's language
+
           totalQuestionsCount++;
           // Only add to the list if they haven't completed it yet
           if (!completedQs.includes(doc.id)) {
