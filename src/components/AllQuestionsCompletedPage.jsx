@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { doc, onSnapshot, getDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 
-const TimerFinishedPage = () => {
+const AllQuestionsCompletedPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-
     // Listen for admin ending the event -> go to Thank You page
     const unsub = onSnapshot(doc(db, "settings", "event"), (snap) => {
       if (snap.exists() && snap.data().status === 'ended') {
@@ -16,13 +15,13 @@ const TimerFinishedPage = () => {
     });
 
     return () => unsub();
-  }, [navigate, userId]);
+  }, [navigate]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center' }}>
       <div className="glass-panel" style={{ padding: '3rem', maxWidth: '600px' }}>
-        <h2 className="glow-text-cyan" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>TIME IS UP!</h2>
-        <h3 style={{ color: 'var(--text-primary)', marginBottom: '2rem', fontSize: '1.2rem' }}>YOUR CODE HAS BEEN AUTO-SUBMITTED</h3>
+        <h2 className="glow-text-cyan" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>ALL MISSIONS ACCOMPLISHED!</h2>
+        <h3 style={{ color: 'var(--text-primary)', marginBottom: '2rem', fontSize: '1.2rem' }}>YOU HAVE SUCCESSFULLY COMPLETED ALL TASKS</h3>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
           Please wait for the admin to officially end the event and announce the final results.
         </p>
@@ -42,4 +41,4 @@ const TimerFinishedPage = () => {
   );
 };
 
-export default TimerFinishedPage;
+export default AllQuestionsCompletedPage;

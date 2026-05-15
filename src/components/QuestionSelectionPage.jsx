@@ -36,10 +36,6 @@ const QuestionSelectionPage = () => {
       let completedQs = [];
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        if (userData.isFinished) {
-          navigate('/timer-finished');
-          return;
-        }
         if (userData.selectedQuestionId) {
           navigate(`/editor/${userData.selectedQuestionId}`);
           return;
@@ -65,10 +61,19 @@ const QuestionSelectionPage = () => {
         }
       });
 
+      if (userSnap.exists() && userSnap.data().isFinished) {
+        if (totalQuestionsCount > 0 && completedQs.length >= totalQuestionsCount) {
+          navigate('/all-completed');
+        } else {
+          navigate('/timer-finished');
+        }
+        return;
+      }
+
       if (totalQuestionsCount > 0 && completedQs.length >= totalQuestionsCount) {
         // User has completed all available questions
         await updateDoc(doc(db, 'users', userId), { isFinished: true });
-        navigate('/timer-finished');
+        navigate('/all-completed');
         return;
       }
 

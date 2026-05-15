@@ -8,6 +8,7 @@ import WaitingPage from './components/WaitingPage';
 import TimerFinishedPage from './components/TimerFinishedPage';
 import ThankYouPage from './components/ThankYouPage';
 import QuestionSelectionPage from './components/QuestionSelectionPage';
+import AllQuestionsCompletedPage from './components/AllQuestionsCompletedPage';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/selection" element={<QuestionSelectionPage />} />
           <Route path="/editor/:questionId" element={<EditorPage />} />
           <Route path="/timer-finished" element={<TimerFinishedPage />} />
+          <Route path="/all-completed" element={<AllQuestionsCompletedPage />} />
           <Route path="/thank-you" element={<ThankYouPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
