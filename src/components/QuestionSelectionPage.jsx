@@ -55,8 +55,9 @@ const QuestionSelectionPage = () => {
       qSnap.forEach(doc => {
         const data = doc.data();
         if (data.phase && qData[data.phase]) {
-          // Only count this question if it has a variant for the user's language
-          const hasVariant = data.variants && data.variants[lockedLanguage] && data.variants[lockedLanguage].initialCode;
+          // Only count this question if it has ANY data for the user's language
+          const variant = data.variants && data.variants[lockedLanguage];
+          const hasVariant = variant && (variant.initialCode !== '' || variant.correctCode !== '' || variant.errorLines !== '');
           if (!hasVariant) return; // skip questions without the user's language
 
           totalQuestionsCount++;

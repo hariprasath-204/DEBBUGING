@@ -17,9 +17,15 @@ const TimerFinishedPage = () => {
 
       if (userSnap.exists()) {
         const completed = userSnap.data().completedQuestions || [];
+        const lockedLanguage = localStorage.getItem('debugEventLanguage') || 'cpp';
         let totalQs = 0;
         qSnap.forEach(d => {
-          if (d.data().phase) totalQs++;
+          const data = d.data();
+          if (data.phase) {
+            const variant = data.variants && data.variants[lockedLanguage];
+            const hasVariant = variant && (variant.initialCode !== '' || variant.correctCode !== '' || variant.errorLines !== '');
+            if (hasVariant) totalQs++;
+          }
         });
 
         if (totalQs > 0 && completed.length >= totalQs) {
