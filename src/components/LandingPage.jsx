@@ -173,8 +173,7 @@ const LandingPage = () => {
         paddingBottom: '10px',
       }}>
 
-        {/* Spacer top */}
-        <div style={{ flex: '0 0 0' }} />
+
 
         {/* Main hero — centered in remaining space */}
         <div style={{
@@ -193,19 +192,19 @@ const LandingPage = () => {
             borderTop: '2px solid var(--accent-cyan)',
             padding: '0.75rem 2.4rem',
             marginBottom: '1.4rem',
-            background: 'rgba(0,10,30,0.75)',
+            background: 'transparent',
             boxShadow: '0 0 22px rgba(0,240,255,0.15)',
             borderRadius: '3px',
           }}>
             <p style={{
-              fontSize: '0.92rem', color: 'var(--text-primary)', margin: 0,
+              fontSize: '1.15rem', color: 'var(--text-primary)', margin: 0,
               letterSpacing: '3px', fontFamily: 'var(--font-heading)',
               fontWeight: '700', textTransform: 'uppercase'
             }}>
               Ayya Nadar Janaki Ammal College
             </p>
             <p style={{
-              fontSize: '0.78rem', color: 'var(--accent-cyan)', margin: '3px 0 0 0',
+              fontSize: '0.95rem', color: 'var(--accent-cyan)', margin: '4px 0 0 0',
               letterSpacing: '2px', fontFamily: 'var(--font-heading)',
               fontWeight: '500', textTransform: 'uppercase'
             }}>
