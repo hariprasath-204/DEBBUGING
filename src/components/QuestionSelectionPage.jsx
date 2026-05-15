@@ -4,11 +4,11 @@ import { db } from '../firebase';
 import { collection, doc, getDoc, updateDoc, onSnapshot, query, where, getDocs } from 'firebase/firestore';
 import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
-import { Code, Maximize } from 'lucide-react';
+import { Code } from 'lucide-react';
 
 const QuestionSelectionPage = () => {
   const [loading, setLoading] = useState(true);
-  const [isFullScreen, setIsFullScreen] = useState(false);
+
   const [questions, setQuestions] = useState({ easy: [], medium: [], hard: [] });
   const [selectedPhase, setSelectedPhase] = useState(null);
   const [popup, setPopup] = useState(null);
@@ -80,24 +80,7 @@ const QuestionSelectionPage = () => {
 
     checkState();
 
-    const handleFullScreenChange = () => {
-      setIsFullScreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullScreenChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullScreenChange);
-    };
   }, [navigate, userId]);
-
-  const enterFullScreen = async () => {
-    try {
-      await document.documentElement.requestFullscreen();
-      setIsFullScreen(true);
-    } catch (err) {
-      setPopup({ message: 'Failed to enter full screen. Please allow full screen permissions.', type: 'error' });
-    }
-  };
 
   const handleSelectQuestion = (questionId) => {
     setPopup({
@@ -126,15 +109,7 @@ const QuestionSelectionPage = () => {
     {popup && <PopupMessage message={popup.message} type={popup.type} onClose={() => setPopup(null)} onConfirm={popup.onConfirm} />}
     <div style={{ minHeight: '100vh', background: 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
       
-      {!isFullScreen ? (
-        <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', maxWidth: '600px' }}>
-          <Maximize size={48} style={{ color: 'var(--accent-cyan)', marginBottom: '1rem' }} />
-          <h2 className="glow-text-cyan" style={{ marginBottom: '1rem' }}>SYSTEM ACCESS DENIED</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>You must enter Full Screen mode to view the mission briefs and select your target.</p>
-          <button onClick={enterFullScreen} className="btn-primary" style={{ width: '100%' }}>ENTER FULL SCREEN</button>
-        </div>
-      ) : (
-        <div style={{ width: '100%', maxWidth: '1000px' }}>
+      <div style={{ width: '100%', maxWidth: '1000px' }}>
           <h1 className="gradient-title" style={{ textAlign: 'center', marginBottom: '2rem', fontSize: '2.5rem' }}>SELECT YOUR MISSION</h1>
           
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', justifyContent: 'center' }}>
@@ -186,7 +161,6 @@ const QuestionSelectionPage = () => {
             </div>
           )}
         </div>
-      )}
     </div>
     </>
   );

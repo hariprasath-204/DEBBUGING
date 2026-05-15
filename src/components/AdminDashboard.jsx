@@ -35,8 +35,7 @@ const AdminDashboard = () => {
   // Event State
   const [eventStatus, setEventStatus] = useState('waiting');
   const [durationMinutes, setDurationMinutes] = useState(60);
-  const [fullscreenRequired, setFullscreenRequired] = useState(true);
-  
+
   // Settings State
   const [langSettings, setLangSettings] = useState({ c: true, cpp: true, java: true });
   
@@ -51,9 +50,8 @@ const AdminDashboard = () => {
         const data = docSnap.data();
         setEventStatus(data.status);
         if (data.durationMinutes) setDurationMinutes(data.durationMinutes);
-        if (data.fullscreenRequired !== undefined) setFullscreenRequired(data.fullscreenRequired);
       } else {
-        setDoc(eventDocRef, { status: 'waiting', endTime: null, durationMinutes: 60, fullscreenRequired: true });
+        setDoc(eventDocRef, { status: 'waiting', endTime: null, durationMinutes: 60 });
       }
     });
 
@@ -410,40 +408,6 @@ const AdminDashboard = () => {
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '2rem' }}>
               <button onClick={handleResetRound} className="sidebar-btn" style={{ color: 'var(--accent-pink)', border: '1px solid var(--accent-pink)', maxWidth: '250px', justifyContent: 'center' }}><RefreshCw size={18} style={{ marginRight: '8px' }}/> RESET ROUND</button>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>Clears all submissions and scores, but keeps users registered for another round.</p>
-            </div>
-
-            {/* Fullscreen Toggle */}
-            <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>FULLSCREEN MODE</h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                <button
-                  onClick={async () => {
-                    const newVal = !fullscreenRequired;
-                    await updateDoc(doc(db, 'settings', 'event'), { fullscreenRequired: newVal });
-                  }}
-                  style={{
-                    padding: '12px 32px',
-                    fontFamily: 'var(--font-heading)',
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    border: `2px solid ${fullscreenRequired ? 'var(--accent-cyan)' : 'var(--accent-magenta)'}`,
-                    background: fullscreenRequired ? 'rgba(0,240,255,0.12)' : 'rgba(255,0,255,0.12)',
-                    color: fullscreenRequired ? 'var(--accent-cyan)' : 'var(--accent-magenta)',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    boxShadow: fullscreenRequired ? '0 0 16px rgba(0,240,255,0.3)' : '0 0 16px rgba(255,0,255,0.3)',
-                    transition: 'all 0.3s ease',
-                    letterSpacing: '2px'
-                  }}
-                >
-                  {fullscreenRequired ? '🖥 FULLSCREEN ENABLED' : '🪟 FULLSCREEN DISABLED'}
-                </button>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>
-                  {fullscreenRequired
-                    ? 'Participants MUST be in fullscreen. Exiting triggers a cheat warning.'
-                    : 'Fullscreen is optional. No cheat warning for exiting fullscreen.'}
-                </p>
-              </div>
             </div>
           </div>
         );

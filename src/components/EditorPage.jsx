@@ -17,15 +17,13 @@ const EditorPage = () => {
   const [isCompiling, setIsCompiling] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(null);
-  const [isFullScreen, setIsFullScreen] = useState(false);
   const [popup, setPopup] = useState(null);
-  
+
   const userId = localStorage.getItem('debugEventUserId');
   const userName = localStorage.getItem('debugEventUserName');
-  const lockedLanguage = localStorage.getItem('debugEventLanguage') || 'cpp'; // Default fallback
+  const lockedLanguage = localStorage.getItem('debugEventLanguage') || 'cpp';
 
   const [violations, setViolations] = useState({ tabSwitches: 0, copyPasteCount: 0 });
-  const [fullscreenRequired, setFullscreenRequired] = useState(true);
 
   const cheatingRef = useRef({ tabSwitches: 0, copyPasteCount: 0 });
   const editorContainerRef = useRef(null);
@@ -95,8 +93,6 @@ const EditorPage = () => {
     const unsubEvent = onSnapshot(eventDocRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        // Read fullscreen requirement setting
-        if (data.fullscreenRequired !== undefined) setFullscreenRequired(data.fullscreenRequired);
         if (data.status === 'ended') {
           // Event over -> force submit
           handleSubmit(true);
@@ -158,20 +154,10 @@ const EditorPage = () => {
       }
     };
 
-    const handleFullscreenChange = () => {
-      setIsFullScreen(!!document.fullscreenElement);
-      // Only flag as violation if fullscreen is required AND not intentional exit
-      if (!document.fullscreenElement && !ignoreCheatRef.current && fullscreenRequired) {
-        cheatingRef.current.tabSwitches += 1;
-        setPopup({ message: "WARNING: Exiting Fullscreen is recorded as a violation!", type: "warning" });
-        if (userId) updateDoc(doc(db, 'users', userId), { tabSwitches: increment(1) });
-      }
-    };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     document.addEventListener("paste", handleCopyPaste);
     document.addEventListener("copy", handleCopyPaste);
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
 
     return () => {
       unsubEvent();
@@ -179,17 +165,9 @@ const EditorPage = () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       document.removeEventListener("paste", handleCopyPaste);
       document.removeEventListener("copy", handleCopyPaste);
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, [userId, navigate, lockedLanguage]);
 
-  const requestFullScreen = () => {
-    if (editorContainerRef.current) {
-      if (editorContainerRef.current.requestFullscreen) {
-        editorContainerRef.current.requestFullscreen();
-      }
-    }
-  };
 
   const compileCode = async () => {
     setIsCompiling(true);
@@ -300,12 +278,10 @@ const EditorPage = () => {
       if (isAutoSubmit) {
         setPopup({ message: "TIME IS UP! Your code has been automatically submitted.", type: "warning" });
         ignoreCheatRef.current = true;
-        if (document.fullscreenElement) await document.exitFullscreen();
         setTimeout(() => navigate('/timer-finished'), 2000);
       } else {
         setPopup({ message: isOutputCorrect ? `Success! Output matched. Score awarded: ${score}` : 'Output did not match expected output. Code Submitted.', type: isOutputCorrect ? 'success' : 'warning' });
         ignoreCheatRef.current = true;
-        if (document.fullscreenElement) await document.exitFullscreen();
         setTimeout(() => navigate('/selection'), 2000);
       }
     } catch (err) {
@@ -375,17 +351,8 @@ const EditorPage = () => {
     <>
       <LoadingOverlay isLoading={!question || isCompiling || isSubmitting} />
       {popup && <PopupMessage message={popup.message} type={popup.type} onClose={() => setPopup(null)} />}
-      <div ref={editorContainerRef} style={{ display: 'flex', flexDirection: 'column', height: isFullScreen ? '100vh' : '90vh' }}>
+      <div ref={editorContainerRef} style={{ display: 'flex', flexDirection: 'column', height: '90vh' }}>
       
-      {!isFullScreen && fullscreenRequired && (
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(9, 11, 26, 0.9)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
-            <h2 className="glow-text-pink" style={{ marginBottom: '2rem' }}>FULLSCREEN REQUIRED</h2>
-            <p style={{ color: 'var(--text-primary)', marginBottom: '2rem' }}>You must enter fullscreen mode to begin the debugging challenge. Exiting fullscreen will be flagged as cheating.</p>
-            <button onClick={requestFullScreen} className="btn-primary" style={{ fontSize: '1.2rem', padding: '1rem 3rem' }}>ENTER FULLSCREEN</button>
-          </div>
-        </div>
-      )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderBottom: '1px solid var(--border-subtle)' }}>
         <h2 className="glow-text-cyan" style={{ margin: 0 }}>DEBUGGING ARENA</h2>
