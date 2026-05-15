@@ -5,7 +5,7 @@ import { collection, doc, getDoc, setDoc, onSnapshot, query, where, getDocs, upd
 import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
 
-// ── Particle Network Canvas ──────────────────────────────────────
+// ── Matrix Code Rain + Pulse Rings Canvas ────────────────────────
 const ParticleCanvas = () => {
   const canvasRef = useRef(null);
 
@@ -21,55 +21,84 @@ const ParticleCanvas = () => {
     resize();
     window.addEventListener('resize', resize);
 
-    const COLORS = ['#00F0FF', '#FF00FF', '#9D00FF', '#FFD700'];
-    const NUM = 80;
-    const MAX_DIST = 160;
+    // ── Matrix rain setup ──
+    const FONT_SIZE = 13;
+    const CHARS = '01{}[]<>/\\|!@#$%&*=+-アイウエカキクケサシスセ10110100DEBUG ERROR>><<'.split('');
 
-    const particles = Array.from({ length: NUM }, () => ({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      r: Math.random() * 2.5 + 1,
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
-    }));
+    let drops = [];
+    let colColors = [];
+    const initDrops = () => {
+      const cols = Math.floor(canvas.width / FONT_SIZE);
+      drops = Array.from({ length: cols }, () => Math.random() * -(canvas.height / FONT_SIZE));
+      colColors = Array.from({ length: cols }, () => Math.random() > 0.85 ? '#FF00FF' : '#00F0FF');
+    };
+    initDrops();
+    window.addEventListener('resize', initDrops);
+
+    // ── Pulse rings setup ──
+    const pulses = [];
+    const spawnPulse = () => pulses.push({ r: 0, alpha: 0.7 });
+    spawnPulse();
+    const pulseInterval = setInterval(spawnPulse, 2800);
 
     const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Fade trail — low opacity fill gives rain its glowing tail
+      ctx.fillStyle = 'rgba(8, 16, 54, 0.06)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      particles.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0 || p.x > canvas.width)  p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-      });
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const maxR = Math.hypot(cx, cy) * 1.1;
 
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < MAX_DIST) {
-            const alpha = 1 - dist / MAX_DIST;
-            ctx.strokeStyle = `rgba(0, 240, 255, ${alpha * 0.35})`;
-            ctx.lineWidth = 0.7;
-            ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.stroke();
-          }
+      // ── Draw pulse rings ──
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        const p = pulses[i];
+        p.r += 2;
+        p.alpha = 0.7 * (1 - p.r / maxR);
+        if (p.alpha <= 0.01) { pulses.splice(i, 1); continue; }
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, p.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0,240,255,${p.alpha * 0.45})`;
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        if (p.r > 50) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, p.r - 50, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(157,0,255,${p.alpha * 0.3})`;
+          ctx.lineWidth = 0.7;
+          ctx.stroke();
         }
       }
 
-      particles.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.shadowColor = p.color;
-        ctx.shadowBlur = 6;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      });
+      // ── Draw matrix rain ──
+      ctx.font = `${FONT_SIZE}px Consolas, monospace`;
+      const cols = Math.floor(canvas.width / FONT_SIZE);
+      for (let i = 0; i < Math.min(drops.length, cols); i++) {
+        const char = CHARS[Math.floor(Math.random() * CHARS.length)];
+        const x = i * FONT_SIZE;
+        const y = drops[i] * FONT_SIZE;
+
+        // White-hot leading character
+        ctx.shadowColor = colColors[i];
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(char, x, y);
+
+        // Colored character one step behind
+        ctx.shadowBlur = 5;
+        ctx.fillStyle = colColors[i];
+        ctx.fillText(CHARS[Math.floor(Math.random() * CHARS.length)], x, y - FONT_SIZE);
+
+        // Reset column when past bottom
+        if (y > canvas.height && Math.random() > 0.97) {
+          drops[i] = 0;
+          colColors[i] = Math.random() > 0.85 ? '#FF00FF' : '#00F0FF';
+        }
+        drops[i] += 0.38 + Math.random() * 0.28;
+      }
+      ctx.shadowBlur = 0;
 
       animId = requestAnimationFrame(draw);
     };
@@ -77,7 +106,9 @@ const ParticleCanvas = () => {
 
     return () => {
       cancelAnimationFrame(animId);
+      clearInterval(pulseInterval);
       window.removeEventListener('resize', resize);
+      window.removeEventListener('resize', initDrops);
     };
   }, []);
 
