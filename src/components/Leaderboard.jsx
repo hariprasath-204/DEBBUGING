@@ -102,8 +102,6 @@ const Leaderboard = () => {
               <th style={{ padding: '1rem' }}>RANK</th>
               <th style={{ padding: '1rem' }}>NAME</th>
               <th style={{ padding: '1rem' }}>ROLL NO</th>
-              <th style={{ padding: '1rem' }}>ERRORS FIXED</th>
-              <th style={{ padding: '1rem' }}>LINES</th>
               <th style={{ padding: '1rem' }}>SCORE</th>
               <th style={{ padding: '1rem' }}>TIME TAKEN</th>
               <th style={{ padding: '1rem' }}>WARNINGS</th>
@@ -112,7 +110,7 @@ const Leaderboard = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="9" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading Data...</td></tr>
+              <tr><td colSpan="7" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading Data...</td></tr>
             ) : (
               // Reverse to render bottom-to-top (last in DOM = lowest rank, reveals first)
               [...users].reverse().map((user, revIdx) => {
@@ -167,20 +165,6 @@ const Leaderboard = () => {
 
                     {/* ROLL NO */}
                     <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{user.rollNo}</td>
-
-                    {/* ERRORS FIXED */}
-                    <td style={{ padding: '1rem' }}>
-                      <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>{totalCleared}</span>
-                      <span style={{ color: 'var(--text-secondary)' }}> / {totalErrors}</span>
-                    </td>
-
-                    {/* LINES */}
-                    <td style={{ padding: '1rem' }}>
-                      <span style={{ color: lineDiff === 0 ? 'var(--accent-cyan)' : lineDiff <= 3 ? 'var(--accent-pink)' : 'var(--accent-magenta)', fontWeight: 'bold' }}>
-                        {user.currentLinesCount || 0}
-                      </span>
-                      <span style={{ color: 'var(--text-secondary)' }}> / {user.targetLinesCount || 0}</span>
-                    </td>
 
                     {/* SCORE */}
                     <td style={{ padding: '1rem', fontWeight: 'bold', color: user.score < 0 ? 'var(--accent-magenta)' : 'var(--text-primary)' }}>

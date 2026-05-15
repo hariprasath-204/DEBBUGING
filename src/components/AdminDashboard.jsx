@@ -4,12 +4,13 @@ import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc, updateDoc, on
 import { Link } from 'react-router-dom';
 import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
-import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2, RefreshCw, Edit } from 'lucide-react';
+import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2, RefreshCw, Edit, Award } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('questions');
   const [isLoading, setIsLoading] = useState(false);
   const [popup, setPopup] = useState(null);
+  const [selectedConclusionUser, setSelectedConclusionUser] = useState(null);
   
   const showPopup = (message, type = 'info') => setPopup({ message, type });
 
@@ -515,6 +516,105 @@ const AdminDashboard = () => {
             </div>
           </div>
         );
+      case 'conclusion':
+        return (
+          <div className="glass-panel" style={{ padding: '2rem' }}>
+            <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>WINNER CONCLUSION</h2>
+            <div style={{ display: 'flex', gap: '2rem' }}>
+              <div style={{ flex: '1', borderRight: '1px solid var(--border-subtle)', paddingRight: '1rem', maxHeight: '70vh', overflowY: 'auto' }}>
+                <h3 style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>SELECT PARTICIPANT</h3>
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  {[...liveUsers].sort((a,b)=>b.score-a.score).map(user => (
+                    <button 
+                      key={user.id} 
+                      onClick={() => setSelectedConclusionUser(user)}
+                      className={selectedConclusionUser?.id === user.id ? 'btn-primary' : 'btn-secondary'}
+                      style={{ textAlign: 'left', padding: '1rem', display: 'flex', justifyContent: 'space-between' }}
+                    >
+                      <span>{user.rollNo} - {user.name}</span>
+                      <span style={{ color: user.score < 0 ? 'var(--accent-magenta)' : 'var(--accent-cyan)' }}>{user.score}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div style={{ flex: '2', paddingLeft: '1rem', maxHeight: '70vh', overflowY: 'auto' }}>
+                {selectedConclusionUser ? (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                      <div>
+                        <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '2rem' }}>{selectedConclusionUser.name}</h2>
+                        <span style={{ color: 'var(--text-secondary)' }}>LOT / ROLL NO: {selectedConclusionUser.rollNo}</span>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>TOTAL CONCLUSION</span>
+                        <h2 style={{ margin: 0, fontSize: '3rem', color: selectedConclusionUser.score < 0 ? 'var(--accent-magenta)' : 'var(--accent-cyan)' }}>{selectedConclusionUser.score}</h2>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gap: '1rem' }}>
+                      {['easy', 'medium', 'hard'].map(phase => {
+                        const phaseSubmissions = Object.values(selectedConclusionUser.submissions || {}).filter(s => s.phase === phase);
+                        if (phaseSubmissions.length === 0) return null;
+                        
+                        let phaseScore = 0;
+                        let phaseCleared = 0;
+                        let phaseTotal = 0;
+                        let phaseLines = 0;
+                        let phaseTargetLines = 0;
+                        
+                        phaseSubmissions.forEach(s => {
+                          phaseScore += (s.score || 0);
+                          phaseCleared += (s.clearedErrors || 0);
+                          phaseTotal += (s.totalErrors || 0);
+                          phaseLines += (s.codeLines || 0);
+                          phaseTargetLines += (s.targetLines || 0);
+                        });
+
+                        return (
+                          <div key={phase} style={{ background: 'var(--bg-deep-navy)', padding: '1.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                            <h3 style={{ textTransform: 'uppercase', color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between' }}>
+                              <span>{phase} PHASE</span>
+                              <span style={{ color: 'var(--accent-cyan)' }}>{phaseScore} PTS</span>
+                            </h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                              <div style={{ padding: '1rem', background: 'rgba(0, 240, 255, 0.05)', borderRadius: '4px' }}>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>ERRORS FIXED</div>
+                                <div style={{ fontSize: '1.5rem', color: 'var(--text-primary)' }}><span style={{ color: 'var(--accent-cyan)' }}>{phaseCleared}</span> / {phaseTotal}</div>
+                              </div>
+                              <div style={{ padding: '1rem', background: 'rgba(255, 42, 109, 0.05)', borderRadius: '4px' }}>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>CODE LINES</div>
+                                <div style={{ fontSize: '1.5rem', color: 'var(--text-primary)' }}><span style={{ color: 'var(--accent-pink)' }}>{phaseLines}</span> / {phaseTargetLines}</div>
+                              </div>
+                            </div>
+                            <div style={{ marginTop: '1rem' }}>
+                              <h4 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>INDIVIDUAL PROGRAMS</h4>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {phaseSubmissions.map((s, i) => (
+                                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '0.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '4px' }}>
+                                    <span style={{ color: 'var(--text-primary)' }}>{s.title || 'Unknown Mission'}</span>
+                                    <span style={{ color: 'var(--accent-cyan)' }}>{s.score} pts</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {Object.keys(selectedConclusionUser.submissions || {}).length === 0 && (
+                        <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>No completed missions yet.</p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+                    Select a participant from the left to view their detailed conclusion.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
       
       default: return null;
     }
@@ -540,6 +640,7 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('results')} className={`sidebar-btn ${activeTab === 'results' ? 'active' : ''}`}><FileDown size={18} /> Results & PDF</button>
           <button onClick={() => setActiveTab('submissions')} className={`sidebar-btn ${activeTab === 'submissions' ? 'active' : ''}`}><Code size={18} /> Submissions</button>
           <button onClick={() => setActiveTab('tracker')} className={`sidebar-btn ${activeTab === 'tracker' ? 'active' : ''}`}><MonitorPlay size={18} /> Live Code</button>
+          <button onClick={() => setActiveTab('conclusion')} className={`sidebar-btn ${activeTab === 'conclusion' ? 'active' : ''}`}><Award size={18} /> Conclusion</button>
           <button onClick={() => setActiveTab('languages')} className={`sidebar-btn ${activeTab === 'languages' ? 'active' : ''}`}><Sliders size={18} /> Language Settings</button>
           
           <div style={{ marginTop: 'auto' }}>

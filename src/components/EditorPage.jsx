@@ -221,6 +221,13 @@ const EditorPage = () => {
     const normalizedExpected = (question.expectedOutput || '').trim();
     
     const isOutputCorrect = normalizedUserOutput === normalizedExpected;
+    
+    if (!isAutoSubmit && !isOutputCorrect) {
+      setPopup({ message: 'Output did not match expected output. Keep trying!', type: 'error' });
+      setIsSubmitting(false);
+      return;
+    }
+
     const lineDifference = Math.abs(correctLines - userLines);
     
     let score = 0;
@@ -258,13 +265,29 @@ const EditorPage = () => {
       const newCumulCleared = (userData.cumulativeClearedErrors || 0) + errorStatsRef.current.clearedErrors;
       const newCumulTotal = (userData.cumulativeTotalErrors || 0) + errorStatsRef.current.totalErrors;
 
+      const prevSubmissions = userData.submissions || {};
+      const submissionData = {
+        score: score,
+        clearedErrors: errorStatsRef.current.clearedErrors,
+        totalErrors: errorStatsRef.current.totalErrors,
+        codeLines: userLines,
+        targetLines: correctLines,
+        phase: question.phase || 'unknown',
+        title: question.title || questionId,
+        submittedAt: new Date().toISOString()
+      };
+
       const updatePayload = {
         score: increment(score),
         finalCode: newFinalCode,
         elapsedTimeMs: elapsedTimeMs,
         completedQuestions: newCompletedQs,
         cumulativeClearedErrors: newCumulCleared,
-        cumulativeTotalErrors: newCumulTotal
+        cumulativeTotalErrors: newCumulTotal,
+        submissions: {
+          ...prevSubmissions,
+          [questionId]: submissionData
+        }
       };
 
       if (isAutoSubmit) {
@@ -280,7 +303,7 @@ const EditorPage = () => {
         ignoreCheatRef.current = true;
         setTimeout(() => navigate('/timer-finished'), 2000);
       } else {
-        setPopup({ message: isOutputCorrect ? `Success! Output matched. Score awarded: ${score}` : 'Output did not match expected output. Code Submitted.', type: isOutputCorrect ? 'success' : 'warning' });
+        setPopup({ message: `Success! Output matched. Score awarded: ${score}`, type: 'success' });
         ignoreCheatRef.current = true;
         setTimeout(() => navigate('/selection'), 2000);
       }
