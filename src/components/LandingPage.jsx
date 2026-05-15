@@ -170,7 +170,6 @@ const LandingPage = () => {
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'space-between',
         overflow: 'hidden',
-        background: 'linear-gradient(135deg, rgba(8,16,54,0.95) 0%, rgba(22,10,50,0.95) 100%)',
         paddingBottom: '10px',
       }}>
 
