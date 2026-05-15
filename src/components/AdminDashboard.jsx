@@ -11,6 +11,7 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [popup, setPopup] = useState(null);
   const [selectedConclusionUser, setSelectedConclusionUser] = useState(null);
+  const [selectedTrackerUser, setSelectedTrackerUser] = useState(null);
   
   const showPopup = (message, type = 'info') => setPopup({ message, type });
 
@@ -489,30 +490,79 @@ const AdminDashboard = () => {
         );
 
       case 'tracker':
+        const activeTrackerUser = liveUsers.find(u => u.id === selectedTrackerUser?.id) || null;
+        
         return (
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <div className="glass-panel" style={{ padding: '2rem', height: '100%', display: 'flex', flexDirection: 'column' }}>
             <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>LIVE CODE TRACKER</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
-              {liveUsers.map(user => (
-                <div key={user.id} className="glass-panel" style={{ padding: '1rem', border: (user.tabSwitches > 2 || user.copyPasteCount > 2) ? '1px solid var(--accent-magenta)' : '1px solid var(--border-subtle)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
-                    <h4 style={{ color: 'var(--accent-cyan)' }}>{user.rollNo} - {user.name} ({user.selectedLanguage?.toUpperCase() || 'N/A'})</h4>
-                    <span style={{ color: user.isFinished ? 'var(--accent-magenta)' : 'var(--text-secondary)' }}>{user.isFinished ? 'SUBMITTED' : 'CODING'}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                    <span>Tab Switches: <strong style={{ color: user.tabSwitches > 0 ? 'var(--accent-magenta)' : 'inherit' }}>{user.tabSwitches || 0}</strong></span>
-                    <span>Copy/Paste: <strong style={{ color: user.copyPasteCount > 0 ? 'var(--accent-magenta)' : 'inherit' }}>{user.copyPasteCount || 0}</strong></span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-primary)', marginBottom: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '4px 8px', borderRadius: '4px' }}>
-                    <span>Errors Fixed: <strong style={{ color: 'var(--accent-cyan)' }}>{(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)} / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}</strong></span>
-                    <span>Line Count: <strong style={{ color: 'var(--accent-pink)' }}>{user.currentLinesCount || 0} / {user.targetLinesCount || 0}</strong></span>
-                  </div>
-                  <div style={{ background: 'var(--bg-deep-navy)', padding: '0.5rem', borderRadius: '4px', fontSize: '0.8rem', height: '120px', overflowY: 'auto' }}>
-                    <pre style={{ margin: 0, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>{user.currentCode || '// No code typed yet...'}</pre>
-                  </div>
+            
+            <div style={{ display: 'flex', gap: '2rem', flex: 1, overflow: 'hidden' }}>
+              <div style={{ flex: '1', borderRight: '1px solid var(--border-subtle)', paddingRight: '1rem', overflowY: 'auto' }}>
+                <h3 style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>ACTIVE PARTICIPANTS</h3>
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  {liveUsers.map(user => (
+                    <button 
+                      key={user.id} 
+                      onClick={() => setSelectedTrackerUser(user)}
+                      className={selectedTrackerUser?.id === user.id ? 'btn-primary' : 'btn-secondary'}
+                      style={{ 
+                        textAlign: 'left', padding: '1rem', display: 'flex', justifyContent: 'space-between',
+                        border: (user.tabSwitches > 2 || user.copyPasteCount > 2) ? '1px solid var(--accent-magenta)' : undefined
+                      }}
+                    >
+                      <span>{user.rollNo} - {user.name}</span>
+                      <span style={{ color: user.isFinished ? 'var(--text-secondary)' : 'var(--accent-cyan)' }}>
+                        {user.isFinished ? 'SUBMITTED' : 'CODING'}
+                      </span>
+                    </button>
+                  ))}
+                  {liveUsers.length === 0 && <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>No users registered.</div>}
                 </div>
-              ))}
-              {liveUsers.length === 0 && <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>No users registered yet.</div>}
+              </div>
+              
+              <div style={{ flex: '2', paddingLeft: '1rem', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+                {activeTrackerUser ? (
+                  <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                      <div>
+                        <h2 style={{ color: 'var(--text-primary)', margin: 0 }}>{activeTrackerUser.name}</h2>
+                        <span style={{ color: 'var(--text-secondary)' }}>{activeTrackerUser.rollNo} | {activeTrackerUser.selectedLanguage?.toUpperCase() || 'N/A'}</span>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>STATUS</div>
+                        <strong style={{ color: activeTrackerUser.isFinished ? 'var(--accent-magenta)' : 'var(--accent-cyan)' }}>
+                          {activeTrackerUser.isFinished ? 'SUBMITTED' : 'ACTIVELY CODING'}
+                        </strong>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div style={{ padding: '1rem', background: 'rgba(0, 240, 255, 0.05)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>CURRENT PROGRAM ERRORS FIXED</div>
+                        <div style={{ fontSize: '1.5rem', color: 'var(--text-primary)' }}><span style={{ color: 'var(--accent-cyan)' }}>{activeTrackerUser.clearedErrors || 0}</span> / {activeTrackerUser.totalErrors || 0}</div>
+                      </div>
+                      <div style={{ padding: '1rem', background: 'rgba(255, 42, 109, 0.05)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>CURRENT PROGRAM CODE LINES</div>
+                        <div style={{ fontSize: '1.5rem', color: 'var(--text-primary)' }}><span style={{ color: 'var(--accent-pink)' }}>{activeTrackerUser.currentLinesCount || 0}</span> / {activeTrackerUser.targetLinesCount || 0}</div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '2rem', marginBottom: '1rem', padding: '0.5rem 1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '4px' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>Tab Switches: <strong style={{ color: activeTrackerUser.tabSwitches > 0 ? 'var(--accent-magenta)' : 'var(--text-primary)' }}>{activeTrackerUser.tabSwitches || 0}</strong></span>
+                      <span style={{ color: 'var(--text-secondary)' }}>Copy/Paste: <strong style={{ color: activeTrackerUser.copyPasteCount > 0 ? 'var(--accent-magenta)' : 'var(--text-primary)' }}>{activeTrackerUser.copyPasteCount || 0}</strong></span>
+                    </div>
+
+                    <div style={{ flex: 1, background: 'var(--bg-deep-navy)', padding: '1rem', borderRadius: '4px', border: '1px solid var(--border-subtle)', overflowY: 'auto' }}>
+                      <h4 style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.8rem' }}>LIVE EDITOR VIEW</h4>
+                      <pre style={{ margin: 0, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{activeTrackerUser.currentCode || '// No code typed yet...'}</pre>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+                    Select a participant from the left to view their live code.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );
