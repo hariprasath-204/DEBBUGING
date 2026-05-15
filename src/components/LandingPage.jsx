@@ -168,15 +168,20 @@ const LandingPage = () => {
         position: 'relative', zIndex: 1,
         height: '100vh', width: '100vw',
         display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
+        alignItems: 'center', justifyContent: 'space-between',
         overflow: 'hidden',
         background: 'linear-gradient(135deg, rgba(8,16,54,0.95) 0%, rgba(22,10,50,0.95) 100%)',
+        paddingBottom: '10px',
       }}>
 
-        {/* Main hero */}
+        {/* Spacer top */}
+        <div style={{ flex: '0 0 0' }} />
+
+        {/* Main hero — centered in remaining space */}
         <div style={{
           textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center',
-          position: 'relative', zIndex: 2,
+          position: 'relative', zIndex: 2, flex: 1,
+          justifyContent: 'center',
           transition: 'opacity 0.4s, filter 0.4s',
           opacity: showModal ? 0.08 : 1,
           filter: showModal ? 'blur(4px)' : 'none',
@@ -288,12 +293,12 @@ const LandingPage = () => {
           </div>
         )}
 
-        {/* Copyright */}
+        {/* Copyright — in normal flow, always visible */}
         <p style={{
-          position: 'absolute', bottom: '10px', left: 0, right: 0,
+          width: '100%',
           textAlign: 'center', color: 'var(--text-secondary)',
           fontSize: '0.68rem', letterSpacing: '1px', zIndex: 2,
-          fontFamily: 'var(--font-body)'
+          fontFamily: 'var(--font-body)', flexShrink: 0,
         }}>
           © 2026 Ayya Nadar Janaki Ammal College. Dept. of Computer Applications. All rights reserved.
         </p>
