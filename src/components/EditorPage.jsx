@@ -287,7 +287,13 @@ const EditorPage = () => {
         submissions: {
           ...prevSubmissions,
           [questionId]: submissionData
-        }
+        },
+        currentCode: '',
+        clearedErrors: 0,
+        totalErrors: 0,
+        remainingErrors: 0,
+        currentLinesCount: 0,
+        targetLinesCount: 0
       };
 
       if (isAutoSubmit) {

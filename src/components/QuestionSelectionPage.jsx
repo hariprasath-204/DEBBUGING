@@ -93,7 +93,13 @@ const QuestionSelectionPage = () => {
         setLoading(true);
         try {
           await updateDoc(doc(db, 'users', userId), {
-            selectedQuestionId: questionId
+            selectedQuestionId: questionId,
+            currentCode: '',
+            clearedErrors: 0,
+            totalErrors: 0,
+            remainingErrors: 0,
+            currentLinesCount: 0,
+            targetLinesCount: 0
           });
           navigate(`/editor/${questionId}`);
         } catch (err) {
