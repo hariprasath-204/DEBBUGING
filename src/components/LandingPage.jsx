@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, serverTimestamp, doc, getDoc, setDoc, onSnapshot, query, where, getDocs, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, setDoc, onSnapshot, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
 
@@ -37,7 +37,6 @@ const ParticleCanvas = () => {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // move
       particles.forEach(p => {
         p.x += p.vx;
         p.y += p.vy;
@@ -45,7 +44,6 @@ const ParticleCanvas = () => {
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
       });
 
-      // lines
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
@@ -63,7 +61,6 @@ const ParticleCanvas = () => {
         }
       }
 
-      // dots
       particles.forEach(p => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
@@ -92,7 +89,7 @@ const ParticleCanvas = () => {
   );
 };
 
-// ── Landing Page ────────────────────────────────────────────────
+// ── Landing Page ─────────────────────────────────────────────────
 const LandingPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState('');
@@ -165,72 +162,88 @@ const LandingPage = () => {
       <LoadingOverlay isLoading={loading} />
       {popup && <PopupMessage message={popup.message} type={popup.type} onClose={() => setPopup(null)} />}
 
-      {/* Particle network background */}
       <ParticleCanvas />
 
-      {/* Page content */}
       <div style={{
         position: 'relative', zIndex: 1,
         height: '100vh', width: '100vw',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden',
-        background: 'linear-gradient(135deg, rgba(8,16,54,0.92) 0%, rgba(22,10,50,0.92) 100%)'
+        background: 'linear-gradient(135deg, rgba(8,16,54,0.95) 0%, rgba(22,10,50,0.95) 100%)',
       }}>
 
-        {/* Main hero — fades when modal opens */}
+        {/* Main hero */}
         <div style={{
           textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center',
-          gap: '0',
+          position: 'relative', zIndex: 2,
           transition: 'opacity 0.4s, filter 0.4s',
-          opacity: showModal ? 0.1 : 1,
+          opacity: showModal ? 0.08 : 1,
           filter: showModal ? 'blur(4px)' : 'none',
-          pointerEvents: showModal ? 'none' : 'auto'
+          pointerEvents: showModal ? 'none' : 'auto',
         }}>
 
-          {/* College name — no panel/border box */}
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', margin: '0 0 2px 0', letterSpacing: '3px', fontFamily: 'var(--font-body)', fontWeight: '700', textTransform: 'uppercase' }}>
-            Ayya Nadar Janaki Ammal College
-          </p>
-          <p style={{ fontSize: '0.78rem', color: 'var(--accent-cyan)', margin: '0 0 1.2rem 0', letterSpacing: '2px', fontFamily: 'var(--font-body)', fontWeight: '500', textTransform: 'uppercase' }}>
-            Department of Computer Applications
-          </p>
+          {/* College panel — cyan bordered box like the reference layout */}
+          <div style={{
+            border: '1px solid var(--accent-cyan)',
+            borderTop: '2px solid var(--accent-cyan)',
+            padding: '0.75rem 2.4rem',
+            marginBottom: '1.4rem',
+            background: 'rgba(0,10,30,0.75)',
+            boxShadow: '0 0 22px rgba(0,240,255,0.15)',
+            borderRadius: '3px',
+          }}>
+            <p style={{
+              fontSize: '0.92rem', color: 'var(--text-primary)', margin: 0,
+              letterSpacing: '3px', fontFamily: 'var(--font-heading)',
+              fontWeight: '700', textTransform: 'uppercase'
+            }}>
+              Ayya Nadar Janaki Ammal College
+            </p>
+            <p style={{
+              fontSize: '0.78rem', color: 'var(--accent-cyan)', margin: '3px 0 0 0',
+              letterSpacing: '2px', fontFamily: 'var(--font-heading)',
+              fontWeight: '500', textTransform: 'uppercase'
+            }}>
+              Department of Computer Applications
+            </p>
+          </div>
 
-          {/* SOFTTECH — large gradient */}
+          {/* SOFTTECH */}
           <h1 style={{
-            fontSize: 'clamp(3.2rem, 9vw, 7rem)',
-            margin: 0, lineHeight: 1,
+            fontSize: 'clamp(3.5rem, 11vw, 8rem)',
+            margin: 0, lineHeight: 0.9,
             fontFamily: 'var(--font-heading)',
             background: 'linear-gradient(90deg, #00F0FF 0%, #9D00FF 50%, #FF00FF 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            filter: 'drop-shadow(0 0 20px rgba(0,240,255,0.5))',
-            letterSpacing: '4px'
+            filter: 'drop-shadow(0 0 24px rgba(0,240,255,0.55))',
+            letterSpacing: '6px', fontWeight: '900'
           }}>SOFTTECH</h1>
 
-          {/* ASSOCIATION — magenta glow */}
+          {/* ASSOCIATION */}
           <h1 style={{
-            fontSize: 'clamp(2rem, 6vw, 4.2rem)',
-            margin: '0 0 0.5rem 0',
+            fontSize: 'clamp(1.8rem, 5.5vw, 4rem)',
+            margin: '0.1rem 0 0.6rem 0',
             fontFamily: 'var(--font-heading)',
             color: '#FF00FF',
-            textShadow: '0 0 30px rgba(255,0,255,0.7), 0 0 60px rgba(255,0,255,0.3)',
-            letterSpacing: '12px'
+            textShadow: '0 0 25px rgba(255,0,255,0.8), 0 0 55px rgba(255,0,255,0.3)',
+            letterSpacing: '14px', fontWeight: '700'
           }}>ASSOCIATION</h1>
 
           {/* Subtitle */}
           <p style={{
-            color: 'var(--text-secondary)', letterSpacing: '6px', fontSize: '0.82rem',
+            color: 'var(--text-secondary)', letterSpacing: '6px', fontSize: '0.8rem',
             marginBottom: '1.6rem', textTransform: 'uppercase',
             fontFamily: 'var(--font-body)', fontWeight: '400'
           }}>
-            ✦ THE ULTIMATE DEBUGGING CHALLENGE
+            ✦ THE ULTIMATE DEBUGGING CHALLENGE ✦
           </p>
 
           {/* CTA button */}
           <button
             className="btn-primary"
-            style={{ fontSize: '1rem', padding: '12px 44px', letterSpacing: '3px' }}
+            style={{ fontSize: '1rem', padding: '12px 48px', letterSpacing: '3px' }}
             onClick={() => setShowModal(true)}
           >
             &gt; START_SYSTEM
@@ -239,39 +252,49 @@ const LandingPage = () => {
 
         {/* Login Modal */}
         {showModal && (
-          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-            <div className="glass-panel" style={{ padding: '2rem', width: '100%', maxWidth: '460px', textAlign: 'center' }}>
-              <h2 className="glow-text-cyan" style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>SYSTEM ACCESS</h2>
+          <div style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10
+          }}>
+            <div className="glass-panel" style={{ padding: '2rem', width: '100%', maxWidth: '440px', textAlign: 'center' }}>
+              <h2 className="glow-text-cyan" style={{ fontSize: '1.4rem', marginBottom: '1.5rem' }}>SYSTEM ACCESS</h2>
               <form onSubmit={handleInitiateSession} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--accent-cyan)', fontSize: '0.8rem', letterSpacing: '1px' }}>PARTICIPANT NAME</label>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--accent-cyan)', fontSize: '0.78rem', letterSpacing: '1.5px', fontFamily: 'var(--font-heading)' }}>PARTICIPANT NAME</label>
                   <input type="text" className="input-field" placeholder="Enter Name" value={name} onChange={e => setName(e.target.value)} required />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--accent-cyan)', fontSize: '0.8rem', letterSpacing: '1px' }}>TEAM IDENTIFIER (LOT #)</label>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--accent-cyan)', fontSize: '0.78rem', letterSpacing: '1.5px', fontFamily: 'var(--font-heading)' }}>TEAM IDENTIFIER (LOT #)</label>
                   <input type="text" className="input-field" placeholder="# 00" value={rollNo} onChange={e => setRollNo(e.target.value)} required />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--accent-cyan)', fontSize: '0.8rem', letterSpacing: '1px' }}>SYSTEM LANGUAGE</label>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--accent-cyan)', fontSize: '0.78rem', letterSpacing: '1.5px', fontFamily: 'var(--font-heading)' }}>SYSTEM LANGUAGE</label>
                   <select className="input-field" value={language} onChange={e => setLanguage(e.target.value)} required>
                     {langSettings.c   && <option value="c">C</option>}
                     {langSettings.cpp && <option value="cpp">C++</option>}
                     {langSettings.java && <option value="java">Java</option>}
                   </select>
                 </div>
-                <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '0.5rem', background: '#091A40', borderColor: 'var(--accent-cyan)', color: 'var(--accent-cyan)' }}>
+                <button type="submit" className="btn-primary" disabled={loading}
+                  style={{ marginTop: '0.4rem', background: '#091A40', borderColor: 'var(--accent-cyan)', color: 'var(--accent-cyan)' }}>
                   {loading ? 'CONNECTING...' : 'INITIATE_SESSION'}
                 </button>
               </form>
-              <button onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', marginTop: '1rem', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: '0.9rem' }}>
+              <button onClick={() => setShowModal(false)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', marginTop: '1rem', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
                 [ ESCAPE_SEQUENCE ]
               </button>
             </div>
           </div>
         )}
 
-        {/* Copyright — always visible at bottom */}
-        <p style={{ position: 'absolute', bottom: '10px', left: 0, right: 0, textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.7rem', letterSpacing: '1px', zIndex: 2 }}>
+        {/* Copyright */}
+        <p style={{
+          position: 'absolute', bottom: '10px', left: 0, right: 0,
+          textAlign: 'center', color: 'var(--text-secondary)',
+          fontSize: '0.68rem', letterSpacing: '1px', zIndex: 2,
+          fontFamily: 'var(--font-body)'
+        }}>
           © 2026 Ayya Nadar Janaki Ammal College. Dept. of Computer Applications. All rights reserved.
         </p>
       </div>
@@ -280,4 +303,3 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
-
