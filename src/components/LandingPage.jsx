@@ -98,6 +98,7 @@ const LandingPage = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          paddingBottom: '30px',
           transition: 'opacity 0.4s, filter 0.4s',
           opacity: showModal ? 0.07 : 1,
           filter: showModal ? 'blur(5px)' : 'none',
@@ -175,17 +176,19 @@ const LandingPage = () => {
         </div>
         {/* ── END HERO ── */}
 
-        {/* ── COPYRIGHT — direct child of flex column, always at bottom ── */}
+        {/* ── COPYRIGHT — position:fixed beats all overflow:hidden clipping ── */}
         <p style={{
-          flexShrink: 0,
-          width: '100%',
+          position: 'fixed',
+          bottom: 0, left: 0, right: 0,
           textAlign: 'center',
           color: 'var(--text-secondary)',
           fontSize: '0.68rem',
           letterSpacing: '1px',
           fontFamily: 'var(--font-body)',
-          padding: '6px 0 10px 0',
+          padding: '6px 0 8px 0',
           margin: 0,
+          zIndex: 5,
+          background: 'transparent',
         }}>
           © 2026 Ayya Nadar Janaki Ammal College. Dept. of Computer Applications. All rights reserved.
         </p>
