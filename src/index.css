@@ -28,6 +28,11 @@
   --font-mono: 'Consolas', 'Courier New', monospace;
 }
 
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -40,8 +45,13 @@ body {
   color: var(--text-primary);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
-  overflow-x: hidden;
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
