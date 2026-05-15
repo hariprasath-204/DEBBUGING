@@ -1,157 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, doc, getDoc, setDoc, onSnapshot, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
-
-// ── Aurora Nebula + Stars + Orbs Canvas ──────────────────────────
-const AuroraCanvas = () => {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    let animId;
-    let frame = 0;
-
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resize();
-    window.addEventListener('resize', resize);
-
-    // ── Stars ──
-    const stars = Array.from({ length: 220 }, () => ({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      r: Math.random() * 1.4 + 0.3,
-      brightness: Math.random() * 0.7 + 0.3,
-      speed: Math.random() * 0.04 + 0.01,
-      offset: Math.random() * Math.PI * 2,
-    }));
-
-    // ── Floating glowing orbs ──
-    const ORB_COLORS = [
-      { inner: 'rgba(0,240,255,0.18)',  outer: 'rgba(0,240,255,0)' },
-      { inner: 'rgba(157,0,255,0.15)', outer: 'rgba(157,0,255,0)' },
-      { inner: 'rgba(255,0,255,0.15)', outer: 'rgba(255,0,255,0)' },
-      { inner: 'rgba(0,160,255,0.12)', outer: 'rgba(0,160,255,0)' },
-    ];
-    const orbs = Array.from({ length: 7 }, (_, i) => ({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      r: 120 + Math.random() * 180,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3,
-      phase: Math.random() * Math.PI * 2,
-      speed: 0.008 + Math.random() * 0.006,
-      color: ORB_COLORS[i % ORB_COLORS.length],
-    }));
-
-    // ── Aurora wave bands ──
-    const AURORA_BANDS = [
-      { yFrac: 0.25, color: '0,240,255',  amp1: 70, amp2: 35, spd1: 0.007, spd2: 0.011, phase: 0 },
-      { yFrac: 0.45, color: '157,0,255',  amp1: 55, amp2: 28, spd1: 0.006, spd2: 0.009, phase: 1.8 },
-      { yFrac: 0.65, color: '255,0,255',  amp1: 60, amp2: 30, spd1: 0.005, spd2: 0.008, phase: 3.5 },
-    ];
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      frame++;
-
-      // ── Twinkling stars ──
-      stars.forEach(s => {
-        const alpha = s.brightness * (0.4 + 0.6 * Math.abs(Math.sin(frame * s.speed + s.offset)));
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-        ctx.shadowColor = '#00F0FF';
-        ctx.shadowBlur = s.r > 1 ? 4 : 0;
-        ctx.fill();
-      });
-      ctx.shadowBlur = 0;
-
-      // ── Aurora wave bands ──
-      AURORA_BANDS.forEach(band => {
-        const yBase = canvas.height * band.yFrac;
-        ctx.beginPath();
-        ctx.moveTo(0, canvas.height);
-        for (let x = 0; x <= canvas.width + 5; x += 4) {
-          const y = yBase
-            + Math.sin(x * 0.008 + frame * band.spd1 + band.phase) * band.amp1
-            + Math.sin(x * 0.015 + frame * band.spd2 + band.phase * 1.3) * band.amp2;
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.lineTo(canvas.width, canvas.height);
-        ctx.lineTo(0, canvas.height);
-        ctx.closePath();
-
-        const grad = ctx.createLinearGradient(0, yBase - band.amp1, 0, yBase + band.amp1);
-        grad.addColorStop(0, `rgba(${band.color}, 0)`);
-        grad.addColorStop(0.45, `rgba(${band.color}, 0.09)`);
-        grad.addColorStop(0.55, `rgba(${band.color}, 0.09)`);
-        grad.addColorStop(1, `rgba(${band.color}, 0)`);
-        ctx.fillStyle = grad;
-        ctx.fill();
-
-        // Glowing edge line on each aurora band
-        ctx.beginPath();
-        for (let x = 0; x <= canvas.width + 5; x += 4) {
-          const y = yBase
-            + Math.sin(x * 0.008 + frame * band.spd1 + band.phase) * band.amp1
-            + Math.sin(x * 0.015 + frame * band.spd2 + band.phase * 1.3) * band.amp2;
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.strokeStyle = `rgba(${band.color}, 0.4)`;
-        ctx.lineWidth = 1.2;
-        ctx.shadowColor = `rgb(${band.color})`;
-        ctx.shadowBlur = 10;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      });
-
-      // ── Floating glowing orbs ──
-      orbs.forEach(orb => {
-        orb.x += orb.vx;
-        orb.y += orb.vy;
-        orb.phase += orb.speed;
-        if (orb.x < -orb.r * 2) orb.x = canvas.width + orb.r;
-        if (orb.x > canvas.width + orb.r * 2) orb.x = -orb.r;
-        if (orb.y < -orb.r * 2) orb.y = canvas.height + orb.r;
-        if (orb.y > canvas.height + orb.r * 2) orb.y = -orb.r;
-
-        const pulse = 0.8 + 0.2 * Math.sin(orb.phase);
-        const rad = orb.r * pulse;
-        const grad = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, rad);
-        grad.addColorStop(0, orb.color.inner);
-        grad.addColorStop(1, orb.color.outer);
-        ctx.beginPath();
-        ctx.arc(orb.x, orb.y, rad, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
-      });
-
-      animId = requestAnimationFrame(draw);
-    };
-    draw();
-
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}
-    />
-  );
-};
 
 // ── Landing Page ─────────────────────────────────────────────────
 const LandingPage = () => {
@@ -226,10 +78,11 @@ const LandingPage = () => {
       <LoadingOverlay isLoading={loading} />
       {popup && <PopupMessage message={popup.message} type={popup.type} onClose={() => setPopup(null)} />}
 
-      {/* Aurora background */}
-      <AuroraCanvas />
-
-      {/* Page — flex column: hero fills space, copyright always at bottom */}
+      {/*
+        Outer wrapper: flex column, full viewport.
+        - Hero div: flex:1  → takes all remaining space, centers content
+        - Copyright p: flexShrink:0 → always pinned at bottom, never hidden
+      */}
       <div style={{
         position: 'relative', zIndex: 1,
         height: '100vh', width: '100vw',
@@ -238,10 +91,13 @@ const LandingPage = () => {
         overflow: 'hidden',
       }}>
 
-        {/* Hero — fills remaining height, centers content */}
+        {/* ── HERO (flex:1 means it fills remaining height) ── */}
         <div style={{
-          flex: 1, width: '100%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flex: 1,
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           transition: 'opacity 0.4s, filter 0.4s',
           opacity: showModal ? 0.07 : 1,
           filter: showModal ? 'blur(5px)' : 'none',
@@ -299,7 +155,7 @@ const LandingPage = () => {
 
             {/* Subtitle */}
             <p style={{
-              color: 'rgba(208,232,255,0.6)', letterSpacing: '6px', fontSize: '0.8rem',
+              color: 'var(--text-secondary)', letterSpacing: '6px', fontSize: '0.8rem',
               marginBottom: '1.6rem', textTransform: 'uppercase',
               fontFamily: 'var(--font-body)', fontWeight: '400'
             }}>
@@ -314,20 +170,28 @@ const LandingPage = () => {
             >
               &gt; START_SYSTEM
             </button>
+
           </div>
         </div>
+        {/* ── END HERO ── */}
 
-        {/* Copyright — always at bottom in normal flow */}
+        {/* ── COPYRIGHT — direct child of flex column, always at bottom ── */}
         <p style={{
-          width: '100%', flexShrink: 0,
-          textAlign: 'center', color: 'rgba(132,163,209,0.65)',
-          fontSize: '0.68rem', letterSpacing: '1px',
+          flexShrink: 0,
+          width: '100%',
+          textAlign: 'center',
+          color: 'var(--text-secondary)',
+          fontSize: '0.68rem',
+          letterSpacing: '1px',
           fontFamily: 'var(--font-body)',
-          padding: '8px 0 10px 0',
+          padding: '6px 0 10px 0',
+          margin: 0,
         }}>
           © 2026 Ayya Nadar Janaki Ammal College. Dept. of Computer Applications. All rights reserved.
         </p>
+
       </div>
+      {/* ── END OUTER WRAPPER ── */}
 
       {/* Login Modal */}
       {showModal && (
@@ -349,7 +213,7 @@ const LandingPage = () => {
               <div>
                 <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--accent-cyan)', fontSize: '0.78rem', letterSpacing: '1.5px', fontFamily: 'var(--font-heading)' }}>SYSTEM LANGUAGE</label>
                 <select className="input-field" value={language} onChange={e => setLanguage(e.target.value)} required>
-                  {langSettings.c   && <option value="c">C</option>}
+                  {langSettings.c && <option value="c">C</option>}
                   {langSettings.cpp && <option value="cpp">C++</option>}
                   {langSettings.java && <option value="java">Java</option>}
                 </select>
