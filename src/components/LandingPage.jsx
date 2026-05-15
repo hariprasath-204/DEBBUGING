@@ -134,33 +134,33 @@ const LandingPage = () => {
 
             {/* SOFTTECH */}
             <h1 style={{
-              fontSize: 'clamp(3.5rem, 11vw, 8rem)',
-              margin: 0, lineHeight: 0.9,
+              fontSize: 'clamp(5rem, 15vw, 11rem)',
+              margin: 0, lineHeight: 0.88,
               fontFamily: 'var(--font-heading)',
               background: 'linear-gradient(90deg, #00F0FF 0%, #9D00FF 50%, #FF00FF 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               filter: 'drop-shadow(0 0 28px rgba(0,240,255,0.6)) drop-shadow(0 0 60px rgba(157,0,255,0.4))',
-              letterSpacing: '6px', fontWeight: '900'
+              letterSpacing: '4px', fontWeight: '900'
             }}>SOFTTECH</h1>
 
             {/* ASSOCIATION */}
             <h1 style={{
-              fontSize: 'clamp(1.8rem, 5.5vw, 4rem)',
-              margin: '0.1rem 0 0.6rem 0',
+              fontSize: 'clamp(2.8rem, 8vw, 6.5rem)',
+              margin: '0 0 0.5rem 0',
               fontFamily: 'var(--font-heading)',
               color: '#FF00FF',
               textShadow: '0 0 25px rgba(255,0,255,0.9), 0 0 60px rgba(255,0,255,0.4)',
-              letterSpacing: '14px', fontWeight: '700'
+              letterSpacing: '10px', fontWeight: '700'
             }}>ASSOCIATION</h1>
 
             {/* Subtitle */}
             <p style={{
-              color: 'var(--text-secondary)', letterSpacing: '6px', fontSize: '0.8rem',
-              marginBottom: '1.6rem', textTransform: 'uppercase',
+              color: 'var(--text-secondary)', letterSpacing: '5px', fontSize: '0.82rem',
+              marginBottom: '1.4rem', textTransform: 'uppercase',
               fontFamily: 'var(--font-body)', fontWeight: '400'
             }}>
-              ✦ THE ULTIMATE DEBUGGING CHALLENGE ✦
+              THE ULTIMATE DEBUGGING CHALLENGE
             </p>
 
             {/* CTA */}
