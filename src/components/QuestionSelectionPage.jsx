@@ -61,10 +61,7 @@ const QuestionSelectionPage = () => {
           if (!hasVariant) return; // skip questions without the user's language
 
           totalQuestionsCount++;
-          // Only add to the list if they haven't completed it yet
-          if (!completedQs.includes(doc.id)) {
-            qData[data.phase].push({ id: doc.id, ...data });
-          }
+          qData[data.phase].push({ id: doc.id, isCompleted: completedQs.includes(doc.id), ...data });
         }
       });
 
@@ -146,14 +143,19 @@ const QuestionSelectionPage = () => {
               ) : (
                 <div style={{ display: 'grid', gap: '1rem' }}>
                   {questions[selectedPhase].map(q => (
-                    <div key={q.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', border: '1px solid var(--border-subtle)', background: 'var(--bg-deep-navy)', borderRadius: 'var(--radius-sm)' }}>
+                    <div key={q.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', border: '1px solid var(--border-subtle)', background: 'var(--bg-deep-navy)', borderRadius: 'var(--radius-sm)', opacity: q.isCompleted ? 0.6 : 1, transition: 'opacity 0.3s' }}>
                       <div>
-                        <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)' }}>{q.title}</h3>
+                        <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', textDecoration: q.isCompleted ? 'line-through' : 'none' }}>{q.title}</h3>
                         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: '600px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{q.description}</p>
-                        <span style={{ display: 'inline-block', marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--accent-magenta)', border: '1px solid var(--accent-magenta)', padding: '2px 8px', borderRadius: '12px' }}>{q.points} POINTS</span>
+                        <span style={{ display: 'inline-block', marginTop: '0.5rem', fontSize: '0.8rem', color: q.isCompleted ? 'var(--text-secondary)' : 'var(--accent-magenta)', border: `1px solid ${q.isCompleted ? 'var(--text-secondary)' : 'var(--accent-magenta)'}`, padding: '2px 8px', borderRadius: '12px' }}>{q.points} POINTS</span>
                       </div>
-                      <button onClick={() => handleSelectQuestion(q.id)} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Code size={18} /> CODE NOW
+                      <button 
+                        onClick={() => !q.isCompleted && handleSelectQuestion(q.id)} 
+                        className={q.isCompleted ? "btn-secondary" : "btn-primary"} 
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: q.isCompleted ? 'not-allowed' : 'pointer' }}
+                        disabled={q.isCompleted}
+                      >
+                        {q.isCompleted ? <span style={{ color: 'var(--text-secondary)' }}>COMPLETED</span> : <><Code size={18} /> CODE NOW</>}
                       </button>
                     </div>
                   ))}
