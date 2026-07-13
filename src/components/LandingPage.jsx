@@ -33,7 +33,7 @@ const LandingPage = () => {
 
   const handleInitiateSession = async (e) => {
     e.preventDefault();
-    if (!name || !rollNo || !language) return;
+    if (!name || !rollNo) return;
     setLoading(true);
     try {
       const usersRef = collection(db, 'users');
@@ -50,10 +50,8 @@ const LandingPage = () => {
       }
       const userDocData = userDocSnap.data();
       const userId = userDocSnap.id;
-      await updateDoc(doc(db, 'users', userId), { selectedLanguage: language });
       localStorage.setItem('debugEventUserId', userId);
       localStorage.setItem('debugEventUserName', userDocData.name);
-      localStorage.setItem('debugEventLanguage', language);
       const eventDocRef = doc(db, 'settings', 'event');
       const eventDocSnap = await getDoc(eventDocRef);
       if (!eventDocSnap.exists()) {
@@ -213,13 +211,9 @@ const LandingPage = () => {
                 <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--accent-cyan)', fontSize: '0.78rem', letterSpacing: '1.5px', fontFamily: 'var(--font-heading)' }}>TEAM IDENTIFIER (LOT #)</label>
                 <input type="text" className="input-field" placeholder="# 00" value={rollNo} onChange={e => setRollNo(e.target.value)} required />
               </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--accent-cyan)', fontSize: '0.78rem', letterSpacing: '1.5px', fontFamily: 'var(--font-heading)' }}>SYSTEM LANGUAGE</label>
-                <select className="input-field" value={language} onChange={e => setLanguage(e.target.value)} required>
-                  {langSettings.c && <option value="c">C</option>}
-                  {langSettings.cpp && <option value="cpp">C++</option>}
-                  {langSettings.java && <option value="java">Java</option>}
-                </select>
+              <div style={{ background: 'rgba(0, 240, 255, 0.08)', border: '1px solid var(--accent-cyan)', padding: '0.75rem', borderRadius: '4px', textAlign: 'center' }}>
+                <div style={{ color: 'var(--accent-cyan)', fontSize: '0.75rem', letterSpacing: '1px', fontFamily: 'var(--font-heading)', marginBottom: '4px' }}>ROUND LANGUAGES ASSIGNED AUTOMATICALLY</div>
+                <div style={{ color: 'var(--text-primary)', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>EASY: C &nbsp;|&nbsp; MEDIUM: C++ &nbsp;|&nbsp; HARD: JAVA</div>
               </div>
               <button type="submit" className="btn-primary" disabled={loading}
                 style={{ marginTop: '0.4rem', background: '#091A40', borderColor: 'var(--accent-cyan)', color: 'var(--accent-cyan)' }}>

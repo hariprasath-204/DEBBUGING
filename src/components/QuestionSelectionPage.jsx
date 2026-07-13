@@ -15,7 +15,7 @@ const QuestionSelectionPage = () => {
   
   const navigate = useNavigate();
   const userId = localStorage.getItem('debugEventUserId');
-  const lockedLanguage = localStorage.getItem('debugEventLanguage') || 'cpp';
+  const [phaseLanguages, setPhaseLanguages] = useState({ easy: 'c', medium: 'cpp', hard: 'java' });
 
   useEffect(() => {
     if (!userId) {
@@ -43,6 +43,17 @@ const QuestionSelectionPage = () => {
         completedQs = userData.completedQuestions || [];
       }
 
+      // Fetch phase language configuration from Firestore
+      const langConfigSnap = await getDoc(doc(db, 'settings', 'language'));
+      let phaseLangs = { easy: 'c', medium: 'cpp', hard: 'java' };
+      if (langConfigSnap.exists()) {
+        const d = langConfigSnap.data();
+        if (d.easy) phaseLangs.easy = d.easy;
+        if (d.medium) phaseLangs.medium = d.medium;
+        if (d.hard) phaseLangs.hard = d.hard;
+        setPhaseLanguages(phaseLangs);
+      }
+
       // Fetch all questions
       const qSnap = await getDocs(collection(db, 'questions'));
       const qData = { easy: [], medium: [], hard: [] };
@@ -51,10 +62,10 @@ const QuestionSelectionPage = () => {
       qSnap.forEach(doc => {
         const data = doc.data();
         if (data.phase && qData[data.phase]) {
-          // Only count this question if it has ANY data for the user's language
-          const variant = data.variants && data.variants[lockedLanguage];
+          const expectedLang = phaseLangs[data.phase] || 'cpp';
+          const variant = data.variants && data.variants[expectedLang];
           const hasVariant = variant && (variant.initialCode !== '' || variant.correctCode !== '' || variant.errorLines !== '');
-          if (!hasVariant) return; // skip questions without the user's language
+          if (!hasVariant) return;
 
           totalQuestionsCount++;
           qData[data.phase].push({ id: doc.id, isCompleted: completedQs.includes(doc.id), ...data });
@@ -122,32 +133,37 @@ const QuestionSelectionPage = () => {
           <h1 className="gradient-title" style={{ textAlign: 'center', marginBottom: '2rem', fontSize: '2.5rem' }}>SELECT YOUR MISSION</h1>
           
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', justifyContent: 'center' }}>
-            {['easy', 'medium', 'hard'].map(phase => (
+            {['easy', 'medium', 'hard'].map(phase => {
+              const langLabel = (phaseLanguages[phase] || '').toUpperCase() === 'CPP' ? 'C++' : (phaseLanguages[phase] || '').toUpperCase();
+              return (
               <button 
                 key={phase}
                 onClick={() => setSelectedPhase(phase)}
                 style={{
-                  padding: '1rem 3rem',
+                  padding: '1rem 2.5rem',
                   background: selectedPhase === phase ? 'rgba(0, 240, 255, 0.15)' : 'rgba(22, 32, 87, 0.6)',
                   border: `2px solid ${selectedPhase === phase ? 'var(--accent-cyan)' : 'var(--border-subtle)'}`,
                   color: selectedPhase === phase ? 'var(--accent-cyan)' : 'var(--text-primary)',
                   borderRadius: 'var(--radius-md)',
                   fontFamily: 'var(--font-heading)',
-                  fontSize: '1.2rem',
+                  fontSize: '1.1rem',
                   textTransform: 'uppercase',
-                  letterSpacing: '2px',
+                  letterSpacing: '1.5px',
                   boxShadow: selectedPhase === phase ? '0 0 20px var(--accent-cyan-glow)' : 'none',
                   transition: 'all 0.3s ease'
                 }}
               >
-                {phase}
+                {phase} ({langLabel})
               </button>
-            ))}
+              );
+            })}
           </div>
 
           {selectedPhase && (
             <div className="glass-panel" style={{ padding: '2rem', animation: 'slideUpFade 0.4s ease forwards' }}>
-              <h2 style={{ color: 'var(--accent-cyan)', marginBottom: '1.5rem', textTransform: 'uppercase' }}>{selectedPhase} MISSIONS</h2>
+              <h2 style={{ color: 'var(--accent-cyan)', marginBottom: '1.5rem', textTransform: 'uppercase' }}>
+                {selectedPhase} MISSIONS — {phaseLanguages[selectedPhase]?.toUpperCase() === 'CPP' ? 'C++' : phaseLanguages[selectedPhase]?.toUpperCase()} LANGUAGE
+              </h2>
               
               {questions[selectedPhase].length === 0 ? (
                 <p style={{ color: 'var(--text-secondary)' }}>No missions available in this sector.</p>

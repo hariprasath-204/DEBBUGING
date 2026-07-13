@@ -21,7 +21,8 @@ const EditorPage = () => {
 
   const userId = localStorage.getItem('debugEventUserId');
   const userName = localStorage.getItem('debugEventUserName');
-  const lockedLanguage = localStorage.getItem('debugEventLanguage') || 'cpp';
+  const [phaseLanguages, setPhaseLanguages] = useState({ easy: 'c', medium: 'cpp', hard: 'java' });
+  const activeLanguage = question ? (phaseLanguages[question.phase] || 'cpp') : 'cpp';
 
   const [violations, setViolations] = useState({ tabSwitches: 0, copyPasteCount: 0 });
 
@@ -43,28 +44,27 @@ const EditorPage = () => {
       return;
     }
 
-    // 1. Fetch Question (and verify language from Firestore user doc)
+    // 1. Fetch Question & Admin Round Language Mapping
     const fetchQuestion = async () => {
       try {
-        // Read the user's chosen language FROM FIRESTORE (source of truth)
-        // in case localStorage is stale from a previous session
-        let lang = lockedLanguage;
-        if (userId) {
-          const userSnap = await getDoc(doc(db, 'users', userId));
-          if (userSnap.exists() && userSnap.data().selectedLanguage) {
-            lang = userSnap.data().selectedLanguage;
-            // Sync localStorage with the real value
-            localStorage.setItem('debugEventLanguage', lang);
-          }
+        const langConfigSnap = await getDoc(doc(db, 'settings', 'language'));
+        let phaseLangs = { easy: 'c', medium: 'cpp', hard: 'java' };
+        if (langConfigSnap.exists()) {
+          const d = langConfigSnap.data();
+          if (d.easy) phaseLangs.easy = d.easy;
+          if (d.medium) phaseLangs.medium = d.medium;
+          if (d.hard) phaseLangs.hard = d.hard;
+          setPhaseLanguages(phaseLangs);
         }
 
         if (questionId && questionId !== 'default_question') {
           const docSnap = await getDoc(doc(db, "questions", questionId));
           if (docSnap.exists()) {
             const data = docSnap.data();
+            const phaseLang = phaseLangs[data.phase] || 'cpp';
             setQuestion({ id: docSnap.id, ...data });
-            if (data.variants && data.variants[lang]) {
-              setCode(data.variants[lang].initialCode || '// No code provided for this language.');
+            if (data.variants && data.variants[phaseLang]) {
+              setCode(data.variants[phaseLang].initialCode || '// No code provided for this round language.');
             } else {
               setCode(data.initialCode || '');
             }
@@ -76,8 +76,9 @@ const EditorPage = () => {
           if (!querySnapshot.empty) {
             const docSnap = querySnapshot.docs[0];
             const data = docSnap.data();
+            const phaseLang = phaseLangs[data.phase] || 'cpp';
             setQuestion({ id: docSnap.id, ...data });
-            if (data.variants && data.variants[lang]) setCode(data.variants[lang].initialCode || '');
+            if (data.variants && data.variants[phaseLang]) setCode(data.variants[phaseLang].initialCode || '');
           } else {
             setCode('// No missions available.');
           }
@@ -173,18 +174,10 @@ const EditorPage = () => {
     setIsCompiling(true);
     setOutput('Compiling...');
     try {
-      // Always read language fresh (Firestore syncs this during question load)
-      const lang = localStorage.getItem('debugEventLanguage') || 'cpp';
-      let compiler = 'gcc-head';
-      if (lang === 'cpp') compiler = 'gcc-head';
-      if (lang === 'c') compiler = 'gcc-head-c';
-      if (lang === 'java') compiler = 'openjdk-jdk-21+35'; // Verified Wandbox Java compiler
-
-      // Use relative path so Vite proxy forwards to localhost:3000 in dev,
-      // and Vercel naturally hits the Serverless Function in prod.
       const response = await axios.post(`/api/compile`, {
         code: codeRef.current,
-        compiler: compiler
+        compiler: activeLanguage,
+        apiKey: '28152502bdcf827c763a92f0bf7ed806'
       });
 
       const result = response.data.program_message || response.data.compiler_error || "No output";
@@ -207,8 +200,8 @@ const EditorPage = () => {
     
     // Determine language-specific correct code
     let langCorrectCode = '';
-    if (question.variants && question.variants[lockedLanguage]) {
-      langCorrectCode = question.variants[lockedLanguage].correctCode;
+    if (question.variants && question.variants[activeLanguage]) {
+      langCorrectCode = question.variants[activeLanguage].correctCode;
     } else {
       langCorrectCode = question.correctCode || ''; // Fallback
     }
@@ -322,8 +315,8 @@ const EditorPage = () => {
 
   // Get specific error lines to display
   let currentErrorLines = [];
-  if (question && question.variants && question.variants[lockedLanguage] && question.variants[lockedLanguage].errorLinesArray) {
-    currentErrorLines = question.variants[lockedLanguage].errorLinesArray;
+  if (question && question.variants && question.variants[activeLanguage] && question.variants[activeLanguage].errorLinesArray) {
+    currentErrorLines = question.variants[activeLanguage].errorLinesArray;
   } else if (question && question.errorLines) {
     currentErrorLines = question.errorLines; // Fallback
   }
@@ -334,8 +327,8 @@ const EditorPage = () => {
 
   if (question && totalErrors > 0) {
     let initialCode = '';
-    if (question.variants && question.variants[lockedLanguage]) {
-      initialCode = question.variants[lockedLanguage].initialCode || '';
+    if (question.variants && question.variants[activeLanguage]) {
+      initialCode = question.variants[activeLanguage].initialCode || '';
     } else {
       initialCode = question.initialCode || '';
     }
@@ -358,8 +351,8 @@ const EditorPage = () => {
   let targetLinesCount = 0;
   if (question) {
     let correctCode = '';
-    if (question.variants && question.variants[lockedLanguage]) {
-      correctCode = question.variants[lockedLanguage].correctCode || '';
+    if (question.variants && question.variants[activeLanguage]) {
+      correctCode = question.variants[activeLanguage].correctCode || '';
     } else {
       correctCode = question.correctCode || '';
     }
@@ -419,7 +412,7 @@ const EditorPage = () => {
             <div style={{ padding: '0.5rem 1rem', background: 'var(--bg-panel-hover)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)' }}>
               
               <div style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                LANGUAGE: {lockedLanguage === 'cpp' ? 'C++' : lockedLanguage} (LOCKED)
+                ROUND LANGUAGE: {activeLanguage === 'cpp' ? 'C++' : activeLanguage.toUpperCase()} (LOCKED FOR {question?.phase?.toUpperCase() || 'ROUND'})
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -436,7 +429,7 @@ const EditorPage = () => {
               <Editor
                 height="100%"
                 theme="vs-dark"
-                language={lockedLanguage === 'cpp' || lockedLanguage === 'c' ? 'cpp' : lockedLanguage}
+                language={activeLanguage === 'cpp' || activeLanguage === 'c' ? 'cpp' : activeLanguage}
                 value={code}
                 onChange={(value) => setCode(value)}
                 options={{ minimap: { enabled: false }, fontSize: 16 }}

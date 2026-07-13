@@ -26,20 +26,10 @@ const Leaderboard = () => {
         if (aCheated && !bCheated) return 1;
         if (!aCheated && bCheated) return -1;
 
-        // 1. Most errors fixed (cumulative across all questions)
-        const aCleared = (a.cumulativeClearedErrors || 0) + (a.clearedErrors || 0);
-        const bCleared = (b.cumulativeClearedErrors || 0) + (b.clearedErrors || 0);
-        if (bCleared !== aCleared) return bCleared - aCleared;
-
-        // 2. Higher score
+        // 1. Higher score
         if (b.score !== a.score) return b.score - a.score;
 
-        // 3. Lines closest to original (smaller difference = better)
-        const aLineDiff = Math.abs((a.currentLinesCount || 0) - (a.targetLinesCount || 0));
-        const bLineDiff = Math.abs((b.currentLinesCount || 0) - (b.targetLinesCount || 0));
-        if (aLineDiff !== bLineDiff) return aLineDiff - bLineDiff;
-
-        // 4. Fastest time (lower elapsedTimeMs = better)
+        // 2. Fastest time (lower elapsedTimeMs = better)
         const aTime = a.elapsedTimeMs || Infinity;
         const bTime = b.elapsedTimeMs || Infinity;
         return aTime - bTime;
@@ -123,14 +113,10 @@ const Leaderboard = () => {
                 const delay = (revIdx * 120);
 
                 let rowBg = 'transparent';
-                if (isCheater) rowBg = 'rgba(255, 42, 109, 0.08)';
+                if (isCheater) rowBg = 'rgba(239, 68, 68, 0.08)';
                 else if (index === 0) rowBg = 'rgba(255, 215, 0, 0.08)';
                 else if (index === 1) rowBg = 'rgba(192, 192, 192, 0.06)';
                 else if (index === 2) rowBg = 'rgba(205, 127, 50, 0.06)';
-
-                const totalCleared = (user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0);
-                const totalErrors  = (user.cumulativeTotalErrors  || 0) + (user.totalErrors  || 0);
-                const lineDiff     = Math.abs((user.currentLinesCount || 0) - (user.targetLinesCount || 0));
 
                 return (
                   <tr

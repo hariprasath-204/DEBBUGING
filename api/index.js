@@ -12,34 +12,47 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const DEFAULT_API_KEY = process.env.ONLINE_COMPILER_API_KEY || '28152502bdcf827c763a92f0bf7ed806';
+
 app.post('/api/compile', async (req, res) => {
   try {
-    const { code, compiler } = req.body;
+    const { code, compiler, apiKey } = req.body;
 
     if (!code || !compiler) {
       return res.status(400).json({ error: 'Code and compiler parameters are required' });
     }
 
-    const isJava = compiler.includes('openjdk');
+    const activeApiKey = apiKey || DEFAULT_API_KEY;
 
-    const payload = {
-      code,
-      compiler,
-      save: false,
-      // Java on Wandbox requires filename to match the class name
-      ...(isJava && { filename: 'Main.java' })
+    // Map compiler identifier for OnlineCompiler API
+    let ocCompiler = compiler;
+    if (compiler.includes('gcc-head-c') || compiler === 'c') ocCompiler = 'c';
+    else if (compiler.includes('gcc-head') || compiler === 'cpp') ocCompiler = 'cpp';
+    else if (compiler.includes('openjdk') || compiler === 'java') ocCompiler = 'java';
+
+    const ocPayload = {
+      compiler: ocCompiler,
+      code: code,
+      input: ""
     };
 
-    const response = await axios.post('https://wandbox.org/api/compile.json', payload, {
+    const ocResp = await axios.post('https://api.onlinecompiler.io/api/run-code-sync/', ocPayload, {
       timeout: 30000,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${activeApiKey}`,
+        'ApiKey': activeApiKey
+      }
     });
 
-    res.json(response.data);
+    return res.json({
+      program_message: ocResp.data.output || ocResp.data.result || ocResp.data.stdout || '',
+      compiler_error: ocResp.data.error || ocResp.data.stderr || ''
+    });
   } catch (error) {
     const detail = error?.response?.data || error?.message || 'Unknown error';
-    console.error("Compilation error:", JSON.stringify(detail));
-    res.status(500).json({ error: 'Failed to compile', detail });
+    console.error("OnlineCompiler Compilation error:", JSON.stringify(detail));
+    res.status(500).json({ error: 'Failed to compile using OnlineCompiler API', detail });
   }
 });
 

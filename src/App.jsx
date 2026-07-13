@@ -13,9 +13,8 @@ import AllQuestionsCompletedPage from './components/AllQuestionsCompletedPage';
 function App() {
   return (
     <Router>
-      <div className="particles"></div>
-      <div className="scanner-line"></div>
-      <div className="app-container" style={{ minHeight: '100vh', padding: '2rem' }}>
+      <div className="ambient-bg"></div>
+      <div className="app-container" style={{ minHeight: '100vh', padding: '2rem', boxSizing: 'border-box' }}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/waiting" element={<WaitingPage />} />

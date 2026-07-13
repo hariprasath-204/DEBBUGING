@@ -40,6 +40,7 @@ const AdminDashboard = () => {
 
   // Settings State
   const [langSettings, setLangSettings] = useState({ c: true, cpp: true, java: true });
+  const [phaseLangs, setPhaseLangs] = useState({ easy: 'c', medium: 'cpp', hard: 'java', apiKey: '28152502bdcf827c763a92f0bf7ed806' });
   
   // Live Data
   const [liveUsers, setLiveUsers] = useState([]);
@@ -61,9 +62,16 @@ const AdminDashboard = () => {
     const langDocRef = doc(db, 'settings', 'language');
     const unsubLang = onSnapshot(langDocRef, (docSnap) => {
       if (docSnap.exists()) {
-        setLangSettings(docSnap.data());
+        const d = docSnap.data();
+        setLangSettings(d);
+        setPhaseLangs({
+          easy: d.easy || 'c',
+          medium: d.medium || 'cpp',
+          hard: d.hard || 'java',
+          apiKey: d.apiKey || '28152502bdcf827c763a92f0bf7ed806'
+        });
       } else {
-        setDoc(langDocRef, { c: true, cpp: true, java: true });
+        setDoc(langDocRef, { easy: 'c', medium: 'cpp', hard: 'java', apiKey: '28152502bdcf827c763a92f0bf7ed806', c: true, cpp: true, java: true });
       }
     });
 
@@ -256,6 +264,20 @@ const AdminDashboard = () => {
     setIsLoading(false);
   };
 
+  const handleSavePhaseLanguages = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    await setDoc(doc(db, 'settings', 'language'), {
+      ...langSettings,
+      easy: phaseLangs.easy,
+      medium: phaseLangs.medium,
+      hard: phaseLangs.hard,
+      apiKey: phaseLangs.apiKey
+    }, { merge: true });
+    setIsLoading(false);
+    showPopup('Round languages & API Key saved successfully!', 'success');
+  };
+
   const handleResetData = async () => {
     if (window.confirm("WARNING: This will delete ALL users and their submissions. This action CANNOT be undone! Are you sure?")) {
       setIsLoading(true);
@@ -417,8 +439,48 @@ const AdminDashboard = () => {
       case 'languages':
         return (
           <div className="glass-panel" style={{ padding: '2rem' }}>
-            <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>LANGUAGE SETTINGS</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Toggle which programming languages are available for registration.</p>
+            <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>ROUND LANGUAGE & API CONFIGURATION</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Configure which programming language is assigned to each round phase (Participants do not select compiler).</p>
+            
+            <form onSubmit={handleSavePhaseLanguages} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '600px', marginBottom: '3rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '2.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center' }}>
+                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>EASY ROUND LANGUAGE</label>
+                <select className="input-field" value={phaseLangs.easy} onChange={e => setPhaseLangs({ ...phaseLangs, easy: e.target.value })}>
+                  <option value="c">C Language (Only C)</option>
+                  <option value="cpp">C++ Language</option>
+                  <option value="java">Java Language</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center' }}>
+                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>MEDIUM ROUND LANGUAGE</label>
+                <select className="input-field" value={phaseLangs.medium} onChange={e => setPhaseLangs({ ...phaseLangs, medium: e.target.value })}>
+                  <option value="cpp">C++ Language (Only C++)</option>
+                  <option value="c">C Language</option>
+                  <option value="java">Java Language</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center' }}>
+                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>HARD ROUND LANGUAGE</label>
+                <select className="input-field" value={phaseLangs.hard} onChange={e => setPhaseLangs({ ...phaseLangs, hard: e.target.value })}>
+                  <option value="java">Java Language (Only Java)</option>
+                  <option value="cpp">C++ Language</option>
+                  <option value="c">C Language</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center' }}>
+                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>ONLINE COMPILER API KEY</label>
+                <input type="text" className="input-field" value={phaseLangs.apiKey} onChange={e => setPhaseLangs({ ...phaseLangs, apiKey: e.target.value })} placeholder="28152502bdcf827c763a92f0bf7ed806" />
+              </div>
+
+              <div>
+                <button type="submit" className="btn-primary">SAVE ROUND & API CONFIGURATION</button>
+              </div>
+            </form>
+
+            <h3 className="glow-text-cyan" style={{ marginBottom: '1rem' }}>LEGACY COMPILER AVAILABILITY</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {['c', 'cpp', 'java'].map(lang => (
                 <div key={lang} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -454,7 +516,10 @@ const AdminDashboard = () => {
         );
 
       case 'results':
-        const sortedUsers = [...liveUsers].sort((a, b) => b.score - a.score);
+        const sortedUsers = [...liveUsers].sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return (a.elapsedTimeMs || Infinity) - (b.elapsedTimeMs || Infinity);
+        });
         return (
           <div className="glass-panel" style={{ padding: '2rem' }}>
             <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
@@ -574,7 +639,10 @@ const AdminDashboard = () => {
               <div style={{ flex: '1', borderRight: '1px solid var(--border-subtle)', paddingRight: '1rem', maxHeight: '70vh', overflowY: 'auto' }}>
                 <h3 style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>SELECT PARTICIPANT</h3>
                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  {[...liveUsers].sort((a,b)=>b.score-a.score).map(user => (
+                  {[...liveUsers].sort((a, b) => {
+                    if (b.score !== a.score) return b.score - a.score;
+                    return (a.elapsedTimeMs || Infinity) - (b.elapsedTimeMs || Infinity);
+                  }).map(user => (
                     <button 
                       key={user.id} 
                       onClick={() => setSelectedConclusionUser(user)}
