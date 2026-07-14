@@ -4,6 +4,7 @@ import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc, updateDoc, on
 import { Link } from 'react-router-dom';
 import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
+import { syncClock, getNow } from '../utils/timeSync';
 import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2, RefreshCw, Edit, Award } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -41,10 +42,11 @@ const AdminDashboard = () => {
   const [eventEndTime, setEventEndTime] = useState(null);
 
   useEffect(() => {
+    syncClock();
     if (eventStatus === 'active' && eventEndTime) {
       const end = new Date(eventEndTime).getTime();
       const updateAdminTimer = () => {
-        const now = new Date().getTime();
+        const now = getNow();
         const distance = end - now;
         if (distance < 0) {
           setTimeLeft("00:00");
@@ -244,7 +246,7 @@ const AdminDashboard = () => {
   const handleStartEvent = async () => {
     if (window.confirm(`Start event for ${durationMinutes} minutes? All users in waiting room will enter the IDE.`)) {
       setIsLoading(true);
-      const now = new Date().getTime();
+      const now = getNow();
       const endTime = new Date(now + durationMinutes * 60000);
       await updateDoc(doc(db, 'settings', 'event'), { 
         status: 'active', 
@@ -260,7 +262,7 @@ const AdminDashboard = () => {
     const mins = parseInt(durationMinutes) || 5;
     if (window.confirm(`Update remaining timer to ${mins} minutes for all active users?`)) {
       setIsLoading(true);
-      const now = new Date().getTime();
+      const now = getNow();
       const endTime = new Date(now + mins * 60000);
       await updateDoc(doc(db, 'settings', 'event'), {
         durationMinutes: mins,

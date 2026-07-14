@@ -6,6 +6,7 @@ import { db } from '../firebase';
 import { doc, getDoc, getDocs, collection, updateDoc, increment, onSnapshot } from 'firebase/firestore';
 import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
+import { syncClock, getNow } from '../utils/timeSync';
 
 const EditorPage = () => {
   const { questionId } = useParams();
@@ -110,6 +111,9 @@ const EditorPage = () => {
     };
     fetchQuestion();
 
+    // Synchronize client clock with server
+    syncClock();
+
     // 2. Listen to Event Timer
     const eventDocRef = doc(db, 'settings', 'event');
     const unsubEvent = onSnapshot(eventDocRef, (docSnap) => {
@@ -123,7 +127,7 @@ const EditorPage = () => {
           // Setup timer
           const end = new Date(data.endTime).getTime();
           const updateTimer = () => {
-            const now = new Date().getTime();
+            const now = getNow();
             const distance = end - now;
             
             if (distance < 0) {
