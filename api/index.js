@@ -3,6 +3,9 @@ import cors from 'cors';
 import axios from 'axios';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { exec } from 'child_process';
+import fs from 'fs/promises';
+import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,6 +16,30 @@ app.use(cors());
 app.use(express.json());
 
 const DEFAULT_API_KEY = process.env.ONLINE_COMPILER_API_KEY || '28152502bdcf827c763a92f0bf7ed806';
+
+async function getJavaSyntaxError(code) {
+  try {
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'java-check-'));
+    const normalizedCode = code.replace(/public\s+class\s+[a-zA-Z0-9_]+/g, 'public class Main');
+    const filePath = path.join(tmpDir, 'Main.java');
+    await fs.writeFile(filePath, normalizedCode, 'utf8');
+
+    return await new Promise((resolve) => {
+      exec(`javac "${filePath}"`, async (error, stdout, stderr) => {
+        const errorOutput = (stderr || stdout || '').toString();
+        await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
+        if (errorOutput && errorOutput.trim()) {
+          const cleanedError = errorOutput.replaceAll(filePath, 'Main.java');
+          resolve(cleanedError.trim());
+        } else {
+          resolve("Compilation Error: Please verify Java class name and syntax.");
+        }
+      });
+    });
+  } catch (err) {
+    return "Compilation Error: Code execution failed.";
+  }
+}
 
 app.post('/api/compile', async (req, res) => {
   const { code, compiler, apiKey } = req.body;
@@ -46,9 +73,14 @@ app.post('/api/compile', async (req, res) => {
 
   for (const key of uniqueKeys) {
     try {
+      // Normalize Java public class name to Main for OnlineCompiler environment
+      const codeToSend = (ocCompiler === 'openjdk-25' || compiler.toLowerCase() === 'java')
+        ? code.replace(/public\s+class\s+[a-zA-Z0-9_]+/g, 'public class Main')
+        : code;
+
       const ocPayload = {
         compiler: ocCompiler,
-        code: code,
+        code: codeToSend,
         input: ""
       };
 
@@ -61,13 +93,13 @@ app.post('/api/compile', async (req, res) => {
         }
       });
 
-      const outputText = [
+      let outputText = [
         ocResp.data.output,
         ocResp.data.result,
         ocResp.data.stdout
       ].filter(s => typeof s === 'string' && s.trim().length > 0).join('\n');
 
-      const errorText = [
+      let errorText = [
         ocResp.data.error,
         ocResp.data.stderr,
         ocResp.data.compile_error,
@@ -75,6 +107,14 @@ app.post('/api/compile', async (req, res) => {
         ocResp.data.exception,
         ocResp.data.message
       ].filter(s => typeof s === 'string' && s.trim().length > 0 && s !== outputText).join('\n');
+
+      if ((ocCompiler === 'openjdk-25' || compiler.toLowerCase() === 'java') &&
+          (errorText.includes('Internal error: code execution failed') || !outputText.trim())) {
+        if (errorText.includes('Internal error: code execution failed') || errorText.trim() === '') {
+          const detailedSyntaxError = await getJavaSyntaxError(code);
+          errorText = detailedSyntaxError;
+        }
+      }
 
       let combinedMessage = [outputText, errorText].filter(Boolean).join('\n\n');
       if (!combinedMessage.trim()) {
