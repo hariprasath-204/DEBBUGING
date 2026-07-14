@@ -6,19 +6,38 @@ import { doc, onSnapshot, getDoc, getDocs, collection } from 'firebase/firestore
 const TimerFinishedPage = () => {
   const navigate = useNavigate();
 
+  const userId = localStorage.getItem('debugEventUserId');
+
   useEffect(() => {
-    // Listen for admin ending the event -> go to Thank You page
-    const unsub = onSnapshot(doc(db, "settings", "event"), (snap) => {
+    // Listen for event status and user reset
+    const unsubEvent = onSnapshot(doc(db, "settings", "event"), (snap) => {
       if (snap.exists()) {
         const status = snap.data().status;
         if (status === 'ended' || status === 'stopped') {
           navigate('/thank-you');
+        } else if (status === 'waiting') {
+          navigate('/waiting');
         }
       }
     });
 
-    return () => unsub();
-  }, [navigate]);
+    let unsubUser = () => {};
+    if (userId) {
+      unsubUser = onSnapshot(doc(db, "users", userId), (userSnap) => {
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          if (userData && !userData.isFinished) {
+            navigate('/selection');
+          }
+        }
+      });
+    }
+
+    return () => {
+      unsubEvent();
+      unsubUser();
+    };
+  }, [navigate, userId]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center' }}>

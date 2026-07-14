@@ -5,6 +5,7 @@ import { collection, doc, getDoc, updateDoc, onSnapshot, query, where, getDocs }
 import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
 import { Code } from 'lucide-react';
+import { clearAllLocalDrafts } from '../utils/drafts';
 
 const QuestionSelectionPage = () => {
   const [loading, setLoading] = useState(true);
@@ -22,6 +23,18 @@ const QuestionSelectionPage = () => {
       navigate('/');
       return;
     }
+
+    const unsubEvent = onSnapshot(doc(db, 'settings', 'event'), (eventSnap) => {
+      if (eventSnap.exists()) {
+        const data = eventSnap.data();
+        if (data.status === 'waiting') {
+          clearAllLocalDrafts();
+          navigate('/waiting');
+        } else if (data.status === 'ended' || data.status === 'stopped') {
+          navigate('/thank-you');
+        }
+      }
+    });
 
     const checkState = async () => {
       // Check Event Status
@@ -90,6 +103,9 @@ const QuestionSelectionPage = () => {
 
     checkState();
 
+    return () => {
+      if (unsubEvent) unsubEvent();
+    };
   }, [navigate, userId]);
 
   const handleSelectQuestion = (questionId) => {

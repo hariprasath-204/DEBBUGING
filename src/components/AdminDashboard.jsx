@@ -249,11 +249,25 @@ const AdminDashboard = () => {
       await syncClock();
       const now = getNow();
       const endTime = new Date(now + durationMinutes * 60000);
+      try {
+        const usersSnap = await getDocs(collection(db, 'users'));
+        const updatePromises = [];
+        usersSnap.forEach(docSnap => {
+          updatePromises.push(updateDoc(doc(db, 'users', docSnap.id), {
+            isFinished: false,
+            selectedQuestionId: null
+          }));
+        });
+        await Promise.all(updatePromises);
+      } catch (err) {
+        console.warn('Error resetting users for start event:', err);
+      }
       await updateDoc(doc(db, 'settings', 'event'), { 
         status: 'active', 
         durationMinutes: parseInt(durationMinutes), 
         startTime: now,
-        endTime: endTime.toISOString() 
+        endTime: endTime.toISOString(),
+        roundId: now
       });
       setIsLoading(false);
     }

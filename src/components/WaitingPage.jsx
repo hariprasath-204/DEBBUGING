@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
+import { clearAllLocalDrafts } from '../utils/drafts';
 
 const WaitingPage = () => {
   const navigate = useNavigate();
@@ -14,6 +15,8 @@ const WaitingPage = () => {
       return;
     }
 
+    clearAllLocalDrafts();
+
     // Subscribe to global event status
     const unsub = onSnapshot(doc(db, "settings", "event"), (docSnap) => {
       if (docSnap.exists()) {
@@ -23,6 +26,8 @@ const WaitingPage = () => {
           navigate('/selection');
         } else if (eventData.status === 'ended') {
           navigate('/thank-you');
+        } else if (eventData.status === 'waiting') {
+          clearAllLocalDrafts();
         }
       }
     });
