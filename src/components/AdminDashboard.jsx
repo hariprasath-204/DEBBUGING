@@ -545,25 +545,64 @@ const AdminDashboard = () => {
               <button onClick={() => window.print()} className="btn-primary"><FileDown size={18} style={{ marginRight: '8px' }}/> DOWNLOAD PDF</button>
             </div>
             <div id="print-area">
-              <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>FINAL LEADERBOARD</h1>
+              <h1 style={{ textAlign: 'center', marginBottom: '1rem' }}>OFFICIAL EVENT LEADERBOARD & EVALUATION REPORT</h1>
+              
+              {/* Comprehensive Scoring System Breakdown Card */}
+              <div style={{ background: 'var(--bg-deep-navy)', padding: '1.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '2rem' }}>
+                <h3 style={{ color: 'var(--accent-cyan)', marginBottom: '1rem', fontSize: '1.1rem' }}>
+                  SCORING SYSTEM & EVALUATION CRITERIA
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', fontSize: '0.88rem', lineHeight: '1.5', color: 'var(--text-secondary)' }}>
+                  <div style={{ background: 'rgba(0, 240, 255, 0.04)', padding: '1rem', borderRadius: '6px', border: '1px solid rgba(0, 240, 255, 0.15)' }}>
+                    <strong style={{ color: 'var(--accent-cyan)', display: 'block', marginBottom: '0.3rem' }}>1. BASE OUTPUT SCORE (+100 PTS)</strong>
+                    Awarded when code compiles and program output exactly matches the Expected Output. Incorrect output yields 0 points.
+                  </div>
+                  <div style={{ background: 'rgba(0, 245, 155, 0.04)', padding: '1rem', borderRadius: '6px', border: '1px solid rgba(0, 245, 155, 0.15)' }}>
+                    <strong style={{ color: '#00f59b', display: 'block', marginBottom: '0.3rem' }}>2. EFFICIENCY BONUS (+50 PTS)</strong>
+                    Awarded if the participant solves the bug with exactly the optimal target line count (line difference = 0).
+                  </div>
+                  <div style={{ background: 'rgba(244, 63, 94, 0.04)', padding: '1rem', borderRadius: '6px', border: '1px solid rgba(244, 63, 94, 0.15)' }}>
+                    <strong style={{ color: 'var(--accent-pink)', display: 'block', marginBottom: '0.3rem' }}>3. LINE PENALTY (-2 PTS / LINE)</strong>
+                    For every line above or below the optimal solution line count, a -2 point deduction is applied.
+                  </div>
+                  <div style={{ background: 'rgba(255, 0, 85, 0.04)', padding: '1rem', borderRadius: '6px', border: '1px solid rgba(255, 0, 85, 0.15)' }}>
+                    <strong style={{ color: 'var(--accent-magenta)', display: 'block', marginBottom: '0.3rem' }}>4. ANTI-CHEAT FLAG (-9999 PTS)</strong>
+                    Switching tabs &gt; 2 times or Copy/Pasting &gt; 2 times results in automatic disqualification (-9999 pts).
+                  </div>
+                </div>
+                <div style={{ marginTop: '0.8rem', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  * Tie-Breaker Policy: When participants achieve identical total scores, ranking is decided by faster submission time.
+                </div>
+              </div>
+
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid var(--accent-cyan)' }}>
                     <th style={{ padding: '1rem' }}>RANK</th>
                     <th style={{ padding: '1rem' }}>LOT / ROLL NO</th>
                     <th style={{ padding: '1rem' }}>NAME</th>
-                    <th style={{ padding: '1rem' }}>SCORE</th>
+                    <th style={{ padding: '1rem' }}>TOTAL SCORE</th>
+                    <th style={{ padding: '1rem' }}>ERRORS FIXED</th>
+                    <th style={{ padding: '1rem' }}>TIME TAKEN</th>
                     <th style={{ padding: '1rem' }}>CHEATING FLAGS</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sortedUsers.map((user, idx) => (
                     <tr key={user.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '1rem' }}>{idx + 1}</td>
+                      <td style={{ padding: '1rem', fontWeight: 'bold' }}>#{idx + 1}</td>
                       <td style={{ padding: '1rem' }}>{user.rollNo}</td>
-                      <td style={{ padding: '1rem' }}>{user.name}</td>
-                      <td style={{ padding: '1rem', color: user.score < 0 ? 'var(--accent-magenta)' : 'var(--accent-cyan)' }}>{user.score}</td>
-                      <td style={{ padding: '1rem' }}>Tabs: {user.tabSwitches} | Copy: {user.copyPasteCount}</td>
+                      <td style={{ padding: '1rem', fontWeight: 'bold' }}>{user.name}</td>
+                      <td style={{ padding: '1rem', fontWeight: 'bold', color: user.score < 0 ? 'var(--accent-magenta)' : 'var(--accent-cyan)' }}>{user.score}</td>
+                      <td style={{ padding: '1rem' }}>
+                        {(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)} / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        {user.elapsedTimeMs ? `${Math.floor(user.elapsedTimeMs / 60000)}m ${Math.floor((user.elapsedTimeMs % 60000) / 1000)}s` : 'N/A'}
+                      </td>
+                      <td style={{ padding: '1rem', color: (user.tabSwitches > 2 || user.copyPasteCount > 2) ? 'var(--accent-magenta)' : 'var(--text-secondary)' }}>
+                        Tabs: {user.tabSwitches || 0} | Copy: {user.copyPasteCount || 0}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -762,9 +801,9 @@ const AdminDashboard = () => {
       {popup && <PopupMessage message={popup.message} type={popup.type} onClose={() => setPopup(null)} />}
       <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
         
-        {/* Sidebar Navigation */}
-        <div className="no-print" style={{ width: '260px', background: 'var(--bg-panel)', borderRight: '1px solid var(--border-subtle)', padding: '2rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', zIndex: 10 }}>
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        {/* Sidebar Navigation with Scrollbar */}
+        <div className="no-print" style={{ width: '260px', background: 'var(--bg-panel)', borderRight: '1px solid var(--border-subtle)', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', zIndex: 10, overflowY: 'auto', flexShrink: 0 }}>
+          <div style={{ textAlign: 'center', marginBottom: '1.5rem', flexShrink: 0 }}>
             <h2 className="glow-text-cyan" style={{ fontSize: '1.2rem', margin: 0 }}>ADMIN CONSOLE</h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>SYSTEM V2.0</p>
           </div>
