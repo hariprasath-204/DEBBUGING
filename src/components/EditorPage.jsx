@@ -57,39 +57,52 @@ const EditorPage = () => {
           setPhaseLanguages(phaseLangs);
         }
 
+        let targetQuestion = null;
         if (questionId && questionId !== 'default_question') {
           const docSnap = await getDoc(doc(db, "questions", questionId));
           if (docSnap.exists()) {
-            const data = docSnap.data();
-            const phaseLang = phaseLangs[data.phase] || 'cpp';
-            setQuestion({ id: docSnap.id, ...data });
-            const loadedCode = data.variants?.[phaseLang]?.initialCode ||
-                               data.variants?.cpp?.initialCode ||
-                               data.variants?.c?.initialCode ||
-                               data.variants?.java?.initialCode ||
-                               data.initialCode ||
-                               '// No code provided.';
-            setCode(loadedCode);
-          } else {
-            setCode('// Mission not found.');
+            targetQuestion = { id: docSnap.id, ...docSnap.data() };
           }
         } else {
           const querySnapshot = await getDocs(collection(db, "questions"));
           if (!querySnapshot.empty) {
             const docSnap = querySnapshot.docs[0];
-            const data = docSnap.data();
-            const phaseLang = phaseLangs[data.phase] || 'cpp';
-            setQuestion({ id: docSnap.id, ...data });
-            const loadedCode = data.variants?.[phaseLang]?.initialCode ||
-                               data.variants?.cpp?.initialCode ||
-                               data.variants?.c?.initialCode ||
-                               data.variants?.java?.initialCode ||
-                               data.initialCode ||
-                               '// No code provided.';
-            setCode(loadedCode);
-          } else {
-            setCode('// No missions available.');
+            targetQuestion = { id: docSnap.id, ...docSnap.data() };
           }
+        }
+
+        if (targetQuestion) {
+          const phaseLang = phaseLangs[targetQuestion.phase] || 'cpp';
+          setQuestion(targetQuestion);
+          const initialCode = targetQuestion.variants?.[phaseLang]?.initialCode ||
+                              targetQuestion.variants?.cpp?.initialCode ||
+                              targetQuestion.variants?.c?.initialCode ||
+                              targetQuestion.variants?.java?.initialCode ||
+                              targetQuestion.initialCode ||
+                              '// No code provided.';
+
+          // 1. Check local storage draft first
+          const localDraft = localStorage.getItem(`codathan_draft_${userId}_${targetQuestion.id}`);
+
+          // 2. Also check Firestore user draft
+          let remoteDraft = null;
+          try {
+            const uSnap = await getDoc(doc(db, 'users', userId));
+            if (uSnap.exists()) {
+              const uData = uSnap.data();
+              if (uData.drafts && uData.drafts[targetQuestion.id]) {
+                remoteDraft = uData.drafts[targetQuestion.id];
+              } else if (uData.currentCode && uData.currentCode !== initialCode && !uData.isFinished) {
+                remoteDraft = uData.currentCode;
+              }
+            }
+          } catch (e) {
+            console.warn("Could not load remote draft:", e);
+          }
+
+          setCode(localDraft || remoteDraft || initialCode);
+        } else {
+          setCode('// Mission not found.');
         }
       } catch (err) {
         console.error("Error fetching question:", err);
@@ -131,10 +144,11 @@ const EditorPage = () => {
 
     // 3. Auto-save every 3 seconds
     const autoSaveInterval = setInterval(async () => {
-      if (userId && codeRef.current) {
+      if (userId && codeRef.current && questionId) {
         try {
           await updateDoc(doc(db, 'users', userId), {
             currentCode: codeRef.current,
+            [`drafts.${questionId}`]: codeRef.current,
             ...errorStatsRef.current
           });
         } catch (e) {
@@ -177,6 +191,23 @@ const EditorPage = () => {
     };
   }, [userId, navigate, activeLanguage]);
 
+
+  const handleResetCode = () => {
+    if (!question) return;
+    if (window.confirm("Are you sure you want to reset your code back to the original buggy template? Any unsaved edits will be discarded.")) {
+      const initialCode = question.variants?.[activeLanguage]?.initialCode ||
+                         question.variants?.cpp?.initialCode ||
+                         question.variants?.c?.initialCode ||
+                         question.variants?.java?.initialCode ||
+                         question.initialCode ||
+                         '';
+      setCode(initialCode);
+      if (userId && question.id) {
+        localStorage.removeItem(`codathan_draft_${userId}_${question.id}`);
+      }
+      setPopup({ message: "Code reset to original buggy template.", type: "info" });
+    }
+  };
 
   const compileCode = async () => {
     setIsCompiling(true);
@@ -426,6 +457,9 @@ const EditorPage = () => {
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button onClick={handleResetCode} className="btn-secondary" style={{ padding: '5px 12px', fontSize: '0.8rem', color: 'var(--accent-pink)', borderColor: 'var(--border-subtle)' }} title="Reset to original buggy code">
+                  RESET CODE
+                </button>
                 <button onClick={compileCode} disabled={isCompiling} className="btn-secondary" style={{ padding: '5px 15px', fontSize: '0.8rem' }}>
                   {isCompiling ? 'RUNNING...' : 'RUN CODE'}
                 </button>
@@ -441,7 +475,12 @@ const EditorPage = () => {
                 theme="vs-dark"
                 language={activeLanguage === 'cpp' || activeLanguage === 'c' ? 'cpp' : activeLanguage}
                 value={code}
-                onChange={(value) => setCode(value)}
+                onChange={(value) => {
+                  setCode(value);
+                  if (userId && question?.id && value) {
+                    localStorage.setItem(`codathan_draft_${userId}_${question.id}`, value);
+                  }
+                }}
                 options={{ minimap: { enabled: false }, fontSize: 16 }}
               />
             </div>
