@@ -14,70 +14,6 @@ app.use(express.json());
 
 const DEFAULT_API_KEY = process.env.ONLINE_COMPILER_API_KEY || '28152502bdcf827c763a92f0bf7ed806';
 
-function inspectJavaSyntax(code) {
-  const lines = code.split('\n');
-  const errors = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    const lineNum = i + 1;
-    const line = lines[i];
-    const trimmed = line.trim();
-
-    if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) continue;
-
-    // 1. Check ternary expression for missing colon ':'
-    if (line.includes('?') && !line.includes(':')) {
-      const col = line.indexOf('?') + 8;
-      const spaces = ' '.repeat(Math.max(0, col));
-      errors.push(`Main.java:${lineNum}: error: ':' expected\n${line}\n${spaces}^\n`);
-      continue;
-    }
-
-    const ternaryMatch = line.match(/\?[^:]*("[^"]*")\s+("[^"]*")/);
-    if (ternaryMatch) {
-      const col = line.indexOf(ternaryMatch[2]);
-      const spaces = ' '.repeat(Math.max(0, col));
-      errors.push(`Main.java:${lineNum}: error: ':' expected\n${line}\n${spaces}^\n`);
-      continue;
-    }
-
-    // 2. Missing semicolon check on statements
-    if ((trimmed.startsWith('System.out.') || trimmed.startsWith('return ') || trimmed.startsWith('int ') || trimmed.startsWith('double ') || trimmed.startsWith('String ') || trimmed.startsWith('boolean ')) &&
-        !trimmed.endsWith(';') && !trimmed.endsWith('{') && !trimmed.endsWith('}')) {
-      const col = line.length;
-      const spaces = ' '.repeat(Math.max(0, col));
-      errors.push(`Main.java:${lineNum}: error: ';' expected\n${line}\n${spaces}^\n`);
-      continue;
-    }
-
-    // 3. Unclosed string literal check
-    const quoteCount = (line.match(/(?<!\\)"/g) || []).length;
-    if (quoteCount % 2 !== 0) {
-      const col = line.lastIndexOf('"');
-      const spaces = ' '.repeat(Math.max(0, col));
-      errors.push(`Main.java:${lineNum}: error: unclosed string literal\n${line}\n${spaces}^\n`);
-      continue;
-    }
-  }
-
-  // 4. Check brace balance
-  let openBraces = 0;
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    openBraces += (line.match(/\{/g) || []).length;
-    openBraces -= (line.match(/\}/g) || []).length;
-  }
-  if (openBraces !== 0 && errors.length === 0) {
-    errors.push(`Main.java:${lines.length}: error: reached end of file while parsing\n}\n^\n`);
-  }
-
-  if (errors.length > 0) {
-    return errors.join('\n') + `${errors.length} error${errors.length > 1 ? 's' : ''}`;
-  }
-
-  return `Main.java:1: error: compilation failed\n1 error`;
-}
-
 app.post('/api/compile', async (req, res) => {
   const { code, compiler, apiKey } = req.body;
 
@@ -147,7 +83,7 @@ app.post('/api/compile', async (req, res) => {
 
       if ((ocCompiler === 'openjdk-25' || compiler.toLowerCase() === 'java') &&
           errorText.includes('Internal error: code execution failed')) {
-        errorText = inspectJavaSyntax(code);
+        errorText = "Compilation Error: Java syntax error or compilation failure.\nPlease verify your syntax (semicolons ';', brackets, or operators) and ensure your code is valid.";
       }
 
       let combinedMessage = [outputText, errorText].filter(Boolean).join('\n\n');
