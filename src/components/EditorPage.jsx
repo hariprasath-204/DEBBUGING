@@ -257,35 +257,48 @@ const EditorPage = () => {
     if (!question || isSubmitting || hasSubmittedRef.current) return;
     hasSubmittedRef.current = true;
     setIsSubmitting(true);
-    
-    // First run the code to get final output
-    const userOutput = await compileCode();
-    
+
+    const targetUrl = customRedirect || (isAutoSubmit ? '/timer-finished' : null);
+
+    if (targetUrl) {
+      ignoreCheatRef.current = true;
+      setPopup({
+        message: targetUrl === '/thank-you'
+          ? "Event Ended! Submitting your work..."
+          : "TIME IS UP! Your code has been automatically submitted.",
+        type: "warning"
+      });
+      setTimeout(() => navigate(targetUrl), 1800);
+    }
+
+    let userOutput = '';
+    if (!targetUrl) {
+      userOutput = await compileCode();
+    }
+
     // Determine language-specific correct code
     let langCorrectCode = '';
     if (question.variants && question.variants[activeLanguage]) {
       langCorrectCode = question.variants[activeLanguage].correctCode;
     } else {
-      langCorrectCode = question.correctCode || ''; // Fallback
+      langCorrectCode = question.correctCode || '';
     }
 
-    // Calculate stats
     const correctLines = langCorrectCode.split('\n').filter(line => line.trim() !== '').length;
     const userLines = codeRef.current.split('\n').filter(line => line.trim() !== '').length;
     
     const normalizedUserOutput = (userOutput || '').trim();
     const normalizedExpected = (question.expectedOutput || '').trim();
-    
     const isOutputCorrect = normalizedUserOutput === normalizedExpected;
-    
-    if (!isAutoSubmit && !isOutputCorrect) {
+
+    if (!targetUrl && !isOutputCorrect) {
       setPopup({ message: 'Output did not match expected output. Keep trying!', type: 'error' });
       setIsSubmitting(false);
+      hasSubmittedRef.current = false;
       return;
     }
 
     const lineDifference = Math.abs(correctLines - userLines);
-    
     let score = 0;
     if (isOutputCorrect) {
       score += question.points || 100;
@@ -352,7 +365,7 @@ const EditorPage = () => {
         targetLinesCount: 0
       };
 
-      if (isAutoSubmit) {
+      if (targetUrl) {
         updatePayload.isFinished = true;
       } else {
         updatePayload.selectedQuestionId = null;
@@ -360,26 +373,18 @@ const EditorPage = () => {
 
       await updateDoc(doc(db, 'users', userId), updatePayload);
 
-      if (customRedirect) {
-        setPopup({ 
-          message: customRedirect === '/thank-you' ? "Event Ended! Submitting your work..." : "TIME IS UP! Your code has been automatically submitted.", 
-          type: "warning" 
-        });
-        ignoreCheatRef.current = true;
-        setTimeout(() => navigate(customRedirect), 2000);
-      } else if (isAutoSubmit) {
-        setPopup({ message: "TIME IS UP! Your code has been automatically submitted.", type: "warning" });
-        ignoreCheatRef.current = true;
-        setTimeout(() => navigate('/timer-finished'), 2000);
-      } else {
+      if (!targetUrl) {
         setPopup({ message: `Success! Output matched. Score awarded: ${score}`, type: 'success' });
         ignoreCheatRef.current = true;
         setTimeout(() => navigate('/selection'), 2000);
       }
     } catch (err) {
       console.error("Error submitting:", err);
-      setPopup({ message: "Submission failed.", type: "error" });
-      setIsSubmitting(false);
+      if (!targetUrl) {
+        setPopup({ message: "Submission failed.", type: "error" });
+        setIsSubmitting(false);
+        hasSubmittedRef.current = false;
+      }
     }
   };
 
