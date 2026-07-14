@@ -43,16 +43,17 @@ const QuestionSelectionPage = () => {
         completedQs = userData.completedQuestions || [];
       }
 
-      // Fetch phase language configuration from Firestore
-      const langConfigSnap = await getDoc(doc(db, 'settings', 'language'));
-      let phaseLangs = { easy: 'c', medium: 'cpp', hard: 'java' };
-      if (langConfigSnap.exists()) {
-        const d = langConfigSnap.data();
-        if (d.easy) phaseLangs.easy = d.easy;
-        if (d.medium) phaseLangs.medium = d.medium;
-        if (d.hard) phaseLangs.hard = d.hard;
-        setPhaseLanguages(phaseLangs);
-      }
+      // Listen to phase language configuration from Firestore
+      const unsubLang = onSnapshot(doc(db, 'settings', 'language'), (langConfigSnap) => {
+        let phaseLangs = { easy: 'c', medium: 'cpp', hard: 'java' };
+        if (langConfigSnap.exists()) {
+          const d = langConfigSnap.data();
+          if (d.easy) phaseLangs.easy = d.easy;
+          if (d.medium) phaseLangs.medium = d.medium;
+          if (d.hard) phaseLangs.hard = d.hard;
+          setPhaseLanguages(phaseLangs);
+        }
+      });
 
       // Fetch all questions
       const qSnap = await getDocs(collection(db, 'questions'));
