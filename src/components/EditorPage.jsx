@@ -192,8 +192,27 @@ const EditorPage = () => {
       setOutput(result);
       return result;
     } catch (err) {
-      setOutput("Error connecting to compiler API");
-      return null;
+      console.warn("Backend /api/compile unreachable or error, falling back to direct browser Wandbox API...", err?.message);
+      try {
+        let wandboxCompiler = activeLanguage;
+        if (activeLanguage === 'c') wandboxCompiler = 'gcc-head-c';
+        else if (activeLanguage === 'cpp') wandboxCompiler = 'gcc-head';
+        else if (activeLanguage === 'java') wandboxCompiler = 'openjdk-head';
+
+        const wandboxResponse = await axios.post('https://wandbox.org/api/compile.json', {
+          compiler: wandboxCompiler,
+          code: codeRef.current,
+          save: false
+        });
+
+        const result = wandboxResponse.data.program_message || wandboxResponse.data.compiler_error || "No output";
+        setOutput(result);
+        return result;
+      } catch (fallbackErr) {
+        console.error("All compilation attempts failed:", fallbackErr);
+        setOutput("Compilation Error: Unable to connect to compiler engine.");
+        return null;
+      }
     } finally {
       setIsCompiling(false);
     }
