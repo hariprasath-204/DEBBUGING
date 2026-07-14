@@ -33,6 +33,7 @@ const EditorPage = () => {
   const errorStatsRef = useRef({ total: 0, cleared: 0, remaining: 0, currentLines: 0, targetLines: 0 });
   const ignoreCheatRef = useRef(false);
   const eventStartTimeRef = useRef(null);
+  const hasSubmittedRef = useRef(false);
 
   // Sync state to ref for auto-save and submission closures
   useEffect(() => {
@@ -133,7 +134,9 @@ const EditorPage = () => {
         const data = docSnap.data();
         if (data.status === 'ended' || data.status === 'stopped') {
           // Admin stopped event -> go to Thank You page
-          handleSubmit(true, '/thank-you');
+          if (!hasSubmittedRef.current) {
+            handleSubmit(true, '/thank-you');
+          }
         } else if (data.status === 'active' && data.endTime) {
           if (data.startTime) eventStartTimeRef.current = data.startTime;
           // Setup timer
@@ -144,7 +147,9 @@ const EditorPage = () => {
             
             if (distance < 0) {
               setTimeLeft("00:00");
-              handleSubmit(true, '/timer-finished');
+              if (!hasSubmittedRef.current) {
+                handleSubmit(true, '/timer-finished');
+              }
             } else {
               const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
               const seconds = Math.floor((distance % (1000 * 60)) / 1000);
@@ -249,7 +254,8 @@ const EditorPage = () => {
   };
 
   const handleSubmit = async (isAutoSubmit = false, customRedirect = null) => {
-    if (!question || isSubmitting) return;
+    if (!question || isSubmitting || hasSubmittedRef.current) return;
+    hasSubmittedRef.current = true;
     setIsSubmitting(true);
     
     // First run the code to get final output
