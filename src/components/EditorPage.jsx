@@ -487,18 +487,26 @@ const EditorPage = () => {
           </div>
 
           {/* Bottom: Console Output */}
-          <div className="glass-panel" style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column' }}>
-            <h4 style={{ color: 'var(--accent-cyan)', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)' }}>CONSOLE OUTPUT</h4>
+          <div className="glass-panel" style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexShrink: 0 }}>
+              <h4 style={{ color: 'var(--accent-cyan)', margin: 0, fontFamily: 'var(--font-heading)' }}>CONSOLE OUTPUT</h4>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>[ SCROLLABLE ]</span>
+            </div>
             <pre style={{ 
               flex: 1, 
               background: 'var(--bg-deep-navy)', 
               padding: '1rem', 
               borderRadius: '4px', 
-              color: output.includes('error') ? 'var(--accent-magenta)' : 'var(--text-primary)',
+              color: (output && (output.toLowerCase().includes('error') || output.toLowerCase().includes('exception'))) ? 'var(--accent-magenta)' : 'var(--text-primary)',
               overflowY: 'auto',
+              overflowX: 'auto',
+              minHeight: 0,
+              maxHeight: '100%',
               whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
               border: '1px solid var(--border-subtle)',
-              margin: 0
+              margin: 0,
+              fontFamily: 'var(--font-mono)'
             }}>
               {output}
             </pre>

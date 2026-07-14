@@ -61,9 +61,29 @@ app.post('/api/compile', async (req, res) => {
         }
       });
 
+      const outputText = [
+        ocResp.data.output,
+        ocResp.data.result,
+        ocResp.data.stdout
+      ].filter(s => typeof s === 'string' && s.trim().length > 0).join('\n');
+
+      const errorText = [
+        ocResp.data.error,
+        ocResp.data.stderr,
+        ocResp.data.compile_error,
+        ocResp.data.compiler_error,
+        ocResp.data.exception,
+        ocResp.data.message
+      ].filter(s => typeof s === 'string' && s.trim().length > 0 && s !== outputText).join('\n');
+
+      let combinedMessage = [outputText, errorText].filter(Boolean).join('\n\n');
+      if (!combinedMessage.trim()) {
+        combinedMessage = "No output returned.";
+      }
+
       return res.json({
-        program_message: ocResp.data.output || ocResp.data.result || ocResp.data.stdout || '',
-        compiler_error: ocResp.data.error || ocResp.data.stderr || ''
+        program_message: combinedMessage,
+        compiler_error: errorText
       });
     } catch (err) {
       console.warn(`OnlineCompiler attempt failed with key (${key.slice(0, 6)}...):`, err?.message);
