@@ -8,11 +8,11 @@ import PopupMessage from './PopupMessage';
 // ── Landing Page ─────────────────────────────────────────────────
 const LandingPage = () => {
   const [showModal, setShowModal] = useState(false);
-  const [name, setName] = useState('');
   const [rollNo, setRollNo] = useState('');
   const [language, setLanguage] = useState('cpp');
   const [loading, setLoading] = useState(false);
   const [langSettings, setLangSettings] = useState({ c: true, cpp: true, java: true });
+  const [usersList, setUsersList] = useState([]);
   const [popup, setPopup] = useState(null);
   const navigate = useNavigate();
 
@@ -28,30 +28,43 @@ const LandingPage = () => {
         }
       }
     });
-    return () => unsubLang();
+
+    const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+      const uList = [];
+      snapshot.forEach(d => uList.push({ id: d.id, ...d.data() }));
+      setUsersList(uList);
+    });
+
+    return () => {
+      unsubLang();
+      unsubUsers();
+    };
   }, [language]);
+
+  const detectedUser = usersList.find(u => {
+    if (!u.rollNo || !rollNo) return false;
+    const dbRoll = String(u.rollNo).trim().toLowerCase();
+    const inputRoll = String(rollNo).trim().toLowerCase();
+    if (dbRoll === inputRoll) return true;
+    const dbNum = dbRoll.replace(/[^0-9a-z]/g, '');
+    const inputNum = inputRoll.replace(/[^0-9a-z]/g, '');
+    return dbNum !== '' && dbNum === inputNum;
+  });
 
   const handleInitiateSession = async (e) => {
     e.preventDefault();
-    if (!name || !rollNo) return;
+    if (!rollNo) return;
+    if (!detectedUser) {
+      setPopup({ message: `Lot #${rollNo} not registered! Please ask the Admin to register your Lot number first.`, type: "error" });
+      return;
+    }
     setLoading(true);
     try {
-      const usersRef = collection(db, 'users');
-      const q = query(usersRef, where("rollNo", "==", rollNo));
-      const querySnapshot = await getDocs(q);
-      if (querySnapshot.empty) {
-        setPopup({ message: "Invalid Lot #! Please contact the Admin to register your Lot #.", type: "error" });
-        setLoading(false); return;
-      }
-      const userDocSnap = querySnapshot.docs.find(d => d.data().name.toLowerCase() === name.toLowerCase());
-      if (!userDocSnap) {
-        setPopup({ message: "Lot # found, but Participant Name does not match. Please verify.", type: "error" });
-        setLoading(false); return;
-      }
-      const userDocData = userDocSnap.data();
-      const userId = userDocSnap.id;
+      const userId = detectedUser.id;
+      const userName = detectedUser.name || `Lot ${detectedUser.rollNo}`;
       localStorage.setItem('debugEventUserId', userId);
-      localStorage.setItem('debugEventUserName', userDocData.name);
+      localStorage.setItem('debugEventUserName', userName);
+
       const eventDocRef = doc(db, 'settings', 'event');
       const eventDocSnap = await getDoc(eventDocRef);
       if (!eventDocSnap.exists()) {
@@ -202,21 +215,81 @@ const LandingPage = () => {
         }}>
           <div className="glass-panel" style={{ padding: '2rem', width: '100%', maxWidth: '440px', textAlign: 'center' }}>
             <h2 className="glow-text-cyan" style={{ fontSize: '1.4rem', marginBottom: '1.5rem' }}>SYSTEM ACCESS</h2>
-            <form onSubmit={handleInitiateSession} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--accent-cyan)', fontSize: '0.78rem', letterSpacing: '1.5px', fontFamily: 'var(--font-heading)' }}>PARTICIPANT NAME</label>
-                <input type="text" className="input-field" placeholder="Enter Name" value={name} onChange={e => setName(e.target.value)} required />
-              </div>
+            <form onSubmit={handleInitiateSession} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', textAlign: 'left' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--accent-cyan)', fontSize: '0.78rem', letterSpacing: '1.5px', fontFamily: 'var(--font-heading)' }}>TEAM IDENTIFIER (LOT #)</label>
-                <input type="text" className="input-field" placeholder="# 00" value={rollNo} onChange={e => setRollNo(e.target.value)} required />
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="Enter Lot # (e.g. 01)"
+                  value={rollNo}
+                  onChange={e => setRollNo(e.target.value)}
+                  required
+                  autoFocus
+                />
               </div>
+
+              {/* Automatically Detected Participant Box */}
+              {detectedUser ? (
+                <div style={{
+                  background: 'rgba(0, 245, 155, 0.08)',
+                  border: '1px solid #00f59b',
+                  padding: '0.85rem 1rem',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 0 16px rgba(0, 245, 155, 0.2)'
+                }}>
+                  <div style={{ textAlign: 'left' }}>
+                    <span style={{ fontSize: '0.7rem', color: '#00f59b', letterSpacing: '1.5px', fontWeight: 'bold', display: 'block', textTransform: 'uppercase' }}>
+                      ✓ DETECTED PARTICIPANT
+                    </span>
+                    <strong style={{ fontSize: '1.08rem', color: 'var(--text-primary)' }}>
+                      {detectedUser.name}
+                    </strong>
+                  </div>
+                  <span style={{
+                    fontSize: '0.8rem',
+                    background: '#00f59b',
+                    color: '#040711',
+                    fontWeight: 'bold',
+                    padding: '3px 10px',
+                    borderRadius: '12px',
+                    fontFamily: 'var(--font-mono)'
+                  }}>
+                    LOT {detectedUser.rollNo}
+                  </span>
+                </div>
+              ) : rollNo.trim() !== '' ? (
+                <div style={{
+                  background: 'rgba(255, 0, 85, 0.06)',
+                  border: '1px solid rgba(255, 0, 85, 0.3)',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '6px',
+                  textAlign: 'center',
+                  color: 'var(--accent-pink)',
+                  fontSize: '0.82rem'
+                }}>
+                  Lot #{rollNo} not found in registry. Ask Admin to add your Lot number.
+                </div>
+              ) : null}
+
               <div style={{ background: 'rgba(0, 240, 255, 0.08)', border: '1px solid var(--accent-cyan)', padding: '0.75rem', borderRadius: '4px', textAlign: 'center' }}>
                 <div style={{ color: 'var(--accent-cyan)', fontSize: '0.75rem', letterSpacing: '1px', fontFamily: 'var(--font-heading)', marginBottom: '4px' }}>ROUND LANGUAGES ASSIGNED AUTOMATICALLY</div>
                 <div style={{ color: 'var(--text-primary)', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>EASY: C &nbsp;|&nbsp; MEDIUM: C++ &nbsp;|&nbsp; HARD: JAVA</div>
               </div>
-              <button type="submit" className="btn-primary" disabled={loading}
-                style={{ marginTop: '0.4rem', background: '#091A40', borderColor: 'var(--accent-cyan)', color: 'var(--accent-cyan)' }}>
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={loading || !detectedUser}
+                style={{
+                  marginTop: '0.4rem',
+                  background: detectedUser ? 'linear-gradient(135deg, #00f0ff 0%, #0072ff 100%)' : '#091A40',
+                  borderColor: 'var(--accent-cyan)',
+                  color: detectedUser ? '#040711' : 'var(--accent-cyan)'
+                }}
+              >
                 {loading ? 'CONNECTING...' : 'INITIATE_SESSION'}
               </button>
             </form>
