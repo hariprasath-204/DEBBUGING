@@ -119,9 +119,9 @@ const EditorPage = () => {
     const unsubEvent = onSnapshot(eventDocRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.status === 'ended') {
-          // Event over -> force submit
-          handleSubmit(true);
+        if (data.status === 'ended' || data.status === 'stopped') {
+          // Admin stopped event -> go to Thank You page
+          handleSubmit(true, '/thank-you');
         } else if (data.status === 'active' && data.endTime) {
           if (data.startTime) eventStartTimeRef.current = data.startTime;
           // Setup timer
@@ -132,7 +132,7 @@ const EditorPage = () => {
             
             if (distance < 0) {
               setTimeLeft("00:00");
-              handleSubmit(true);
+              handleSubmit(true, '/timer-finished');
             } else {
               const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
               const seconds = Math.floor((distance % (1000 * 60)) / 1000);
@@ -236,7 +236,7 @@ const EditorPage = () => {
     }
   };
 
-  const handleSubmit = async (isAutoSubmit = false) => {
+  const handleSubmit = async (isAutoSubmit = false, customRedirect = null) => {
     if (!question || isSubmitting) return;
     setIsSubmitting(true);
     
@@ -342,7 +342,14 @@ const EditorPage = () => {
 
       await updateDoc(doc(db, 'users', userId), updatePayload);
 
-      if (isAutoSubmit) {
+      if (customRedirect) {
+        setPopup({ 
+          message: customRedirect === '/thank-you' ? "Event Ended! Submitting your work..." : "TIME IS UP! Your code has been automatically submitted.", 
+          type: "warning" 
+        });
+        ignoreCheatRef.current = true;
+        setTimeout(() => navigate(customRedirect), 2000);
+      } else if (isAutoSubmit) {
         setPopup({ message: "TIME IS UP! Your code has been automatically submitted.", type: "warning" });
         ignoreCheatRef.current = true;
         setTimeout(() => navigate('/timer-finished'), 2000);

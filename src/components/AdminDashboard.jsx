@@ -246,6 +246,7 @@ const AdminDashboard = () => {
   const handleStartEvent = async () => {
     if (window.confirm(`Start event for ${durationMinutes} minutes? All users in waiting room will enter the IDE.`)) {
       setIsLoading(true);
+      await syncClock();
       const now = getNow();
       const endTime = new Date(now + durationMinutes * 60000);
       await updateDoc(doc(db, 'settings', 'event'), { 
@@ -262,6 +263,7 @@ const AdminDashboard = () => {
     const mins = parseInt(durationMinutes) || 5;
     if (window.confirm(`Update remaining timer to ${mins} minutes for all active users?`)) {
       setIsLoading(true);
+      await syncClock();
       const now = getNow();
       const endTime = new Date(now + mins * 60000);
       await updateDoc(doc(db, 'settings', 'event'), {

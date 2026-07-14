@@ -14,6 +14,11 @@ app.use(express.json());
 
 const DEFAULT_API_KEY = process.env.ONLINE_COMPILER_API_KEY || '28152502bdcf827c763a92f0bf7ed806';
 
+app.get('/api/time', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  return res.json({ now: Date.now() });
+});
+
 app.post('/api/compile', async (req, res) => {
   const { code, compiler, apiKey } = req.body;
 

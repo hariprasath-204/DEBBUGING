@@ -7,16 +7,18 @@ const TimerFinishedPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-
     // Listen for admin ending the event -> go to Thank You page
     const unsub = onSnapshot(doc(db, "settings", "event"), (snap) => {
-      if (snap.exists() && snap.data().status === 'ended') {
-        navigate('/thank-you');
+      if (snap.exists()) {
+        const status = snap.data().status;
+        if (status === 'ended' || status === 'stopped') {
+          navigate('/thank-you');
+        }
       }
     });
 
     return () => unsub();
-  }, [navigate, userId]);
+  }, [navigate]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center' }}>
