@@ -62,11 +62,6 @@ const QuestionSelectionPage = () => {
       qSnap.forEach(doc => {
         const data = doc.data();
         if (data.phase && qData[data.phase]) {
-          const expectedLang = phaseLangs[data.phase] || 'cpp';
-          const variant = data.variants && data.variants[expectedLang];
-          const hasVariant = variant && (variant.initialCode !== '' || variant.correctCode !== '' || variant.errorLines !== '');
-          if (!hasVariant) return;
-
           totalQuestionsCount++;
           qData[data.phase].push({ id: doc.id, isCompleted: completedQs.includes(doc.id), ...data });
         }

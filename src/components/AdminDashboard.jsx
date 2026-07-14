@@ -100,7 +100,16 @@ const AdminDashboard = () => {
     };
   }, []);
 
-  const handleQuestionChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleQuestionChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (e.target.name === 'phase') {
+      const phaseLangMap = { easy: 'c', medium: 'cpp', hard: 'java' };
+      if (phaseLangMap[e.target.value]) {
+        setVariantTab(phaseLangMap[e.target.value]);
+      }
+    }
+  };
+
   const handleVariantChange = (e, lang) => {
     setFormData({ ...formData, variants: { ...formData.variants, [lang]: { ...formData.variants[lang], [e.target.name]: e.target.value } } });
   };
@@ -110,9 +119,18 @@ const AdminDashboard = () => {
     setIsLoading(true);
     setStatus('Saving...');
     try {
+      const phaseLangMap = { easy: 'c', medium: 'cpp', hard: 'java' };
+      const targetLang = phaseLangMap[formData.phase] || 'cpp';
+      const fallbackVariant = formData.variants[targetLang].initialCode ? formData.variants[targetLang] :
+                              (formData.variants.cpp.initialCode ? formData.variants.cpp :
+                              (formData.variants.c.initialCode ? formData.variants.c : formData.variants.java));
+
       const processedVariants = { ...formData.variants };
       for (const lang in processedVariants) {
-        processedVariants[lang].errorLinesArray = processedVariants[lang].errorLines
+        if (!processedVariants[lang].initialCode && fallbackVariant) {
+          processedVariants[lang] = { ...fallbackVariant };
+        }
+        processedVariants[lang].errorLinesArray = (processedVariants[lang].errorLines || '')
           .split(',').map(line => parseInt(line.trim())).filter(n => !isNaN(n));
       }
       

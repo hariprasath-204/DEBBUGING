@@ -63,11 +63,13 @@ const EditorPage = () => {
             const data = docSnap.data();
             const phaseLang = phaseLangs[data.phase] || 'cpp';
             setQuestion({ id: docSnap.id, ...data });
-            if (data.variants && data.variants[phaseLang]) {
-              setCode(data.variants[phaseLang].initialCode || '// No code provided for this round language.');
-            } else {
-              setCode(data.initialCode || '');
-            }
+            const loadedCode = data.variants?.[phaseLang]?.initialCode ||
+                               data.variants?.cpp?.initialCode ||
+                               data.variants?.c?.initialCode ||
+                               data.variants?.java?.initialCode ||
+                               data.initialCode ||
+                               '// No code provided.';
+            setCode(loadedCode);
           } else {
             setCode('// Mission not found.');
           }
@@ -78,7 +80,13 @@ const EditorPage = () => {
             const data = docSnap.data();
             const phaseLang = phaseLangs[data.phase] || 'cpp';
             setQuestion({ id: docSnap.id, ...data });
-            if (data.variants && data.variants[phaseLang]) setCode(data.variants[phaseLang].initialCode || '');
+            const loadedCode = data.variants?.[phaseLang]?.initialCode ||
+                               data.variants?.cpp?.initialCode ||
+                               data.variants?.c?.initialCode ||
+                               data.variants?.java?.initialCode ||
+                               data.initialCode ||
+                               '// No code provided.';
+            setCode(loadedCode);
           } else {
             setCode('// No missions available.');
           }
@@ -167,7 +175,7 @@ const EditorPage = () => {
       document.removeEventListener("paste", handleCopyPaste);
       document.removeEventListener("copy", handleCopyPaste);
     };
-  }, [userId, navigate, lockedLanguage]);
+  }, [userId, navigate, activeLanguage]);
 
 
   const compileCode = async () => {
