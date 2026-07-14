@@ -37,6 +37,30 @@ const AdminDashboard = () => {
   // Event State
   const [eventStatus, setEventStatus] = useState('waiting');
   const [durationMinutes, setDurationMinutes] = useState(60);
+  const [timeLeft, setTimeLeft] = useState('');
+  const [eventEndTime, setEventEndTime] = useState(null);
+
+  useEffect(() => {
+    if (eventStatus === 'active' && eventEndTime) {
+      const end = new Date(eventEndTime).getTime();
+      const updateAdminTimer = () => {
+        const now = new Date().getTime();
+        const distance = end - now;
+        if (distance < 0) {
+          setTimeLeft("00:00");
+        } else {
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+          setTimeLeft(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+        }
+      };
+      updateAdminTimer();
+      const interval = setInterval(updateAdminTimer, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setTimeLeft('');
+    }
+  }, [eventStatus, eventEndTime]);
 
   // Settings State
   const [langSettings, setLangSettings] = useState({ c: true, cpp: true, java: true });
@@ -53,6 +77,7 @@ const AdminDashboard = () => {
         const data = docSnap.data();
         setEventStatus(data.status);
         if (data.durationMinutes) setDurationMinutes(data.durationMinutes);
+        setEventEndTime(data.endTime || null);
       } else {
         setDoc(eventDocRef, { status: 'waiting', endTime: null, durationMinutes: 60 });
       }
@@ -228,6 +253,21 @@ const AdminDashboard = () => {
         endTime: endTime.toISOString() 
       });
       setIsLoading(false);
+    }
+  };
+
+  const handleUpdateTimer = async () => {
+    const mins = parseInt(durationMinutes) || 5;
+    if (window.confirm(`Update remaining timer to ${mins} minutes for all active users?`)) {
+      setIsLoading(true);
+      const now = new Date().getTime();
+      const endTime = new Date(now + mins * 60000);
+      await updateDoc(doc(db, 'settings', 'event'), {
+        durationMinutes: mins,
+        endTime: endTime.toISOString()
+      });
+      setIsLoading(false);
+      showPopup(`Timer updated to ${mins} minutes remaining!`, "success");
     }
   };
 
@@ -441,10 +481,16 @@ const AdminDashboard = () => {
         return (
           <div className="glass-panel" style={{ padding: '2rem' }}>
             <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>ROUND SETTING & EVENT CONTROLS</h2>
-            <h3 style={{ marginBottom: '2rem' }}>STATUS: <span className={eventStatus === 'active' ? 'glow-text-cyan' : 'glow-text-magenta'}>{eventStatus.toUpperCase()}</span></h3>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginBottom: '2rem' }}>
-              <div><label>DURATION (MINUTES)</label><input type="number" className="input-field" value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} disabled={eventStatus === 'active'} /></div>
+            <h3 style={{ marginBottom: '2rem' }}>
+              STATUS: <span className={eventStatus === 'active' ? 'glow-text-cyan' : 'glow-text-magenta'}>{eventStatus.toUpperCase()}</span>
+              {timeLeft && <span style={{ marginLeft: '2rem', color: 'var(--accent-pink)' }}>TIME REMAINING: {timeLeft}</span>}
+            </h3>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginBottom: '2rem', flexWrap: 'wrap' }}>
+              <div><label>DURATION (MINUTES)</label><input type="number" className="input-field" value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} /></div>
               <button onClick={handleStartEvent} disabled={eventStatus === 'active'} className="btn-primary">START EVENT</button>
+              {eventStatus === 'active' && (
+                <button onClick={handleUpdateTimer} className="btn-primary" style={{ background: 'var(--accent-cyan)', color: 'var(--bg-deep-navy)' }}>UPDATE TIMER</button>
+              )}
               <button onClick={handleStopEvent} disabled={eventStatus !== 'active'} className="btn-secondary" style={{ background: 'var(--accent-magenta)', color: 'var(--bg-deep-navy)' }}>STOP EVENT</button>
             </div>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '2rem' }}>

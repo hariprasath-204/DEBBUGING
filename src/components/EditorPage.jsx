@@ -122,21 +122,21 @@ const EditorPage = () => {
           if (data.startTime) eventStartTimeRef.current = data.startTime;
           // Setup timer
           const end = new Date(data.endTime).getTime();
-          const timerInterval = setInterval(() => {
+          const updateTimer = () => {
             const now = new Date().getTime();
             const distance = end - now;
             
             if (distance < 0) {
-              clearInterval(timerInterval);
               setTimeLeft("00:00");
-              handleSubmit(true); // Auto submit when time reaches 0
+              handleSubmit(true);
             } else {
               const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
               const seconds = Math.floor((distance % (1000 * 60)) / 1000);
               setTimeLeft(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
             }
-          }, 1000);
-          
+          };
+          updateTimer();
+          const timerInterval = setInterval(updateTimer, 1000);
           return () => clearInterval(timerInterval);
         }
       }
