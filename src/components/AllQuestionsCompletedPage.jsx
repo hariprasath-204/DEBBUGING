@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
+import { clearFullUserSession } from '../utils/drafts';
 
 const AllQuestionsCompletedPage = () => {
   const navigate = useNavigate();
@@ -9,6 +10,9 @@ const AllQuestionsCompletedPage = () => {
   const userId = localStorage.getItem('debugEventUserId');
 
   useEffect(() => {
+    // Clear user session from browser storage once completed
+    clearFullUserSession();
+
     const unsubEvent = onSnapshot(doc(db, "settings", "event"), (snap) => {
       if (snap.exists()) {
         const status = snap.data().status;
@@ -46,10 +50,20 @@ const AllQuestionsCompletedPage = () => {
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
           Please wait for the admin to officially end the event and announce the final results.
         </p>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
           <div style={{ width: '15px', height: '15px', borderRadius: '50%', background: 'var(--accent-cyan)', animation: 'pulse 1.5s infinite' }}></div>
           <div style={{ width: '15px', height: '15px', borderRadius: '50%', background: 'var(--accent-pink)', animation: 'pulse 1.5s infinite 0.5s' }}></div>
         </div>
+        <button
+          onClick={() => {
+            clearFullUserSession();
+            navigate('/');
+          }}
+          className="btn-secondary"
+          style={{ padding: '10px 24px', fontSize: '0.9rem', color: 'var(--accent-cyan)', borderColor: 'var(--accent-cyan)' }}
+        >
+          LOGOUT / NEXT PARTICIPANT
+        </button>
       </div>
       <style>{`
         @keyframes pulse {

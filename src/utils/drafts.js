@@ -16,3 +16,14 @@ export function clearAllLocalDrafts() {
     console.warn('Error clearing local drafts:', err);
   }
 }
+
+export function clearFullUserSession() {
+  try {
+    localStorage.removeItem('debugEventUserId');
+    localStorage.removeItem('debugEventUserName');
+    clearAllLocalDrafts();
+  } catch (err) {
+    console.warn('Error clearing full user session:', err);
+  }
+}
+

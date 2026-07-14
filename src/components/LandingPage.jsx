@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { collection, doc, getDoc, setDoc, onSnapshot, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
+import { clearFullUserSession } from '../utils/drafts';
 
 // ── Landing Page ─────────────────────────────────────────────────
 const LandingPage = () => {
@@ -17,6 +18,9 @@ const LandingPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Clear any previous participant's session from localStorage when visiting landing page
+    clearFullUserSession();
+
     const unsubLang = onSnapshot(doc(db, 'settings', 'language'), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
