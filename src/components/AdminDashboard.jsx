@@ -13,6 +13,8 @@ const AdminDashboard = () => {
   const [popup, setPopup] = useState(null);
   const [selectedConclusionUser, setSelectedConclusionUser] = useState(null);
   const [selectedTrackerUser, setSelectedTrackerUser] = useState(null);
+  const [selectedSubUserId, setSelectedSubUserId] = useState(null);
+  const [selectedSubPhase, setSelectedSubPhase] = useState('c');
   
   const showPopup = (message, type = 'info') => setPopup({ message, type });
 
@@ -569,22 +571,189 @@ const AdminDashboard = () => {
         );
 
       case 'submissions':
+        const submittedUsers = liveUsers.filter(u => 
+          Object.keys(u.submissions || {}).length > 0 || u.isFinished || (u.completedQuestions || []).length > 0 || (u.totalSubmissionsCount || 0) > 0
+        );
+        const totalSubs = submittedUsers.reduce((acc, u) => acc + (u.totalSubmissionsCount || Object.keys(u.submissions || {}).length || 0), 0);
+        const langTotals = submittedUsers.reduce((acc, u) => {
+          const lCount = u.langSubmissionsCount || {};
+          Object.entries(u.submissions || {}).forEach(([_, sub]) => {
+            const p = sub.phase || 'c';
+            if (!lCount[p]) acc[p] = (acc[p] || 0) + 1;
+          });
+          Object.entries(lCount).forEach(([p, cnt]) => {
+            acc[p] = (acc[p] || 0) + cnt;
+          });
+          return acc;
+        }, { c: 0, cpp: 0, python: 0, java: 0 });
+
+        const selectedUser = liveUsers.find(u => u.id === selectedSubUserId);
+        const activeSubData = selectedUser ? (
+          Object.values(selectedUser.submissions || {}).find(s => s.phase === selectedSubPhase) ||
+          Object.entries(selectedUser.submissions || {}).find(([k, v]) => k.includes(selectedSubPhase) || v.phase === selectedSubPhase)?.[1]
+        ) : null;
+
         return (
           <div>
-            <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>USER SUBMISSIONS</h2>
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              {liveUsers.filter(u => u.isFinished).map(user => (
-                <div key={user.id} className="glass-panel" style={{ padding: '1.5rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                    <h3 style={{ color: 'var(--accent-cyan)' }}>{user.rollNo} - {user.name}</h3>
-                    <span>Score: {user.score}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 className="glow-text-cyan" style={{ margin: 0 }}>USER SUBMISSIONS & CODE REVIEW</h2>
+              <div style={{ display: 'flex', gap: '1rem', background: 'var(--bg-deep-navy)', padding: '0.6rem 1.2rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>Total Submissions: {totalSubs}</span>
+                <span style={{ color: 'var(--text-secondary)' }}>|</span>
+                <span>C: <strong>{langTotals.c || 0}</strong></span>
+                <span>C++: <strong>{langTotals.cpp || 0}</strong></span>
+                <span>Python: <strong>{langTotals.python || 0}</strong></span>
+                <span>Java: <strong>{langTotals.java || 0}</strong></span>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem', alignItems: 'start' }}>
+              {/* Left Panel: Participant List */}
+              <div className="glass-panel" style={{ padding: '1rem', maxHeight: '75vh', overflowY: 'auto' }}>
+                <h3 style={{ color: 'var(--text-primary)', fontSize: '1rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
+                  Participants ({submittedUsers.length})
+                </h3>
+                {submittedUsers.length === 0 ? (
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>No submissions recorded yet.</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                    {submittedUsers.map(user => {
+                      const isSel = user.id === selectedSubUserId;
+                      const uSubsCount = user.totalSubmissionsCount || Object.keys(user.submissions || {}).length || 0;
+                      return (
+                        <div
+                          key={user.id}
+                          onClick={() => {
+                            setSelectedSubUserId(user.id);
+                            const firstPhase = Object.values(user.submissions || {})[0]?.phase || 'c';
+                            setSelectedSubPhase(firstPhase);
+                          }}
+                          style={{
+                            padding: '1rem',
+                            borderRadius: '8px',
+                            background: isSel ? 'rgba(0, 240, 255, 0.12)' : 'var(--bg-deep-navy)',
+                            border: isSel ? '1px solid var(--accent-cyan)' : '1px solid var(--border-subtle)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                            <strong style={{ color: isSel ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>
+                              {user.rollNo} - {user.name}
+                            </strong>
+                            <span style={{ fontWeight: 'bold', color: user.score < 0 ? 'var(--accent-magenta)' : '#00f59b' }}>
+                              {user.score} pts
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                            <span>Time: {user.elapsedTimeMs ? `${Math.floor(user.elapsedTimeMs / 60000)}m ${Math.floor((user.elapsedTimeMs % 60000) / 1000)}s` : 'N/A'}</span>
+                            <span>Submissions: <strong>{uSubsCount}</strong></span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <pre style={{ background: 'var(--bg-deep-navy)', padding: '1rem', color: 'var(--text-primary)', overflowX: 'auto' }}>
-                    {user.finalCode || '// No code submitted'}
-                  </pre>
-                </div>
-              ))}
-              {liveUsers.filter(u => u.isFinished).length === 0 && <p>No submissions yet.</p>}
+                )}
+              </div>
+
+              {/* Right Panel: Selected Participant Code & Metrics */}
+              <div className="glass-panel" style={{ padding: '1.5rem', minHeight: '60vh' }}>
+                {!selectedUser ? (
+                  <div style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-secondary)' }}>
+                    <p style={{ fontSize: '1.1rem' }}>Select a participant from the left list to view their submitted code, timing, and evaluation metrics.</p>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1rem', marginBottom: '1.2rem' }}>
+                      <div>
+                        <h3 style={{ color: 'var(--accent-cyan)', fontSize: '1.4rem', margin: 0 }}>
+                          {selectedUser.name} <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>(Roll: {selectedUser.rollNo})</span>
+                        </h3>
+                        <div style={{ marginTop: '0.4rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                          Total Score: <strong style={{ color: '#00f59b' }}>{selectedUser.score} pts</strong> | Total Active Time: <strong>{selectedUser.elapsedTimeMs ? `${Math.floor(selectedUser.elapsedTimeMs / 60000)}m ${Math.floor((selectedUser.elapsedTimeMs % 60000) / 1000)}s` : 'N/A'}</strong> | Tab Switches: <strong style={{ color: selectedUser.tabSwitches > 0 ? 'var(--accent-pink)' : 'inherit' }}>{selectedUser.tabSwitches || 0} (-{(selectedUser.tabSwitches || 0) * 2} pts)</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Language / Stage Tabs */}
+                    <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1.2rem' }}>
+                      {['c', 'cpp', 'python', 'java'].map(lang => {
+                        const isTabSel = selectedSubPhase === lang;
+                        const hasSubmitted = Object.values(selectedUser.submissions || {}).some(s => s.phase === lang);
+                        return (
+                          <button
+                            key={lang}
+                            onClick={() => setSelectedSubPhase(lang)}
+                            className={isTabSel ? 'btn-primary' : 'btn-secondary'}
+                            style={{
+                              padding: '0.5rem 1.2rem',
+                              fontSize: '0.85rem',
+                              position: 'relative',
+                              opacity: !hasSubmitted && !isTabSel ? 0.6 : 1
+                            }}
+                          >
+                            {lang === 'cpp' ? 'C++' : lang.toUpperCase()}
+                            {hasSubmitted && <span style={{ marginLeft: '6px', color: '#00f59b' }}>✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Selected Phase Details */}
+                    {!activeSubData ? (
+                      <div style={{ background: 'var(--bg-deep-navy)', padding: '2rem', borderRadius: '8px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                        <p>No submission recorded for <strong>{selectedSubPhase.toUpperCase()}</strong> stage yet.</p>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {/* Timing & Metrics Grid */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.8rem', background: 'var(--bg-deep-navy)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}>
+                          <div>
+                            <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Start Time</span>
+                            <strong>{activeSubData.startTime ? new Date(activeSubData.startTime).toLocaleTimeString() : 'N/A'}</strong>
+                          </div>
+                          <div>
+                            <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>End Time</span>
+                            <strong>{activeSubData.endTime ? new Date(activeSubData.endTime).toLocaleTimeString() : 'N/A'}</strong>
+                          </div>
+                          <div>
+                            <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Taken Time</span>
+                            <strong style={{ color: 'var(--accent-cyan)' }}>
+                              {activeSubData.takenTimeMs ? `${Math.floor(activeSubData.takenTimeMs / 60000)}m ${Math.floor((activeSubData.takenTimeMs % 60000) / 1000)}s` : 'N/A'}
+                            </strong>
+                          </div>
+                          <div>
+                            <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Score Awarded</span>
+                            <strong style={{ color: '#00f59b' }}>+{activeSubData.score || 0} pts</strong>
+                          </div>
+                        </div>
+
+                        {/* Code Header & Box */}
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                            <span>Submitted Code ({activeSubData.title || selectedSubPhase.toUpperCase()})</span>
+                            <span>Lines: {activeSubData.codeLines || 0} (Target: {activeSubData.targetLines || 0}) | Errors Fixed: {activeSubData.clearedErrors || 0}/{activeSubData.totalErrors || 0}</span>
+                          </div>
+                          <pre style={{
+                            background: '#0a0e1a',
+                            padding: '1.2rem',
+                            borderRadius: '8px',
+                            border: '1px solid var(--border-subtle)',
+                            color: '#e2e8f0',
+                            fontFamily: 'monospace',
+                            fontSize: '0.9rem',
+                            overflowX: 'auto',
+                            maxHeight: '50vh',
+                            whiteSpace: 'pre-wrap'
+                          }}>
+                            {activeSubData.submittedCode || activeSubData.code || '// No code content found'}
+                          </pre>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -610,20 +779,20 @@ const AdminDashboard = () => {
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', fontSize: '0.88rem', lineHeight: '1.5', color: 'var(--text-secondary)' }}>
                   <div style={{ background: 'rgba(0, 240, 255, 0.04)', padding: '1rem', borderRadius: '6px', border: '1px solid rgba(0, 240, 255, 0.15)' }}>
-                    <strong style={{ color: 'var(--accent-cyan)', display: 'block', marginBottom: '0.3rem' }}>1. BASE OUTPUT SCORE (+100 PTS)</strong>
+                    <strong style={{ color: 'var(--accent-cyan)', display: 'block', marginBottom: '0.3rem' }}>1. BASE OUTPUT SCORE (+POINTS GIVEN)</strong>
                     Awarded when code compiles and program output exactly matches the Expected Output. Incorrect output yields 0 points.
                   </div>
                   <div style={{ background: 'rgba(0, 245, 155, 0.04)', padding: '1rem', borderRadius: '6px', border: '1px solid rgba(0, 245, 155, 0.15)' }}>
-                    <strong style={{ color: '#00f59b', display: 'block', marginBottom: '0.3rem' }}>2. EFFICIENCY BONUS (+50 PTS)</strong>
-                    Awarded if the participant solves the bug with exactly the optimal target line count (line difference = 0).
+                    <strong style={{ color: '#00f59b', display: 'block', marginBottom: '0.3rem' }}>2. NO EFFICIENCY BONUS</strong>
+                    Participants are awarded exact mission points without bonus calculations or line count deductions upon successful submission.
                   </div>
                   <div style={{ background: 'rgba(244, 63, 94, 0.04)', padding: '1rem', borderRadius: '6px', border: '1px solid rgba(244, 63, 94, 0.15)' }}>
-                    <strong style={{ color: 'var(--accent-pink)', display: 'block', marginBottom: '0.3rem' }}>3. LINE PENALTY (-2 PTS / LINE)</strong>
-                    For every line above or below the optimal solution line count, a -2 point deduction is applied.
+                    <strong style={{ color: 'var(--accent-pink)', display: 'block', marginBottom: '0.3rem' }}>3. TAB SWITCH PENALTY (-2 PTS / SWITCH)</strong>
+                    Every time a participant switches tabs or loses browser window focus, a -2 point deduction is applied directly to their score.
                   </div>
                   <div style={{ background: 'rgba(255, 0, 85, 0.04)', padding: '1rem', borderRadius: '6px', border: '1px solid rgba(255, 0, 85, 0.15)' }}>
-                    <strong style={{ color: 'var(--accent-magenta)', display: 'block', marginBottom: '0.3rem' }}>4. ANTI-CHEAT FLAG (-9999 PTS)</strong>
-                    Switching tabs &gt; 2 times or Copy/Pasting &gt; 2 times results in automatic disqualification (-9999 pts).
+                    <strong style={{ color: 'var(--accent-magenta)', display: 'block', marginBottom: '0.3rem' }}>4. NO DISQUALIFICATION FLAG</strong>
+                    Tab switching and copy/pasting apply continuous point deductions and staff warnings without automatic disqualification.
                   </div>
                 </div>
                 <div style={{ marginTop: '0.8rem', fontSize: '0.82rem', color: 'var(--text-muted)' }}>

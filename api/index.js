@@ -26,6 +26,41 @@ app.post('/api/compile', async (req, res) => {
     return res.status(400).json({ error: 'Code and compiler parameters are required' });
   }
 
+  const compLower = compiler.toLowerCase();
+
+  // Use JDoodle specifically for Java/Javac to get full detailed compiler errors
+  if (compLower === 'java' || compLower === 'javac' || compLower.includes('openjdk')) {
+    try {
+      const jdoodlePayload = {
+        clientId: "4a9a6038b2a7e33b9a6b3739d857f178",
+        clientSecret: "af69762f1a3185158b2feb6d50efc3255662084d3d3767c9614bc877bc4e9be",
+        script: code,
+        language: "java",
+        versionIndex: "4"
+      };
+
+      const jdResp = await axios.post('https://api.jdoodle.com/v1/execute', jdoodlePayload, {
+        timeout: 20000,
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const output = jdResp.data?.output || "No output returned.";
+      const isError = jdResp.data?.statusCode !== 200 || output.includes('error:') || output.includes('Exception in thread');
+
+      return res.json({
+        program_message: output,
+        compiler_error: isError ? output : ""
+      });
+    } catch (err) {
+      console.error("JDoodle Java execution error:", err?.message);
+      const errDetail = err?.response?.data?.error || err?.response?.data?.output || "Failed to execute Java program on JDoodle.";
+      return res.status(500).json({
+        error: "Java compilation failed.",
+        detail: errDetail
+      });
+    }
+  }
+
   const activeApiKey = apiKey || DEFAULT_API_KEY;
 
   const ONLINE_COMPILER_LANG = {
@@ -34,12 +69,10 @@ app.post('/api/compile', async (req, res) => {
     "c++": "g++-15",
     "cpp": "g++-15",
     "gcc-head": "g++-15",
-    "java": "openjdk-25",
-    "openjdk-head": "openjdk-25",
     "python": "python-3.14"
   };
 
-  const ocCompiler = ONLINE_COMPILER_LANG[compiler.toLowerCase()] || compiler;
+  const ocCompiler = ONLINE_COMPILER_LANG[compLower] || compiler;
   const keys = [
     activeApiKey,
     "28152502bdcf827c763a92f0bf7ed806",
@@ -51,14 +84,9 @@ app.post('/api/compile', async (req, res) => {
 
   for (const key of uniqueKeys) {
     try {
-      // Normalize Java public class name to Main for OnlineCompiler environment
-      const codeToSend = (ocCompiler === 'openjdk-25' || compiler.toLowerCase() === 'java')
-        ? code.replace(/public\s+class\s+[a-zA-Z0-9_]+/g, 'public class Main')
-        : code;
-
       const ocPayload = {
         compiler: ocCompiler,
-        code: codeToSend,
+        code: code,
         input: ""
       };
 
@@ -85,11 +113,6 @@ app.post('/api/compile', async (req, res) => {
         ocResp.data.exception,
         ocResp.data.message
       ].filter(s => typeof s === 'string' && s.trim().length > 0 && s !== outputText).join('\n');
-
-      if ((ocCompiler === 'openjdk-25' || compiler.toLowerCase() === 'java') &&
-          errorText.includes('Internal error: code execution failed')) {
-        errorText = "Compilation Error: Java syntax error or compilation failure.\nPlease verify your syntax (semicolons ';', brackets, or operators) and ensure your code is valid.";
-      }
 
       let combinedMessage = [outputText, errorText].filter(Boolean).join('\n\n');
       if (!combinedMessage.trim()) {

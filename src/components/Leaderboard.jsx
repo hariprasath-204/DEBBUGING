@@ -20,12 +20,6 @@ const Leaderboard = () => {
 
       // ── Ranking logic ──────────────────────────────────────────────
       fetchedUsers.sort((a, b) => {
-        // 0. Cheaters always go to the bottom
-        const aCheated = a.tabSwitches > 2 || a.copyPasteCount > 2;
-        const bCheated = b.tabSwitches > 2 || b.copyPasteCount > 2;
-        if (aCheated && !bCheated) return 1;
-        if (!aCheated && bCheated) return -1;
-
         // 1. Higher score
         if (b.score !== a.score) return b.score - a.score;
 
@@ -105,16 +99,15 @@ const Leaderboard = () => {
               // Reverse to render bottom-to-top (last in DOM = lowest rank, reveals first)
               [...users].reverse().map((user, revIdx) => {
                 const index = users.length - 1 - revIdx; // actual rank index
-                const isCheater = user.tabSwitches > 2 || user.copyPasteCount > 2;
-                const isTop3 = index < 3 && !isCheater;
+                const hasWarnings = (user.tabSwitches || 0) > 0 || (user.copyPasteCount || 0) > 0;
+                const isTop3 = index < 3;
                 const rank = index + 1;
 
                 // Delay: rank #last reveals first (delay=0), rank #1 reveals last
                 const delay = (revIdx * 120);
 
                 let rowBg = 'transparent';
-                if (isCheater) rowBg = 'rgba(239, 68, 68, 0.08)';
-                else if (index === 0) rowBg = 'rgba(255, 215, 0, 0.08)';
+                if (index === 0) rowBg = 'rgba(255, 215, 0, 0.08)';
                 else if (index === 1) rowBg = 'rgba(192, 192, 192, 0.06)';
                 else if (index === 2) rowBg = 'rgba(205, 127, 50, 0.06)';
 
@@ -169,15 +162,13 @@ const Leaderboard = () => {
                     </td>
 
                     {/* WARNINGS */}
-                    <td style={{ padding: '1rem', fontSize: '0.85rem', color: isCheater ? 'var(--accent-magenta)' : 'var(--text-secondary)' }}>
-                      Tabs: {user.tabSwitches || 0} / Copy: {user.copyPasteCount || 0}
+                    <td style={{ padding: '1rem', fontSize: '0.85rem', color: hasWarnings ? 'var(--accent-pink)' : 'var(--text-secondary)' }}>
+                      Tabs: {user.tabSwitches || 0} (-{(user.tabSwitches || 0) * 2} pts) / Copy: {user.copyPasteCount || 0}
                     </td>
 
                     {/* STATUS */}
                     <td style={{ padding: '1rem' }}>
-                      {isCheater ? (
-                        <span style={{ color: 'var(--accent-pink)', fontWeight: 'bold', fontSize: '0.8rem' }}>DISQUALIFIED</span>
-                      ) : user.isFinished ? (
+                      {user.isFinished ? (
                         <span style={{ color: 'var(--accent-cyan)', fontSize: '0.8rem' }}>✓ FINISHED</span>
                       ) : (
                         <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>ACTIVE</span>

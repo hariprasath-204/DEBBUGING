@@ -33,6 +33,7 @@ const EditorPage = () => {
   const errorStatsRef = useRef({ total: 0, cleared: 0, remaining: 0, currentLines: 0, targetLines: 0 });
   const ignoreCheatRef = useRef(false);
   const eventStartTimeRef = useRef(null);
+  const questionStartTimeRef = useRef(null);
   const hasSubmittedRef = useRef(false);
 
   // Sync state to ref for auto-save and submission closures
@@ -67,6 +68,26 @@ const EditorPage = () => {
           const pMap = { easy: 'c', medium: 'cpp', hard: 'java', c: 'c', cpp: 'cpp', python: 'python', java: 'java' };
           const phaseLang = pMap[targetQuestion.phase] || targetQuestion.phase || 'c';
           setQuestion(targetQuestion);
+
+          // Record or retrieve start time for this question
+          try {
+            const uSnap = await getDoc(doc(db, 'users', userId));
+            let qStartTime = null;
+            if (uSnap.exists()) {
+              const uData = uSnap.data();
+              qStartTime = uData.questionStartTimes?.[targetQuestion.id];
+              if (!qStartTime) {
+                qStartTime = new Date().toISOString();
+                updateDoc(doc(db, 'users', userId), {
+                  [`questionStartTimes.${targetQuestion.id}`]: qStartTime
+                }).catch(() => {});
+              }
+            }
+            questionStartTimeRef.current = qStartTime || new Date().toISOString();
+          } catch (e) {
+            questionStartTimeRef.current = new Date().toISOString();
+          }
+
           const initialCode = targetQuestion.variants?.[phaseLang]?.initialCode ||
                               targetQuestion.variants?.c?.initialCode ||
                               targetQuestion.variants?.cpp?.initialCode ||
@@ -164,9 +185,12 @@ const EditorPage = () => {
     const handleVisibilityChange = async () => {
       if (document.hidden) {
         cheatingRef.current.tabSwitches += 1;
-        setPopup({ message: "WARNING: Tab switching detected! This is recorded as a cheating violation.", type: "warning" });
+        setPopup({ message: "WARNING: Tab switching detected! Penalty: -2 Points deducted.", type: "warning" });
         if (userId) {
-          await updateDoc(doc(db, 'users', userId), { tabSwitches: increment(1) });
+          await updateDoc(doc(db, 'users', userId), { 
+            tabSwitches: increment(1),
+            score: increment(-2)
+          });
         }
       }
     };
@@ -285,21 +309,11 @@ const EditorPage = () => {
     let score = 0;
     if (isOutputCorrect) {
       score += question.points || 100;
-      if (lineDifference === 0) {
-        score += 50; 
-      } else {
-        score -= (lineDifference * 2);
-      }
     }
 
-    if (cheatingRef.current.tabSwitches > 2 || cheatingRef.current.copyPasteCount > 2) {
-      score = -9999;
-    }
-
-    let elapsedTimeMs = 0;
-    if (eventStartTimeRef.current) {
-      elapsedTimeMs = new Date().getTime() - eventStartTimeRef.current;
-    }
+    const endTime = new Date().toISOString();
+    const startTime = questionStartTimeRef.current || eventStartTimeRef.current || endTime;
+    const takenTimeMs = Math.max(0, new Date(endTime).getTime() - new Date(startTime).getTime());
 
     try {
       const userDocSnap = await getDoc(doc(db, 'users', userId));
@@ -326,16 +340,31 @@ const EditorPage = () => {
         targetLines: correctLines,
         phase: question.phase || 'unknown',
         title: question.title || questionId,
-        submittedAt: new Date().toISOString()
+        submittedCode: codeRef.current,
+        startTime: startTime,
+        endTime: endTime,
+        takenTimeMs: takenTimeMs,
+        submittedAt: endTime
       };
+
+      const prevElapsed = userData.elapsedTimeMs || 0;
+      const newElapsed = prevElapsed + takenTimeMs;
+      const prevSubmissionsCount = userData.totalSubmissionsCount || 0;
+      const prevLangSubmissions = userData.langSubmissionsCount || { c: 0, cpp: 0, python: 0, java: 0 };
+      const currentPhase = question.phase || 'c';
 
       const updatePayload = {
         score: increment(score),
         finalCode: newFinalCode,
-        elapsedTimeMs: elapsedTimeMs,
+        elapsedTimeMs: newElapsed,
         completedQuestions: newCompletedQs,
         cumulativeClearedErrors: newCumulCleared,
         cumulativeTotalErrors: newCumulTotal,
+        totalSubmissionsCount: prevSubmissionsCount + 1,
+        langSubmissionsCount: {
+          ...prevLangSubmissions,
+          [currentPhase]: (prevLangSubmissions[currentPhase] || 0) + 1
+        },
         submissions: {
           ...prevSubmissions,
           [questionId]: submissionData
