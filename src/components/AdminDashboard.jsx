@@ -5,7 +5,8 @@ import { Link } from 'react-router-dom';
 import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
 import { syncClock, getNow } from '../utils/timeSync';
-import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2, RefreshCw, Edit, Award } from 'lucide-react';
+import { sortParticipants } from '../utils/ranking';
+import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2, RefreshCw, Edit, Award, Sparkles } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('questions');
@@ -756,10 +757,7 @@ const AdminDashboard = () => {
         );
 
       case 'results':
-        const sortedUsers = [...liveUsers].sort((a, b) => {
-          if (b.score !== a.score) return b.score - a.score;
-          return (a.elapsedTimeMs || Infinity) - (b.elapsedTimeMs || Infinity);
-        });
+        const sortedUsers = sortParticipants(liveUsers);
         return (
           <div className="glass-panel" style={{ padding: '2rem' }}>
             <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
@@ -918,10 +916,7 @@ const AdminDashboard = () => {
               <div style={{ flex: '1', borderRight: '1px solid var(--border-subtle)', paddingRight: '1rem', maxHeight: '70vh', overflowY: 'auto' }}>
                 <h3 style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>SELECT PARTICIPANT</h3>
                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  {[...liveUsers].sort((a, b) => {
-                    if (b.score !== a.score) return b.score - a.score;
-                    return (a.elapsedTimeMs || Infinity) - (b.elapsedTimeMs || Infinity);
-                  }).map(user => (
+                  {sortParticipants(liveUsers).map(user => (
                     <button 
                       key={user.id} 
                       onClick={() => setSelectedConclusionUser(user)}
@@ -1031,6 +1026,7 @@ const AdminDashboard = () => {
           </div>
           
           <a href="/leaderboard" target="_blank" rel="noreferrer" className="sidebar-btn"><Trophy size={18} /> Leaderboard</a>
+          <a href="/winners" target="_blank" rel="noreferrer" className="sidebar-btn" style={{ color: 'var(--accent-cyan)' }}><Sparkles size={18} /> Top 3 Winners</a>
           <button onClick={() => setActiveTab('event')} className={`sidebar-btn ${activeTab === 'event' ? 'active' : ''}`}><Clock size={18} /> Round Setting</button>
           <button onClick={() => setActiveTab('questions')} className={`sidebar-btn ${activeTab === 'questions' ? 'active' : ''}`}><FileText size={18} /> Questions</button>
           <button onClick={() => setActiveTab('users')} className={`sidebar-btn ${activeTab === 'users' ? 'active' : ''}`}><Users size={18} /> User Management</button>

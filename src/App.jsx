@@ -9,10 +9,11 @@ import TimerFinishedPage from './components/TimerFinishedPage';
 import ThankYouPage from './components/ThankYouPage';
 import QuestionSelectionPage from './components/QuestionSelectionPage';
 import AllQuestionsCompletedPage from './components/AllQuestionsCompletedPage';
+import TopWinnersPage from './components/TopWinnersPage';
 
 function AppContent() {
   const location = useLocation();
-  const isLanding = location.pathname === '/';
+  const isLanding = location.pathname === '/' || location.pathname === '/winners';
 
   return (
     <>
@@ -37,6 +38,7 @@ function AppContent() {
           <Route path="/thank-you" element={<ThankYouPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/winners" element={<TopWinnersPage />} />
         </Routes>
       </div>
     </>

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import { sortParticipants } from '../utils/ranking';
+import { Trophy, Sparkles } from 'lucide-react';
 
 const MEDAL = ['🥇', '🥈', '🥉'];
 const MEDAL_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32'];
@@ -18,18 +21,9 @@ const Leaderboard = () => {
         fetchedUsers.push({ id: doc.id, ...doc.data() });
       });
 
-      // ── Ranking logic ──────────────────────────────────────────────
-      fetchedUsers.sort((a, b) => {
-        // 1. Higher score
-        if (b.score !== a.score) return b.score - a.score;
-
-        // 2. Fastest time (lower elapsedTimeMs = better)
-        const aTime = a.elapsedTimeMs || Infinity;
-        const bTime = b.elapsedTimeMs || Infinity;
-        return aTime - bTime;
-      });
-
-      setUsers(fetchedUsers);
+      // ── Ranking logic using authoritative global sorter ─────────────────────────
+      const sorted = sortParticipants(fetchedUsers);
+      setUsers(sorted);
     } catch (error) {
       console.error('Error fetching leaderboard: ', error);
     } finally {
@@ -51,10 +45,15 @@ const Leaderboard = () => {
   }, [loading, users]);
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '2rem' }}>
-      <h1 className="glow-text-cyan" style={{ textAlign: 'center', marginBottom: '2rem', fontSize: '2.5rem', letterSpacing: '4px' }}>
-        🏆 GLOBAL LEADERBOARD
-      </h1>
+    <div style={{ maxWidth: '1150px', margin: '0 auto', padding: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <h1 className="glow-text-cyan" style={{ margin: 0, fontSize: '2.5rem', letterSpacing: '4px' }}>
+          🏆 GLOBAL LEADERBOARD
+        </h1>
+        <Link to="/winners" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 22px', fontSize: '0.95rem', textDecoration: 'none' }}>
+          <Sparkles size={18} /> 🏆 TOP 3 WINNERS SHOWCASE
+        </Link>
+      </div>
 
       <style>{`
         @keyframes slideInFromBottom {
@@ -87,6 +86,7 @@ const Leaderboard = () => {
               <th style={{ padding: '1rem' }}>NAME</th>
               <th style={{ padding: '1rem' }}>ROLL NO</th>
               <th style={{ padding: '1rem' }}>SCORE</th>
+              <th style={{ padding: '1rem' }}>EXECS</th>
               <th style={{ padding: '1rem' }}>TIME TAKEN</th>
               <th style={{ padding: '1rem' }}>WARNINGS</th>
               <th style={{ padding: '1rem' }}>STATUS</th>
@@ -94,7 +94,7 @@ const Leaderboard = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="7" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading Data...</td></tr>
+              <tr><td colSpan="8" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading Data...</td></tr>
             ) : (
               // Reverse to render bottom-to-top (last in DOM = lowest rank, reveals first)
               [...users].reverse().map((user, revIdx) => {
@@ -148,6 +148,11 @@ const Leaderboard = () => {
                     {/* SCORE */}
                     <td style={{ padding: '1rem', fontWeight: 'bold', color: user.score < 0 ? 'var(--accent-magenta)' : 'var(--text-primary)' }}>
                       {user.score}
+                    </td>
+
+                    {/* EXECS */}
+                    <td style={{ padding: '1rem', color: 'var(--accent-cyan)' }}>
+                      {user.totalSubmissionsCount || 0}
                     </td>
 
                     {/* TIME TAKEN */}
