@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
   /* Core Deep Space Obsidian Palette */
@@ -34,7 +34,8 @@
   --radius-lg: 24px;
   
   /* Modern Typography */
-  --font-heading: 'Outfit', sans-serif;
+  --font-orbitron: 'Orbitron', 'Outfit', sans-serif;
+  --font-heading: 'Orbitron', 'Outfit', sans-serif;
   --font-body: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'JetBrains Mono', 'Consolas', monospace;
 }

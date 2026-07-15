@@ -146,17 +146,25 @@ const LandingPage = () => {
             animation: 'orbFloat2 12s ease-in-out infinite'
           }} />
 
+          {/* Top Edge Cyan Laser Border Line */}
+          <div style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '2px',
+            background: 'linear-gradient(90deg, #00f0ff, #7b2cbf, #ff00ff, #00f0ff)',
+            boxShadow: '0 0 15px rgba(0, 240, 255, 0.8), 0 0 30px rgba(0, 240, 255, 0.4)',
+            zIndex: 1
+          }} />
+
           {/* 3D Perspective Cyber Floor Grid */}
           <div style={{
-            position: 'absolute', bottom: 0, left: '-30%', width: '160%', height: '62vh',
-            transform: 'perspective(650px) rotateX(72deg)',
+            position: 'absolute', bottom: 0, left: '-25%', width: '150%', height: '55vh',
+            transform: 'perspective(700px) rotateX(70deg)',
             transformOrigin: 'bottom center',
-            background: 'linear-gradient(rgba(0, 240, 255, 0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.25) 1px, transparent 1px)',
+            background: 'linear-gradient(rgba(0, 240, 255, 0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.22) 1px, transparent 1px)',
             backgroundSize: '48px 48px',
             animation: 'gridScroll 3s linear infinite',
             maskImage: 'linear-gradient(to bottom, transparent 0%, black 50%)',
             WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 50%)',
-            boxShadow: 'inset 0 140px 140px -30px var(--bg-main)'
+            boxShadow: 'inset 0 120px 120px -30px var(--bg-main)'
           }} />
 
           {/* Laser Scan Beam */}
@@ -187,25 +195,24 @@ const LandingPage = () => {
 
             {/* College panel */}
             <div style={{
-              border: '1px solid rgba(0, 240, 255, 0.35)',
-              padding: '0.65rem 2.2rem',
+              border: '1px solid #00F0FF',
+              padding: '0.65rem 2.4rem',
               marginBottom: '1.6rem',
-              background: 'rgba(0, 240, 255, 0.05)',
-              boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
-              borderRadius: '6px',
-              backdropFilter: 'blur(10px)'
+              background: 'rgba(0, 240, 255, 0.04)',
+              boxShadow: '0 0 18px rgba(0, 240, 255, 0.2)',
+              borderRadius: '2px'
             }}>
               <p style={{
-                fontSize: '1.05rem', color: 'var(--text-primary)', margin: 0,
-                letterSpacing: '3.5px', fontFamily: 'var(--font-heading)',
+                fontSize: '1rem', color: '#FFFFFF', margin: 0,
+                letterSpacing: '3px', fontFamily: 'var(--font-orbitron)',
                 fontWeight: '700', textTransform: 'uppercase'
               }}>
                 Ayya Nadar Janaki Ammal College
               </p>
               <p style={{
-                fontSize: '0.85rem', color: 'var(--accent-cyan)', margin: '4px 0 0 0',
-                letterSpacing: '2.5px', fontFamily: 'var(--font-heading)',
-                fontWeight: '500', textTransform: 'uppercase'
+                fontSize: '0.85rem', color: '#00F0FF', margin: '4px 0 0 0',
+                letterSpacing: '2.5px', fontFamily: 'var(--font-orbitron)',
+                fontWeight: '600', textTransform: 'uppercase'
               }}>
                 Department of Computer Applications
               </p>
@@ -213,41 +220,48 @@ const LandingPage = () => {
 
             {/* SOFTTECH */}
             <h1 style={{
-              fontSize: 'clamp(3.4rem, 8vw, 6.4rem)',
-              margin: '0 0 0.15rem 0', lineHeight: 0.95,
-              fontFamily: 'var(--font-heading)',
-              background: 'linear-gradient(135deg, #ffffff 0%, #00F0FF 45%, #B026FF 80%, #FF007F 100%)',
+              fontSize: 'clamp(3.8rem, 8.5vw, 6.8rem)',
+              margin: '0 0 0.1rem 0', lineHeight: 0.95,
+              fontFamily: 'var(--font-orbitron)',
+              background: 'linear-gradient(90deg, #00F0FF 0%, #7B2cbf 45%, #FF00FF 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              filter: 'drop-shadow(0 0 22px rgba(0,240,255,0.55))',
-              letterSpacing: '14px', fontWeight: '900',
+              filter: 'drop-shadow(0 0 25px rgba(0,240,255,0.6)) drop-shadow(0 0 45px rgba(255,0,255,0.4))',
+              letterSpacing: '8px', fontWeight: '900',
               textTransform: 'uppercase'
             }}>SOFTTECH</h1>
 
             {/* ASSOCIATION */}
             <h2 style={{
-              fontSize: 'clamp(1.3rem, 3.2vw, 2.5rem)',
-              margin: '0 0 1.3rem 0',
-              fontFamily: 'var(--font-heading)',
-              color: '#00F0FF',
-              textShadow: '0 0 14px rgba(0,240,255,0.8), 0 0 35px rgba(0,240,255,0.35)',
-              letterSpacing: '22px', fontWeight: '600',
+              fontSize: 'clamp(2.2rem, 5vw, 4.1rem)',
+              margin: '0 0 1.4rem 0',
+              fontFamily: 'var(--font-orbitron)',
+              color: '#FF00FF',
+              textShadow: '0 0 16px rgba(255,0,255,0.85), 0 0 40px rgba(255,0,255,0.4)',
+              letterSpacing: '14px', fontWeight: '800',
               textTransform: 'uppercase'
             }}>ASSOCIATION</h2>
 
             {/* Subtitle */}
             <p style={{
-              color: 'var(--text-secondary)', letterSpacing: '6px', fontSize: '0.82rem',
-              marginBottom: '1.6rem', textTransform: 'uppercase',
-              fontFamily: 'var(--font-mono)', fontWeight: '500'
+              color: '#94a3b8', letterSpacing: '6px', fontSize: '0.85rem',
+              marginBottom: '1.8rem', textTransform: 'uppercase',
+              fontFamily: 'var(--font-orbitron)', fontWeight: '600'
             }}>
-              THE ULTIMATE DEBUGGING CHALLENGE
+              ✦ THE ULTIMATE DEBUGGING CHALLENGE ✦
             </p>
 
             {/* CTA */}
             <button
               className="btn-primary"
-              style={{ fontSize: '1rem', padding: '12px 48px', letterSpacing: '3px' }}
+              style={{
+                fontSize: '1rem', padding: '14px 50px', letterSpacing: '3px',
+                fontFamily: 'var(--font-orbitron)', fontWeight: '700',
+                color: '#00F0FF', background: 'rgba(0, 240, 255, 0.08)',
+                border: '1px solid #00F0FF', borderRadius: '4px',
+                boxShadow: '0 0 18px rgba(0, 240, 255, 0.3), inset 0 0 10px rgba(0, 240, 255, 0.1)',
+                textTransform: 'uppercase'
+              }}
               onClick={() => setShowModal(true)}
             >
               &gt; START_SYSTEM
