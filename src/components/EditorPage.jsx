@@ -26,6 +26,7 @@ const EditorPage = () => {
   const activeLanguage = question ? (phaseMap[question.phase] || question.phase || 'c') : 'c';
 
   const [violations, setViolations] = useState({ tabSwitches: 0, copyPasteCount: 0 });
+  const [jdoodleKeys, setJdoodleKeys] = useState([]);
 
   const cheatingRef = useRef({ tabSwitches: 0, copyPasteCount: 0 });
   const editorContainerRef = useRef(null);
@@ -169,6 +170,14 @@ const EditorPage = () => {
       }
     });
 
+    // Listen to custom JDoodle Java keys
+    const jdoodleDocRef = doc(db, 'settings', 'jdoodle');
+    const unsubJdoodle = onSnapshot(jdoodleDocRef, (docSnap) => {
+      if (docSnap.exists() && Array.isArray(docSnap.data()?.keys)) {
+        setJdoodleKeys(docSnap.data().keys);
+      }
+    });
+
     // 3. Auto-save every 4 seconds (throttled for 200+ user scalability, only saves if code changed)
     const autoSaveInterval = setInterval(async () => {
       if (userId && codeRef.current && codeRef.current !== lastSavedCodeRef.current && codeRef.current !== '// Loading...' && codeRef.current !== '// Mission not found.' && questionId) {
@@ -215,6 +224,7 @@ const EditorPage = () => {
 
     return () => {
       unsubEvent();
+      unsubJdoodle();
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       clearInterval(autoSaveInterval);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -249,7 +259,8 @@ const EditorPage = () => {
       const response = await axios.post(`/api/compile`, {
         code: codeRef.current,
         compiler: activeLanguage,
-        apiKey: '28152502bdcf827c763a92f0bf7ed806'
+        apiKey: '28152502bdcf827c763a92f0bf7ed806',
+        jdoodleKeys: jdoodleKeys
       });
 
       const result = response.data.program_message || response.data.compiler_error || "No output";

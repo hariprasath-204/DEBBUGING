@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc, updateDoc, onSnapshot, deleteDoc, getDocs } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
@@ -72,6 +73,12 @@ const AdminDashboard = () => {
   const [langSettings, setLangSettings] = useState({ c: true, cpp: true, python: true, java: true });
   const [phaseLangs, setPhaseLangs] = useState({ easy: 'c', medium: 'cpp', hard: 'java', c: 'c', cpp: 'cpp', python: 'python', java: 'java', apiKey: '28152502bdcf827c763a92f0bf7ed806' });
   
+  // JDoodle Java API Keys Management State
+  const [jdoodleKeys, setJdoodleKeys] = useState([]);
+  const [jdoodleStatusList, setJdoodleStatusList] = useState({ nonFinished: [], finished: [] });
+  const [isCheckingJdoodle, setIsCheckingJdoodle] = useState(false);
+  const [newJavaKey, setNewJavaKey] = useState({ clientId: '', clientSecret: '' });
+
   // Live Data
   const [liveUsers, setLiveUsers] = useState([]);
 
@@ -123,13 +130,73 @@ const AdminDashboard = () => {
       setQuestionsList(qs);
     });
 
+    // Listen to JDoodle Java API Keys
+    const jdoodleDocRef = doc(db, 'settings', 'jdoodle');
+    const unsubJdoodle = onSnapshot(jdoodleDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const keys = Array.isArray(data.keys) ? data.keys : [];
+        setJdoodleKeys(keys);
+        fetchJdoodleStatus(keys);
+      } else {
+        setDoc(jdoodleDocRef, { keys: [] });
+      }
+    });
+
     return () => {
       unsubEvent();
       unsubLang();
       unsubUsers();
       unsubQuestions();
+      unsubJdoodle();
     };
   }, []);
+
+  const fetchJdoodleStatus = async (keysToTest = jdoodleKeys) => {
+    setIsCheckingJdoodle(true);
+    try {
+      const res = await axios.post('/api/jdoodle/status', { keys: keysToTest });
+      if (res.data) {
+        setJdoodleStatusList({
+          nonFinished: res.data.nonFinished || [],
+          finished: res.data.finished || []
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch JDoodle status:', err);
+    } finally {
+      setIsCheckingJdoodle(false);
+    }
+  };
+
+  const handleAddJavaKey = async (e) => {
+    e.preventDefault();
+    if (!newJavaKey.clientId.trim() || !newJavaKey.clientSecret.trim()) return;
+    setIsLoading(true);
+    try {
+      const updatedKeys = [...jdoodleKeys, { clientId: newJavaKey.clientId.trim(), clientSecret: newJavaKey.clientSecret.trim() }];
+      await setDoc(doc(db, 'settings', 'jdoodle'), { keys: updatedKeys }, { merge: true });
+      await axios.post('/api/jdoodle/add', { clientId: newJavaKey.clientId.trim(), clientSecret: newJavaKey.clientSecret.trim() });
+      setNewJavaKey({ clientId: '', clientSecret: '' });
+      showPopup('New Java API key added successfully!', 'success');
+      fetchJdoodleStatus(updatedKeys);
+    } catch (err) {
+      showPopup('Failed to add Java API key', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteJavaKey = async (clientIdToRemove) => {
+    if (window.confirm('Remove this custom Java API key from settings?')) {
+      setIsLoading(true);
+      const updatedKeys = jdoodleKeys.filter(k => k.clientId !== clientIdToRemove);
+      await setDoc(doc(db, 'settings', 'jdoodle'), { keys: updatedKeys }, { merge: true });
+      showPopup('Java API key removed', 'success');
+      fetchJdoodleStatus(updatedKeys);
+      setIsLoading(false);
+    }
+  };
 
   const handleQuestionChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -564,6 +631,94 @@ const AdminDashboard = () => {
                   <span style={{ textTransform: 'uppercase', fontSize: '1.2rem' }}>{lang === 'cpp' ? 'C++' : lang}</span>
                 </div>
               ))}
+            </div>
+
+            <h3 className="glow-text-cyan" style={{ marginTop: '3rem', marginBottom: '1rem' }}>JAVA (JDOODLE) API KEY MANAGEMENT & LIVE STATUS</h3>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+              Java compilation uses the JDoodle execution engine with automatic key rotation and failover. Monitor finished (exhausted) vs non-finished (active) keys below and add additional backup keys directly.
+            </p>
+
+            <form onSubmit={handleAddJavaKey} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end', background: 'var(--bg-deep-navy)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '2rem' }}>
+              <div style={{ flex: '1 1 220px' }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--accent-cyan)' }}>NEW JDOODLE CLIENT ID</label>
+                <input type="text" className="input-field" value={newJavaKey.clientId} onChange={e => setNewJavaKey({ ...newJavaKey, clientId: e.target.value })} placeholder="e.g. 4a9a6038b2a7e..." required />
+              </div>
+              <div style={{ flex: '1 1 220px' }}>
+                <label style={{ fontSize: '0.8rem', color: 'var(--accent-cyan)' }}>NEW JDOODLE CLIENT SECRET</label>
+                <input type="text" className="input-field" value={newJavaKey.clientSecret} onChange={e => setNewJavaKey({ ...newJavaKey, clientSecret: e.target.value })} placeholder="e.g. af69762f1a318..." required />
+              </div>
+              <button type="submit" className="btn-primary" style={{ padding: '0.7rem 1.5rem' }}>ADD JAVA API KEY</button>
+              <button type="button" onClick={() => fetchJdoodleStatus()} disabled={isCheckingJdoodle} className="btn-secondary" style={{ padding: '0.7rem 1.5rem', border: '1px solid var(--accent-cyan)', color: 'var(--accent-cyan)' }}>
+                {isCheckingJdoodle ? 'CHECKING CREDITS...' : 'REFRESH STATUS'}
+              </button>
+            </form>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+              {/* Non-Finished APIs */}
+              <div style={{ background: 'rgba(0, 245, 155, 0.04)', border: '1px solid rgba(0, 245, 155, 0.3)', borderRadius: '8px', padding: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0, 245, 155, 0.2)', paddingBottom: '0.8rem', marginBottom: '1rem' }}>
+                  <h4 style={{ color: '#00f59b', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: '#00f59b' }}></span>
+                    NON-FINISHED JAVA APIs (ACTIVE & AVAILABLE)
+                  </h4>
+                  <span style={{ fontWeight: 'bold', background: 'rgba(0, 245, 155, 0.15)', color: '#00f59b', padding: '2px 10px', borderRadius: '12px', fontSize: '0.85rem' }}>
+                    {jdoodleStatusList.nonFinished.length} Keys Active
+                  </span>
+                </div>
+                {jdoodleStatusList.nonFinished.length === 0 ? (
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic' }}>No active Java API keys verified right now. Click Refresh Status.</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: '350px', overflowY: 'auto' }}>
+                    {jdoodleStatusList.nonFinished.map((item, idx) => (
+                      <div key={idx} style={{ background: 'var(--bg-deep-navy)', padding: '0.8rem 1rem', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-primary)' }}>ID: {item.clientId.slice(0, 10)}...{item.clientId.slice(-4)}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#00f59b', marginTop: '4px' }}>Credits Used Today: <strong>{item.used} / 200</strong></div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.75rem', padding: '3px 8px', borderRadius: '4px', background: 'rgba(0, 245, 155, 0.1)', color: '#00f59b', border: '1px solid rgba(0, 245, 155, 0.3)' }}>NON-FINISHED</span>
+                          {jdoodleKeys.some(k => k.clientId === item.clientId) && (
+                            <button onClick={() => handleDeleteJavaKey(item.clientId)} style={{ background: 'transparent', border: 'none', color: 'var(--accent-magenta)', cursor: 'pointer' }} title="Remove custom key"><Trash2 size={16} /></button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Finished APIs */}
+              <div style={{ background: 'rgba(255, 0, 85, 0.04)', border: '1px solid rgba(255, 0, 85, 0.3)', borderRadius: '8px', padding: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255, 0, 85, 0.2)', paddingBottom: '0.8rem', marginBottom: '1rem' }}>
+                  <h4 style={{ color: 'var(--accent-magenta)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent-magenta)' }}></span>
+                    FINISHED JAVA APIs (EXHAUSTED / LIMIT EXCEEDED)
+                  </h4>
+                  <span style={{ fontWeight: 'bold', background: 'rgba(255, 0, 85, 0.15)', color: 'var(--accent-magenta)', padding: '2px 10px', borderRadius: '12px', fontSize: '0.85rem' }}>
+                    {jdoodleStatusList.finished.length} Keys Exhausted
+                  </span>
+                </div>
+                {jdoodleStatusList.finished.length === 0 ? (
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic' }}>All Java API keys have available quota right now (0 finished).</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: '350px', overflowY: 'auto' }}>
+                    {jdoodleStatusList.finished.map((item, idx) => (
+                      <div key={idx} style={{ background: 'var(--bg-deep-navy)', padding: '0.8rem 1rem', borderRadius: '6px', border: '1px solid rgba(255, 0, 85, 0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-primary)' }}>ID: {item.clientId.slice(0, 10)}...{item.clientId.slice(-4)}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--accent-magenta)', marginTop: '4px' }}>Status: <strong>{item.errorReason || 'Quota limit reached (Finished)'}</strong></div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.75rem', padding: '3px 8px', borderRadius: '4px', background: 'rgba(255, 0, 85, 0.1)', color: 'var(--accent-magenta)', border: '1px solid rgba(255, 0, 85, 0.3)' }}>FINISHED</span>
+                          {jdoodleKeys.some(k => k.clientId === item.clientId) && (
+                            <button onClick={() => handleDeleteJavaKey(item.clientId)} style={{ background: 'transparent', border: 'none', color: 'var(--accent-magenta)', cursor: 'pointer' }} title="Remove custom key"><Trash2 size={16} /></button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );

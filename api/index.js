@@ -17,7 +17,7 @@ const DEFAULT_API_KEY = process.env.ONLINE_COMPILER_API_KEY || '28152502bdcf827c
 // ── Array of JDoodle API Credentials (Supports 20+ keys for automatic failover) ──
 // If a key exhausts its daily credit limit (statusCode 429 / Daily limit exceeded / Unauthorized),
 // the compiler loop automatically retries the Java program using the next key in this array.
-const JDOODLE_KEYS = [
+let JDOODLE_KEYS = [
   {
     clientId: "4a9a6038b2a7e33b9a6b3739d857f178",
     clientSecret: "af69762f1a3185158b2feb6d50efc3255662084d3d3767c9614bc877bc4e9be"
@@ -46,8 +46,82 @@ const JDOODLE_KEYS = [
     clientId: "1a12909b9e823337a62eeb3ecd23ee7f",
     clientSecret: "d23dfc7e285be4244bcac4069507284b512ce530bce1a9913d662055ba52e52d"
   }
-  // Add additional 20+ JDoodle { clientId, clientSecret } objects right below:
 ];
+
+let JDOODLE_KEY_STATUS = {};
+
+app.post('/api/jdoodle/status', async (req, res) => {
+  const customKeys = Array.isArray(req.body?.keys) ? req.body.keys : [];
+  const allUnique = [...JDOODLE_KEYS];
+  for (const k of customKeys) {
+    if (k?.clientId && k?.clientSecret && !allUnique.some(x => x.clientId === k.clientId)) {
+      allUnique.push(k);
+    }
+  }
+
+  const results = await Promise.all(allUnique.map(async (keyObj) => {
+    const { clientId, clientSecret } = keyObj;
+    let used = null;
+    let status = 'non-finished';
+    let errorReason = null;
+
+    if (JDOODLE_KEY_STATUS[clientId]?.status === 'finished') {
+      status = 'finished';
+      errorReason = JDOODLE_KEY_STATUS[clientId].lastError || 'Quota exhausted during compilation';
+    }
+
+    try {
+      const resp = await axios.post('https://api.jdoodle.com/v1/credit-spent', { clientId, clientSecret }, { timeout: 8000 });
+      if (resp.data && typeof resp.data.used === 'number') {
+        used = resp.data.used;
+        if (used >= 200) {
+          status = 'finished';
+          errorReason = `Daily credit quota limit reached (${used}/200 used)`;
+        } else if (status !== 'finished') {
+          status = 'non-finished';
+          errorReason = null;
+        }
+        JDOODLE_KEY_STATUS[clientId] = { status, used, lastError: errorReason, checkedAt: Date.now() };
+      } else if (resp.data?.statusCode === 429 || resp.data?.statusCode === 401 || resp.data?.error) {
+        status = 'finished';
+        errorReason = resp.data?.error || `Unauthorized or Limit Exceeded (${resp.data?.statusCode})`;
+        JDOODLE_KEY_STATUS[clientId] = { status, used: 200, lastError: errorReason, checkedAt: Date.now() };
+      }
+    } catch (err) {
+      const errMsg = err?.response?.data?.error || err?.message;
+      if (errMsg && (errMsg.toLowerCase().includes('limit') || errMsg.toLowerCase().includes('429') || errMsg.toLowerCase().includes('401'))) {
+        status = 'finished';
+        errorReason = errMsg;
+        JDOODLE_KEY_STATUS[clientId] = { status, used: 200, lastError: errorReason, checkedAt: Date.now() };
+      }
+    }
+
+    return {
+      clientId,
+      clientSecret,
+      status: JDOODLE_KEY_STATUS[clientId]?.status || status,
+      used: JDOODLE_KEY_STATUS[clientId]?.used !== undefined ? JDOODLE_KEY_STATUS[clientId]?.used : (used !== null ? used : 'N/A'),
+      errorReason: JDOODLE_KEY_STATUS[clientId]?.lastError || errorReason
+    };
+  }));
+
+  const nonFinished = results.filter(r => r.status === 'non-finished');
+  const finished = results.filter(r => r.status === 'finished');
+
+  return res.json({ nonFinished, finished, all: results });
+});
+
+app.post('/api/jdoodle/add', (req, res) => {
+  const { clientId, clientSecret } = req.body || {};
+  if (!clientId || !clientSecret) {
+    return res.status(400).json({ error: 'clientId and clientSecret are required' });
+  }
+  if (!JDOODLE_KEYS.some(k => k.clientId === clientId)) {
+    JDOODLE_KEYS.push({ clientId, clientSecret });
+    JDOODLE_KEY_STATUS[clientId] = { status: 'non-finished', used: 0, lastError: null, checkedAt: Date.now() };
+  }
+  return res.json({ success: true, count: JDOODLE_KEYS.length });
+});
 
 app.get('/api/time', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -67,9 +141,16 @@ app.post('/api/compile', async (req, res) => {
   // Loops through JDOODLE_KEYS array; automatically falls back to next key if current key fails.
   if (compLower === 'java' || compLower === 'javac' || compLower.includes('openjdk')) {
     let lastErrorDetail = "Failed to execute Java program on JDoodle.";
+    const dynamicKeys = Array.isArray(req.body.jdoodleKeys) ? req.body.jdoodleKeys : [];
+    const mergedKeys = [...JDOODLE_KEYS];
+    for (const dk of dynamicKeys) {
+      if (dk?.clientId && dk?.clientSecret && !mergedKeys.some(k => k.clientId === dk.clientId)) {
+        mergedKeys.push(dk);
+      }
+    }
 
-    for (let i = 0; i < JDOODLE_KEYS.length; i++) {
-      const { clientId, clientSecret } = JDOODLE_KEYS[i];
+    for (let i = 0; i < mergedKeys.length; i++) {
+      const { clientId, clientSecret } = mergedKeys[i];
       try {
         const jdoodlePayload = {
           clientId,
@@ -95,11 +176,15 @@ app.post('/api/compile', async (req, res) => {
         ) {
           console.warn(`JDoodle key index [${i}] limit/error exceeded (${errorMsg || jdResp.data?.statusCode}), switching to next API key...`);
           lastErrorDetail = errorMsg || `JDoodle API Key #${i + 1} quota exceeded`;
+          JDOODLE_KEY_STATUS[clientId] = { status: 'finished', lastError: lastErrorDetail, checkedAt: Date.now() };
           continue; // Try next API key in the array
         }
 
         const output = jdResp.data?.output || "No output returned.";
         const isError = jdResp.data?.statusCode !== 200 || output.includes('error:') || output.includes('Exception in thread');
+        if (jdResp.data?.statusCode === 200) {
+          JDOODLE_KEY_STATUS[clientId] = { status: 'non-finished', lastError: null, checkedAt: Date.now() };
+        }
 
         return res.json({
           program_message: output,
@@ -109,9 +194,12 @@ app.post('/api/compile', async (req, res) => {
         const errDetail = err?.response?.data?.error || err?.response?.data?.output || err?.message;
         console.warn(`JDoodle key index [${i}] execution failed:`, errDetail);
         lastErrorDetail = errDetail;
+        if (typeof errDetail === 'string' && (errDetail.toLowerCase().includes('limit') || errDetail.toLowerCase().includes('429') || errDetail.toLowerCase().includes('401'))) {
+          JDOODLE_KEY_STATUS[clientId] = { status: 'finished', lastError: errDetail, checkedAt: Date.now() };
+        }
 
         // If not the last key, loop to try next key
-        if (i < JDOODLE_KEYS.length - 1) {
+        if (i < mergedKeys.length - 1) {
           continue;
         }
       }
