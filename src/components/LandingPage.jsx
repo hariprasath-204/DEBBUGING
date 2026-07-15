@@ -107,7 +107,7 @@ const LandingPage = () => {
         background: 'radial-gradient(ellipse at 15% 25%, #1f0c3a 0%, transparent 55%), radial-gradient(ellipse at 85% 30%, #081d42 0%, transparent 55%), linear-gradient(135deg, #15082a 0%, #08112c 50%, #061838 100%)'
       }}>
 
-        {/* ── STATIC & USER-FRIENDLY CYBER BACKGROUND ── */}
+        {/* ── STATIC & SCANNER EFFECT CYBER BACKGROUND ── */}
         <div style={{
           position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
           zIndex: 0, pointerEvents: 'none', overflow: 'hidden'
@@ -120,6 +120,34 @@ const LandingPage = () => {
             opacity: 0.15,
             maskImage: 'radial-gradient(circle at center, black 40%, transparent 95%)',
             WebkitMaskImage: 'radial-gradient(circle at center, black 40%, transparent 95%)'
+          }} />
+
+          {/* Scanner Effect: Laser Scan Beam */}
+          <div style={{
+            position: 'absolute', left: 0, width: '100%', height: '2px',
+            background: 'linear-gradient(90deg, transparent, #00f0ff, #ff00ff, #00f0ff, transparent)',
+            boxShadow: '0 0 25px #00f0ff, 0 0 15px #ff00ff',
+            animation: 'laserScan 6s ease-in-out infinite',
+            opacity: 0.75,
+            zIndex: 1
+          }} />
+
+          {/* Scanner Effect: Sweep Glow Trail */}
+          <div style={{
+            position: 'absolute', left: 0, width: '100%', height: '180px',
+            background: 'linear-gradient(to bottom, transparent, rgba(0, 240, 255, 0.08), rgba(255, 0, 255, 0.04))',
+            animation: 'laserScan 6s ease-in-out infinite',
+            opacity: 0.6,
+            zIndex: 0
+          }} />
+
+          {/* Subtle CRT Monitor Scanlines Texture */}
+          <div style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+            background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%)',
+            backgroundSize: '100% 4px',
+            opacity: 0.35,
+            pointerEvents: 'none'
           }} />
 
           {/* Soft Ambient Aurora Gradient Waves */}
