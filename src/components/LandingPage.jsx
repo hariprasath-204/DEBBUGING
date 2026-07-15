@@ -15,6 +15,7 @@ const LandingPage = () => {
   const [langSettings, setLangSettings] = useState({ c: true, cpp: true, java: true });
   const [usersList, setUsersList] = useState([]);
   const [popup, setPopup] = useState(null);
+  const [mousePos, setMousePos] = useState({ x: typeof window !== 'undefined' ? window.innerWidth / 2 : 500, y: typeof window !== 'undefined' ? window.innerHeight / 2 : 500 });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,9 +40,15 @@ const LandingPage = () => {
       setUsersList(uList);
     });
 
+    const handleMouseMove = (e) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+
     return () => {
       unsubLang();
       unsubUsers();
+      window.removeEventListener('mousemove', handleMouseMove);
     };
   }, [language]);
 
@@ -106,6 +113,62 @@ const LandingPage = () => {
         overflow: 'hidden',
       }}>
 
+        {/* ── INTERACTIVE & ANIMATED CYBER BACKGROUND ── */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+          zIndex: 0, pointerEvents: 'none', overflow: 'hidden'
+        }}>
+          {/* Interactive Mouse Glow */}
+          <div style={{
+            position: 'absolute',
+            top: mousePos.y - 300,
+            left: mousePos.x - 300,
+            width: '600px', height: '600px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(0, 240, 255, 0.14) 0%, rgba(157, 0, 255, 0.08) 50%, transparent 70%)',
+            filter: 'blur(35px)',
+            transition: 'top 0.15s ease-out, left 0.15s ease-out'
+          }} />
+
+          {/* Floating Neon Cyber Orbs */}
+          <div style={{
+            position: 'absolute', top: '15%', left: '10%',
+            width: '450px', height: '450px', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(0, 240, 255, 0.22) 0%, transparent 70%)',
+            filter: 'blur(60px)',
+            animation: 'orbFloat1 10s ease-in-out infinite'
+          }} />
+          <div style={{
+            position: 'absolute', bottom: '20%', right: '12%',
+            width: '500px', height: '500px', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255, 0, 255, 0.18) 0%, rgba(157, 0, 255, 0.15) 50%, transparent 70%)',
+            filter: 'blur(65px)',
+            animation: 'orbFloat2 12s ease-in-out infinite'
+          }} />
+
+          {/* 3D Perspective Cyber Floor Grid */}
+          <div style={{
+            position: 'absolute', bottom: 0, left: '-30%', width: '160%', height: '48vh',
+            transform: 'perspective(650px) rotateX(68deg)',
+            transformOrigin: 'bottom center',
+            background: 'linear-gradient(rgba(0, 240, 255, 0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.22) 1px, transparent 1px)',
+            backgroundSize: '48px 48px',
+            animation: 'gridScroll 3s linear infinite',
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 60%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 60%)',
+            boxShadow: 'inset 0 120px 120px -30px var(--bg-main)'
+          }} />
+
+          {/* Laser Scan Beam */}
+          <div style={{
+            position: 'absolute', left: 0, width: '100%', height: '2px',
+            background: 'linear-gradient(90deg, transparent, #00f0ff, #ff00ff, #00f0ff, transparent)',
+            boxShadow: '0 0 25px #00f0ff, 0 0 15px #ff00ff',
+            animation: 'laserScan 8s ease-in-out infinite',
+            opacity: 0.6
+          }} />
+        </div>
+
         {/* ── HERO (flex:1 means it fills remaining height) ── */}
         <div style={{
           flex: 1,
@@ -114,6 +177,7 @@ const LandingPage = () => {
           alignItems: 'center',
           justifyContent: 'center',
           paddingBottom: '30px',
+          position: 'relative', zIndex: 2,
           transition: 'opacity 0.4s, filter 0.4s',
           opacity: showModal ? 0.07 : 1,
           filter: showModal ? 'blur(5px)' : 'none',
