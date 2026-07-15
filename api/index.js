@@ -151,8 +151,38 @@ let JDOODLE_KEYS = [
 
 let JDOODLE_KEY_STATUS = {};
 
-app.get('/api/jdoodle/count', (req, res) => {
-  return res.json({ totalCount: JDOODLE_KEYS.length });
+app.all('/api/jdoodle/count', (req, res) => {
+  const customKeys = Array.isArray(req.body?.keys) ? req.body.keys : [];
+  const allUnique = [...JDOODLE_KEYS];
+  for (const k of customKeys) {
+    const cid = k?.clientId || k?.id;
+    const csecret = k?.clientSecret || k?.secret;
+    if (cid && csecret && !allUnique.some(x => x.clientId === cid)) {
+      allUnique.push({ clientId: cid, clientSecret: csecret });
+    }
+  }
+
+  const allWithStatus = allUnique.map(keyObj => {
+    const { clientId, clientSecret } = keyObj;
+    const cached = JDOODLE_KEY_STATUS[clientId] || { status: 'non-finished', used: 0, lastError: null };
+    return {
+      clientId,
+      clientSecret,
+      status: cached.status || 'non-finished',
+      used: cached.used !== undefined ? cached.used : 0,
+      errorReason: cached.lastError || null
+    };
+  });
+
+  const nonFinished = allWithStatus.filter(r => r.status === 'non-finished');
+  const finished = allWithStatus.filter(r => r.status === 'finished');
+
+  return res.json({
+    totalCount: allUnique.length,
+    nonFinished,
+    finished,
+    all: allWithStatus
+  });
 });
 
 app.post('/api/jdoodle/status', async (req, res) => {

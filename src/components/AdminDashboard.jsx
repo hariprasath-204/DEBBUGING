@@ -137,6 +137,7 @@ const AdminDashboard = () => {
         const data = docSnap.data();
         const keys = Array.isArray(data.keys) ? data.keys : [];
         setJdoodleKeys(keys);
+        fetchInstantJdoodleStatus(keys);
         fetchJdoodleStatus(keys);
       } else {
         setDoc(jdoodleDocRef, { keys: [] });
@@ -152,8 +153,26 @@ const AdminDashboard = () => {
     };
   }, []);
 
+  const fetchInstantJdoodleStatus = async (keysToTest = jdoodleKeys) => {
+    try {
+      const res = await axios.post('/api/jdoodle/count', { keys: keysToTest });
+      if (res.data) {
+        setJdoodleStatusList(prev => ({
+          ...prev,
+          totalCount: res.data.totalCount || (res.data.all ? res.data.all.length : 0),
+          all: res.data.all || prev.all || [],
+          nonFinished: res.data.nonFinished || prev.nonFinished || [],
+          finished: res.data.finished || prev.finished || []
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch instant JDoodle status:', err);
+    }
+  };
+
   const fetchJdoodleStatus = async (keysToTest = jdoodleKeys) => {
     setIsCheckingJdoodle(true);
+    await fetchInstantJdoodleStatus(keysToTest);
     try {
       const res = await axios.post('/api/jdoodle/status', { keys: keysToTest });
       if (res.data) {
@@ -181,6 +200,7 @@ const AdminDashboard = () => {
       await axios.post('/api/jdoodle/add', { clientId: newJavaKey.clientId.trim(), clientSecret: newJavaKey.clientSecret.trim() });
       setNewJavaKey({ clientId: '', clientSecret: '' });
       showPopup('New Java API key added successfully!', 'success');
+      await fetchInstantJdoodleStatus(updatedKeys);
       fetchJdoodleStatus(updatedKeys);
     } catch (err) {
       showPopup('Failed to add Java API key', 'error');
@@ -195,6 +215,7 @@ const AdminDashboard = () => {
       const updatedKeys = jdoodleKeys.filter(k => k.clientId !== clientIdToRemove);
       await setDoc(doc(db, 'settings', 'jdoodle'), { keys: updatedKeys }, { merge: true });
       showPopup('Java API key removed', 'success');
+      await fetchInstantJdoodleStatus(updatedKeys);
       fetchJdoodleStatus(updatedKeys);
       setIsLoading(false);
     }
@@ -644,7 +665,7 @@ const AdminDashboard = () => {
               <div>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', textTransform: 'uppercase', letterSpacing: '1px' }}>Total Failover Pool</span>
                 <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', fontSize: '1.4rem' }}>
-                  {jdoodleStatusList.totalCount || (jdoodleStatusList.all?.length) || 29} Keys
+                  {jdoodleStatusList.totalCount || jdoodleStatusList.all?.length || 0} Keys
                 </span>
               </div>
               <div style={{ height: '30px', width: '1px', background: 'var(--border-subtle)' }}></div>
@@ -682,12 +703,12 @@ const AdminDashboard = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.8rem', marginBottom: '1rem' }}>
                 <h4 style={{ color: 'var(--accent-cyan)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent-cyan)' }}></span>
-                  COMPLETE API KEY POOL ({jdoodleStatusList.all?.length || 29} REGISTERED KEYS)
+                  COMPLETE API KEY POOL ({jdoodleStatusList.totalCount || jdoodleStatusList.all?.length || 0} REGISTERED KEYS)
                 </h4>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>All built-in + custom keys available in failover chain</span>
               </div>
               {(!jdoodleStatusList.all || jdoodleStatusList.all.length === 0) ? (
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic' }}>Click Refresh Status to load live usage status for all 29+ keys.</p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic' }}>Loading registered keys from failover pool...</p>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '0.8rem', maxHeight: '380px', overflowY: 'auto' }}>
                   {jdoodleStatusList.all.map((item, idx) => (
