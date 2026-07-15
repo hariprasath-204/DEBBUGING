@@ -18,6 +18,7 @@ const DEFAULT_API_KEY = process.env.ONLINE_COMPILER_API_KEY || '28152502bdcf827c
 // If a key exhausts its daily credit limit (statusCode 429 / Daily limit exceeded / Unauthorized),
 // the compiler loop automatically retries the Java program using the next key in this array.
 let JDOODLE_KEYS = [
+  // Existing 7 Keys
   {
     clientId: "4a9a6038b2a7e33b9a6b3739d857f178",
     clientSecret: "af69762f1a3185158b2feb6d50efc3255662084d3d3767c9614bc877bc4e9be"
@@ -45,74 +46,184 @@ let JDOODLE_KEYS = [
   {
     clientId: "1a12909b9e823337a62eeb3ecd23ee7f",
     clientSecret: "d23dfc7e285be4244bcac4069507284b512ce530bce1a9913d662055ba52e52d"
+  },
+  // Added 22 Keys
+  {
+    clientId: "e9d4c44d39706bc115fd78d1fa94ae0b",
+    clientSecret: "2301490931d4fb5120c3a90054f4fdaf62adbab50e1c5340fb66a95834784950"
+  },
+  {
+    clientId: "b30629e21f310dbf19aba52408e2a2a8",
+    clientSecret: "d6d0b3c5e9375561a3cb95bae07c99f682d80010bd2a8d11f431f49ff06c78e2"
+  },
+  {
+    clientId: "fd83f9d57ac69f9adeff2a6fdc73ffdb",
+    clientSecret: "6defdfd8ddeaae552104964104bf893d24f18eab5dd80d680cee93bf8cf519fa"
+  },
+  {
+    clientId: "314ca30886bd9620faafe84a5a0c4ebb",
+    clientSecret: "c5c89a82ce82dc00d0983371b8b6313d4435b8aaac6b20dc03892ef6e63c4487"
+  },
+  {
+    clientId: "9b7149e8f712ebe613986a00957e3edb",
+    clientSecret: "5ace899a89ab28e7060c5e7cac49205df46387367e9d58d96bc379e7ce08fdce"
+  },
+  {
+    clientId: "4b8d713065b8a0e847e698912c745460",
+    clientSecret: "5ffb6c31effdf8914baabda5ec20bb461e1b7b75ecbcf2e825a0b3f5c7ff26b9"
+  },
+  {
+    clientId: "decd504ec47ed1355d951fe5779d0fe4",
+    clientSecret: "db582301b8d5e24094bd8e2f51293ece3198a377d3b8cb933d799416acb2a401"
+  },
+  {
+    clientId: "196cb515a1006555e7ace58f43fc4c17",
+    clientSecret: "5befa1e4d25d261b6deff0b916fcc82d4a15fd3c7bd1fc0046e4990feb86b85b"
+  },
+  {
+    clientId: "b5d77dc299692b52116de24ffbbf19ac",
+    clientSecret: "3f1840cca41b59d9b0e694cd26c969f9c38b3de9d49e895299ce08af6234270d"
+  },
+  {
+    clientId: "ef832f26f387fdabc20f1ab5600fd398",
+    clientSecret: "6cd152d68ddd2d04c3ef229f60fb6afb6291ad137ea0246ee7734b7bbf948ab2"
+  },
+  {
+    clientId: "f979e6144c4a43700876fcad294de5c0",
+    clientSecret: "1e9a334be85af822673e25547a5b94e362b00fbccd355cb57a740517042e3138"
+  },
+  {
+    clientId: "ac5e6f41a7cad46d5b37a318ebd0ed78",
+    clientSecret: "2e2384b0c3237b2fe0f3c177bc0b9d17bfed2b3356e385851cf25cc4efec6e6e"
+  },
+  {
+    clientId: "508f04c91c99911af75cdc21fb72c675",
+    clientSecret: "7c090ad0c46b72b47138ecff18c9a3f168faa77e129f75aadc915d61d668ecb2"
+  },
+  {
+    clientId: "fa0cf8185c0b2b43c26e87ab5649c691",
+    clientSecret: "779e4df53c34ad549665ed6fc17a4509ac357377c9462ffd3d370bea94aed840"
+  },
+  {
+    clientId: "3717e4a63f833cce76eb5a610b0a58ff",
+    clientSecret: "532ff37974a65ad86e39bb42f71d2df4ef2ab68301f2f78e54c7a5217cb76f75"
+  },
+  {
+    clientId: "dbf60ee909b6ef93e7f3845376c7a9ea",
+    clientSecret: "49862081bbe1c2e1494173b5ee79a09def675f4e481fb0755541a623c798d3f5"
+  },
+  {
+    clientId: "721971bed2443f06b09cf9d965e40e2c",
+    clientSecret: "c15b9aec9b3540942a72f012d05160099348b8fecbfe987a59f1b22a9e3d2ad4"
+  },
+  {
+    clientId: "cfbbe31583110e83c74f5ae7ea77b6bf",
+    clientSecret: "5c0e0bbc30ac9e5ad8f675c9b6c31abe562f2c8e11bddce2fec8b512c59393c4"
+  },
+  {
+    clientId: "9baba800dcad9f64d0ef7e180226bcd0",
+    clientSecret: "e4916385a6e5c003d267d919fa41de009c579684f69bf141e742d15069d2a5bb"
+  },
+  {
+    clientId: "a9b709e280afbc916252ce9a691641f9",
+    clientSecret: "806d741cd61967262c1641da1d2fe7f8e77489f56dbcb6506a1d57b0561407d3"
+  },
+  {
+    clientId: "3513793f9cb42dce8d7bc7b79ce9ac72",
+    clientSecret: "2da50081c7ffbf9841b3547fa7dd2cf6ac3405d6b3474ec360938260a549f70c"
+  },
+  {
+    clientId: "9f2dd28002c61669a6ad40bed46b19b3",
+    clientSecret: "fd365b49e35fa273a1c678af84d58e19bd3f8aab98f700d2136d5c42005e4b9f"
   }
 ];
 
 let JDOODLE_KEY_STATUS = {};
 
+app.get('/api/jdoodle/count', (req, res) => {
+  return res.json({ totalCount: JDOODLE_KEYS.length });
+});
+
 app.post('/api/jdoodle/status', async (req, res) => {
   const customKeys = Array.isArray(req.body?.keys) ? req.body.keys : [];
   const allUnique = [...JDOODLE_KEYS];
   for (const k of customKeys) {
-    if (k?.clientId && k?.clientSecret && !allUnique.some(x => x.clientId === k.clientId)) {
-      allUnique.push(k);
+    const cid = k?.clientId || k?.id;
+    const csecret = k?.clientSecret || k?.secret;
+    if (cid && csecret && !allUnique.some(x => x.clientId === cid)) {
+      allUnique.push({ clientId: cid, clientSecret: csecret });
     }
   }
 
-  const results = await Promise.all(allUnique.map(async (keyObj) => {
-    const { clientId, clientSecret } = keyObj;
-    let used = null;
-    let status = 'non-finished';
-    let errorReason = null;
+  const results = [];
+  const chunkSize = 5;
+  for (let i = 0; i < allUnique.length; i += chunkSize) {
+    const chunk = allUnique.slice(i, i + chunkSize);
+    const chunkResults = await Promise.all(chunk.map(async (keyObj) => {
+      const { clientId, clientSecret } = keyObj;
+      let used = null;
+      let status = 'non-finished';
+      let errorReason = null;
 
-    if (JDOODLE_KEY_STATUS[clientId]?.status === 'finished') {
-      status = 'finished';
-      errorReason = JDOODLE_KEY_STATUS[clientId].lastError || 'Quota exhausted during compilation';
-    }
+      if (JDOODLE_KEY_STATUS[clientId]?.status === 'finished') {
+        status = 'finished';
+        errorReason = JDOODLE_KEY_STATUS[clientId].lastError || 'Quota exhausted during compilation';
+      }
 
-    try {
-      const resp = await axios.post('https://api.jdoodle.com/v1/credit-spent', { clientId, clientSecret }, { timeout: 8000 });
-      if (resp.data && typeof resp.data.used === 'number') {
-        used = resp.data.used;
-        if (used >= 200) {
+      try {
+        const resp = await axios.post('https://api.jdoodle.com/v1/credit-spent', { clientId, clientSecret }, { timeout: 10000 });
+        if (resp.data && typeof resp.data.used === 'number') {
+          used = resp.data.used;
+          if (used >= 200) {
+            status = 'finished';
+            errorReason = `Daily credit quota limit reached (${used}/200 used)`;
+          } else if (status !== 'finished') {
+            status = 'non-finished';
+            errorReason = null;
+          }
+          JDOODLE_KEY_STATUS[clientId] = { status, used, lastError: errorReason, checkedAt: Date.now() };
+        } else if (resp.data?.statusCode === 429 || resp.data?.statusCode === 401 || resp.data?.error) {
           status = 'finished';
-          errorReason = `Daily credit quota limit reached (${used}/200 used)`;
-        } else if (status !== 'finished') {
-          status = 'non-finished';
+          errorReason = resp.data?.error || `Unauthorized or Limit Exceeded (${resp.data?.statusCode})`;
+          JDOODLE_KEY_STATUS[clientId] = { status, used: 200, lastError: errorReason, checkedAt: Date.now() };
+        }
+      } catch (err) {
+        const errMsg = err?.response?.data?.error || err?.message;
+        if (errMsg && (errMsg.toLowerCase().includes('daily limit') || errMsg.toLowerCase().includes('quota') || errMsg.toLowerCase().includes('401'))) {
+          status = 'finished';
+          errorReason = errMsg;
+          JDOODLE_KEY_STATUS[clientId] = { status, used: 200, lastError: errorReason, checkedAt: Date.now() };
+        } else {
+          // Keep active status if it's just a rate limit/network timeout when checking credit status
+          status = JDOODLE_KEY_STATUS[clientId]?.status || 'non-finished';
+          used = JDOODLE_KEY_STATUS[clientId]?.used !== undefined ? JDOODLE_KEY_STATUS[clientId]?.used : 0;
           errorReason = null;
         }
-        JDOODLE_KEY_STATUS[clientId] = { status, used, lastError: errorReason, checkedAt: Date.now() };
-      } else if (resp.data?.statusCode === 429 || resp.data?.statusCode === 401 || resp.data?.error) {
-        status = 'finished';
-        errorReason = resp.data?.error || `Unauthorized or Limit Exceeded (${resp.data?.statusCode})`;
-        JDOODLE_KEY_STATUS[clientId] = { status, used: 200, lastError: errorReason, checkedAt: Date.now() };
       }
-    } catch (err) {
-      const errMsg = err?.response?.data?.error || err?.message;
-      if (errMsg && (errMsg.toLowerCase().includes('limit') || errMsg.toLowerCase().includes('429') || errMsg.toLowerCase().includes('401'))) {
-        status = 'finished';
-        errorReason = errMsg;
-        JDOODLE_KEY_STATUS[clientId] = { status, used: 200, lastError: errorReason, checkedAt: Date.now() };
-      }
-    }
 
-    return {
-      clientId,
-      clientSecret,
-      status: JDOODLE_KEY_STATUS[clientId]?.status || status,
-      used: JDOODLE_KEY_STATUS[clientId]?.used !== undefined ? JDOODLE_KEY_STATUS[clientId]?.used : (used !== null ? used : 'N/A'),
-      errorReason: JDOODLE_KEY_STATUS[clientId]?.lastError || errorReason
-    };
-  }));
+      return {
+        clientId,
+        clientSecret,
+        status: JDOODLE_KEY_STATUS[clientId]?.status || status,
+        used: JDOODLE_KEY_STATUS[clientId]?.used !== undefined ? JDOODLE_KEY_STATUS[clientId]?.used : (used !== null ? used : 0),
+        errorReason: JDOODLE_KEY_STATUS[clientId]?.lastError || errorReason
+      };
+    }));
+    results.push(...chunkResults);
+    if (i + chunkSize < allUnique.length) {
+      await new Promise(r => setTimeout(r, 200));
+    }
+  }
 
   const nonFinished = results.filter(r => r.status === 'non-finished');
   const finished = results.filter(r => r.status === 'finished');
 
-  return res.json({ nonFinished, finished, all: results });
+  return res.json({ nonFinished, finished, all: results, totalCount: results.length });
 });
 
 app.post('/api/jdoodle/add', (req, res) => {
-  const { clientId, clientSecret } = req.body || {};
+  const clientId = req.body?.clientId || req.body?.id;
+  const clientSecret = req.body?.clientSecret || req.body?.secret;
   if (!clientId || !clientSecret) {
     return res.status(400).json({ error: 'clientId and clientSecret are required' });
   }
@@ -144,8 +255,10 @@ app.post('/api/compile', async (req, res) => {
     const dynamicKeys = Array.isArray(req.body.jdoodleKeys) ? req.body.jdoodleKeys : [];
     const mergedKeys = [...JDOODLE_KEYS];
     for (const dk of dynamicKeys) {
-      if (dk?.clientId && dk?.clientSecret && !mergedKeys.some(k => k.clientId === dk.clientId)) {
-        mergedKeys.push(dk);
+      const cid = dk?.clientId || dk?.id;
+      const csecret = dk?.clientSecret || dk?.secret;
+      if (cid && csecret && !mergedKeys.some(k => k.clientId === cid)) {
+        mergedKeys.push({ clientId: cid, clientSecret: csecret });
       }
     }
 
@@ -304,6 +417,7 @@ if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`Backend server running on http://localhost:${PORT}`);
+    console.log(`JDoodle API Keys Loaded: ${JDOODLE_KEYS.length} keys available for automatic failover.`);
   });
 }
 

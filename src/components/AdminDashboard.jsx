@@ -75,7 +75,7 @@ const AdminDashboard = () => {
   
   // JDoodle Java API Keys Management State
   const [jdoodleKeys, setJdoodleKeys] = useState([]);
-  const [jdoodleStatusList, setJdoodleStatusList] = useState({ nonFinished: [], finished: [] });
+  const [jdoodleStatusList, setJdoodleStatusList] = useState({ nonFinished: [], finished: [], all: [], totalCount: 0 });
   const [isCheckingJdoodle, setIsCheckingJdoodle] = useState(false);
   const [newJavaKey, setNewJavaKey] = useState({ clientId: '', clientSecret: '' });
 
@@ -159,7 +159,9 @@ const AdminDashboard = () => {
       if (res.data) {
         setJdoodleStatusList({
           nonFinished: res.data.nonFinished || [],
-          finished: res.data.finished || []
+          finished: res.data.finished || [],
+          all: res.data.all || [],
+          totalCount: res.data.totalCount || (res.data.all ? res.data.all.length : 0)
         });
       }
     } catch (err) {
@@ -634,9 +636,32 @@ const AdminDashboard = () => {
             </div>
 
             <h3 className="glow-text-cyan" style={{ marginTop: '3rem', marginBottom: '1rem' }}>JAVA (JDOODLE) API KEY MANAGEMENT & LIVE STATUS</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-              Java compilation uses the JDoodle execution engine with automatic key rotation and failover. Monitor finished (exhausted) vs non-finished (active) keys below and add additional backup keys directly.
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+              Java compilation uses the JDoodle execution engine with automatic key rotation and failover across the entire pool.
             </p>
+
+            <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center', background: 'var(--bg-deep-navy)', padding: '1rem 1.5rem', borderRadius: '8px', border: '1px solid var(--accent-cyan)', marginBottom: '1.5rem', boxShadow: '0 0 15px rgba(0, 240, 255, 0.1)' }}>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', textTransform: 'uppercase', letterSpacing: '1px' }}>Total Failover Pool</span>
+                <span style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', fontSize: '1.4rem' }}>
+                  {jdoodleStatusList.totalCount || (jdoodleStatusList.all?.length) || 29} Keys
+                </span>
+              </div>
+              <div style={{ height: '30px', width: '1px', background: 'var(--border-subtle)' }}></div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', textTransform: 'uppercase', letterSpacing: '1px' }}>Active Available</span>
+                <span style={{ color: '#00f59b', fontWeight: 'bold', fontSize: '1.4rem' }}>
+                  {jdoodleStatusList.nonFinished.length} Keys
+                </span>
+              </div>
+              <div style={{ height: '30px', width: '1px', background: 'var(--border-subtle)' }}></div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', textTransform: 'uppercase', letterSpacing: '1px' }}>Exhausted Today</span>
+                <span style={{ color: 'var(--accent-magenta)', fontWeight: 'bold', fontSize: '1.4rem' }}>
+                  {jdoodleStatusList.finished.length} Keys
+                </span>
+              </div>
+            </div>
 
             <form onSubmit={handleAddJavaKey} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end', background: 'var(--bg-deep-navy)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '2rem' }}>
               <div style={{ flex: '1 1 220px' }}>
@@ -652,6 +677,42 @@ const AdminDashboard = () => {
                 {isCheckingJdoodle ? 'CHECKING CREDITS...' : 'REFRESH STATUS'}
               </button>
             </form>
+
+            <div style={{ background: 'var(--bg-deep-navy)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '1.5rem', marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.8rem', marginBottom: '1rem' }}>
+                <h4 style={{ color: 'var(--accent-cyan)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent-cyan)' }}></span>
+                  COMPLETE API KEY POOL ({jdoodleStatusList.all?.length || 29} REGISTERED KEYS)
+                </h4>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>All built-in + custom keys available in failover chain</span>
+              </div>
+              {(!jdoodleStatusList.all || jdoodleStatusList.all.length === 0) ? (
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic' }}>Click Refresh Status to load live usage status for all 29+ keys.</p>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '0.8rem', maxHeight: '380px', overflowY: 'auto' }}>
+                  {jdoodleStatusList.all.map((item, idx) => (
+                    <div key={idx} style={{ background: '#0a0e1a', padding: '0.8rem 1rem', borderRadius: '6px', border: item.status === 'finished' ? '1px solid rgba(255, 0, 85, 0.3)' : '1px solid rgba(0, 245, 155, 0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: 'var(--text-primary)' }}>
+                          <strong>#{idx + 1}</strong> ID: {item.clientId ? `${item.clientId.slice(0, 8)}...${item.clientId.slice(-4)}` : 'N/A'}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: item.status === 'finished' ? 'var(--accent-magenta)' : '#00f59b', marginTop: '4px' }}>
+                          {item.status === 'finished' ? (item.errorReason || 'EXHAUSTED / LIMIT REACHED') : `ACTIVE | Credits Used Today: ${item.used || 0}/200`}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', background: item.status === 'finished' ? 'rgba(255, 0, 85, 0.15)' : 'rgba(0, 245, 155, 0.15)', color: item.status === 'finished' ? 'var(--accent-magenta)' : '#00f59b' }}>
+                          {item.status === 'finished' ? 'FINISHED' : 'ACTIVE'}
+                        </span>
+                        {jdoodleKeys.some(k => k.clientId === item.clientId) && (
+                          <button onClick={() => handleDeleteJavaKey(item.clientId)} style={{ background: 'transparent', border: 'none', color: 'var(--accent-magenta)', cursor: 'pointer' }} title="Remove custom key"><Trash2 size={16} /></button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
               {/* Non-Finished APIs */}
