@@ -36,6 +36,7 @@ const EditorPage = () => {
   const questionStartTimeRef = useRef(null);
   const hasSubmittedRef = useRef(false);
   const timerIntervalRef = useRef(null);
+  const lastSavedCodeRef = useRef('');
 
   // Sync state to ref for auto-save and submission closures
   useEffect(() => {
@@ -168,20 +169,21 @@ const EditorPage = () => {
       }
     });
 
-    // 3. Auto-save every 3 seconds
+    // 3. Auto-save every 4 seconds (throttled for 200+ user scalability, only saves if code changed)
     const autoSaveInterval = setInterval(async () => {
-      if (userId && codeRef.current && codeRef.current !== '// Loading...' && codeRef.current !== '// Mission not found.' && questionId) {
+      if (userId && codeRef.current && codeRef.current !== lastSavedCodeRef.current && codeRef.current !== '// Loading...' && codeRef.current !== '// Mission not found.' && questionId) {
         try {
           await updateDoc(doc(db, 'users', userId), {
             currentCode: codeRef.current,
             [`drafts.${questionId}`]: codeRef.current,
             ...errorStatsRef.current
           });
+          lastSavedCodeRef.current = codeRef.current;
         } catch (e) {
           // Silently fail if quota exceeded or offline
         }
       }
-    }, 3000);
+    }, 4000);
 
     // 4. Anti-cheating & Fullscreen Listeners
     const handleVisibilityChange = async () => {

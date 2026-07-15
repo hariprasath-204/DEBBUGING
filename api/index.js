@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 
 const DEFAULT_API_KEY = process.env.ONLINE_COMPILER_API_KEY || '28152502bdcf827c763a92f0bf7ed806';
 
@@ -186,11 +186,25 @@ app.get(/^(.*)$/, (req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
+// Global Express Error Handler to prevent server crashes on malformed requests or unhandled rejections during 200+ user spikes
+app.use((err, req, res, next) => {
+  console.error('Unhandled Server Error:', err?.message || err);
+  res.status(500).json({ error: 'Internal Server Error', detail: err?.message || 'Unexpected server exception occurred.' });
+});
+
 if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`Backend server running on http://localhost:${PORT}`);
   });
 }
+
+// Process-level crash protection for 200+ concurrent compile requests
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception caught:', err?.message || err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at promise:', promise, 'reason:', reason);
+});
 
 export default app;

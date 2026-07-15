@@ -10,6 +10,7 @@ import ThankYouPage from './components/ThankYouPage';
 import QuestionSelectionPage from './components/QuestionSelectionPage';
 import AllQuestionsCompletedPage from './components/AllQuestionsCompletedPage';
 import TopWinnersPage from './components/TopWinnersPage';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function AppContent() {
   const location = useLocation();
@@ -47,9 +48,11 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AppContent />
+      </Router>
+    </ErrorBoundary>
   );
 }
 
