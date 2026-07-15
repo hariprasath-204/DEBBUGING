@@ -6,6 +6,109 @@ import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
 import { clearFullUserSession } from '../utils/drafts';
 
+// ── Interactive & User-Friendly Sci-Fi Node Constellation Canvas ─────────────
+const BackgroundConstellation = ({ mousePos }) => {
+  const canvasRef = React.useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', handleResize);
+
+    const numParticles = Math.floor((width * height) / 18000);
+    const particles = Array.from({ length: Math.min(numParticles, 60) }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 0.45,
+      vy: (Math.random() - 0.5) * 0.45,
+      radius: Math.random() * 1.8 + 1,
+      color: Math.random() > 0.4 ? '#00F0FF' : '#FF00FF'
+    }));
+
+    const render = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = p.color;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dx = p.x - p2.x;
+          const dy = p.y - p2.y;
+          const distSq = dx * dx + dy * dy;
+          if (distSq < 130 * 130) {
+            const alpha = (1 - Math.sqrt(distSq) / 130) * 0.22;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = p.color === '#00F0FF' ? `rgba(0, 240, 255, ${alpha})` : `rgba(255, 0, 255, ${alpha})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+
+        if (mousePos && mousePos.x && mousePos.y) {
+          const dx = p.x - mousePos.x;
+          const dy = p.y - mousePos.y;
+          const distSq = dx * dx + dy * dy;
+          if (distSq < 160 * 160) {
+            const alpha = (1 - Math.sqrt(distSq) / 160) * 0.35;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(mousePos.x, mousePos.y);
+            ctx.strokeStyle = `rgba(0, 240, 255, ${alpha})`;
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+          }
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [mousePos]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+        pointerEvents: 'none', zIndex: 0
+      }}
+    />
+  );
+};
+
 // ── Landing Page ─────────────────────────────────────────────────
 const LandingPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -114,59 +217,48 @@ const LandingPage = () => {
         background: 'radial-gradient(ellipse at 15% 25%, #1f0c3a 0%, transparent 55%), radial-gradient(ellipse at 85% 30%, #081d42 0%, transparent 55%), linear-gradient(135deg, #15082a 0%, #08112c 50%, #061838 100%)'
       }}>
 
-        {/* ── INTERACTIVE & ANIMATED CYBER BACKGROUND ── */}
+        {/* ── INTERACTIVE & USER-FRIENDLY CYBER BACKGROUND ── */}
         <div style={{
           position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
           zIndex: 0, pointerEvents: 'none', overflow: 'hidden'
         }}>
-          {/* Interactive Mouse Glow */}
+          {/* Interactive Sci-Fi Constellation Canvas */}
+          <BackgroundConstellation mousePos={mousePos} />
+
+          {/* Interactive Mouse Glow Spotlight */}
           <div style={{
             position: 'absolute',
-            top: mousePos.y - 300,
-            left: mousePos.x - 300,
-            width: '600px', height: '600px',
+            top: mousePos.y - 280,
+            left: mousePos.x - 280,
+            width: '560px', height: '560px',
             borderRadius: '50%',
             background: 'radial-gradient(circle, rgba(0, 240, 255, 0.14) 0%, rgba(157, 0, 255, 0.08) 50%, transparent 70%)',
-            filter: 'blur(35px)',
-            transition: 'top 0.15s ease-out, left 0.15s ease-out'
+            filter: 'blur(45px)',
+            transition: 'top 0.12s ease-out, left 0.12s ease-out'
           }} />
 
-          {/* Floating Neon Cyber Orbs */}
+          {/* Subtle Flat HUD Command Grid Overlay */}
           <div style={{
-            position: 'absolute', top: '15%', left: '10%',
-            width: '450px', height: '450px', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(0, 240, 255, 0.22) 0%, transparent 70%)',
-            filter: 'blur(60px)',
-            animation: 'orbFloat1 10s ease-in-out infinite'
-          }} />
-          <div style={{
-            position: 'absolute', bottom: '20%', right: '12%',
-            width: '500px', height: '500px', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(255, 0, 255, 0.18) 0%, rgba(157, 0, 255, 0.15) 50%, transparent 70%)',
-            filter: 'blur(65px)',
-            animation: 'orbFloat2 12s ease-in-out infinite'
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+            background: 'linear-gradient(rgba(0, 240, 255, 0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.12) 1px, transparent 1px)',
+            backgroundSize: '48px 48px',
+            opacity: 0.15,
+            maskImage: 'radial-gradient(circle at center, black 40%, transparent 95%)',
+            WebkitMaskImage: 'radial-gradient(circle at center, black 40%, transparent 95%)'
           }} />
 
-          {/* 3D Perspective Cyber Floor Grid */}
+          {/* Soft Ambient Aurora Gradient Waves */}
           <div style={{
-            position: 'absolute', bottom: 0, left: '-30%', width: '160%', height: '60vh',
-            transform: 'perspective(750px) rotateX(75deg)',
-            transformOrigin: 'bottom center',
-            background: 'linear-gradient(rgba(0, 240, 255, 0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.22) 1px, transparent 1px)',
-            backgroundSize: '64px 64px',
-            animation: 'gridScroll 3.5s linear infinite',
-            maskImage: 'linear-gradient(to bottom, transparent 0%, black 50%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 50%)',
-            boxShadow: 'inset 0 140px 140px -40px #061838'
+            position: 'absolute', top: '-10%', left: '20%',
+            width: '60vw', height: '60vh', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(0, 240, 255, 0.1) 0%, transparent 70%)',
+            filter: 'blur(80px)'
           }} />
-
-          {/* Laser Scan Beam */}
           <div style={{
-            position: 'absolute', left: 0, width: '100%', height: '2px',
-            background: 'linear-gradient(90deg, transparent, #00f0ff, #ff00ff, #00f0ff, transparent)',
-            boxShadow: '0 0 25px #00f0ff, 0 0 15px #ff00ff',
-            animation: 'laserScan 8s ease-in-out infinite',
-            opacity: 0.65
+            position: 'absolute', bottom: '-15%', right: '15%',
+            width: '65vw', height: '65vh', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255, 0, 255, 0.1) 0%, transparent 70%)',
+            filter: 'blur(85px)'
           }} />
         </div>
 
