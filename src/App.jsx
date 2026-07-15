@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import EditorPage from './components/EditorPage';
 import AdminDashboard from './components/AdminDashboard';
@@ -10,11 +10,23 @@ import ThankYouPage from './components/ThankYouPage';
 import QuestionSelectionPage from './components/QuestionSelectionPage';
 import AllQuestionsCompletedPage from './components/AllQuestionsCompletedPage';
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  const isLanding = location.pathname === '/';
+
   return (
-    <Router>
+    <>
       <div className="ambient-bg"></div>
-      <div className="app-container" style={{ minHeight: '100vh', padding: '2rem', boxSizing: 'border-box' }}>
+      <div
+        className="app-container"
+        style={{
+          minHeight: '100vh',
+          padding: isLanding ? '0' : '2rem',
+          boxSizing: 'border-box',
+          width: '100vw',
+          overflow: isLanding ? 'hidden' : 'auto'
+        }}
+      >
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/waiting" element={<WaitingPage />} />
@@ -27,6 +39,14 @@ function App() {
           <Route path="/leaderboard" element={<Leaderboard />} />
         </Routes>
       </div>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }

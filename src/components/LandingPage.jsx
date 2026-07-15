@@ -106,7 +106,7 @@ const LandingPage = () => {
         - Copyright p: flexShrink:0 → always pinned at bottom, never hidden
       */}
       <div style={{
-        position: 'relative', zIndex: 1,
+        position: 'fixed', top: 0, left: 0, zIndex: 10,
         height: '100vh', width: '100vw',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center',
