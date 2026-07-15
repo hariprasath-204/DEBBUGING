@@ -76,7 +76,8 @@ const EditorPage = () => {
                               '// No code provided.';
 
           // 1. Check local storage draft first
-          const localDraft = localStorage.getItem(`codathan_draft_${userId}_${targetQuestion.id}`);
+          let localDraft = localStorage.getItem(`codathan_draft_${userId}_${targetQuestion.id}`);
+          if (localDraft === '// Loading...' || localDraft === '// Mission not found.') localDraft = null;
 
           // 2. Also check Firestore user draft
           let remoteDraft = null;
@@ -93,6 +94,7 @@ const EditorPage = () => {
           } catch (e) {
             console.warn("Could not load remote draft:", e);
           }
+          if (remoteDraft === '// Loading...' || remoteDraft === '// Mission not found.') remoteDraft = null;
 
           setCode(localDraft || remoteDraft || initialCode);
         } else {
@@ -145,7 +147,7 @@ const EditorPage = () => {
 
     // 3. Auto-save every 3 seconds
     const autoSaveInterval = setInterval(async () => {
-      if (userId && codeRef.current && questionId) {
+      if (userId && codeRef.current && codeRef.current !== '// Loading...' && codeRef.current !== '// Mission not found.' && questionId) {
         try {
           await updateDoc(doc(db, 'users', userId), {
             currentCode: codeRef.current,
@@ -492,7 +494,7 @@ const EditorPage = () => {
                 value={code}
                 onChange={(value) => {
                   setCode(value);
-                  if (userId && question?.id && value) {
+                  if (userId && question?.id && value && value !== '// Loading...') {
                     localStorage.setItem(`codathan_draft_${userId}_${question.id}`, value);
                   }
                 }}
