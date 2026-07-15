@@ -57,7 +57,24 @@ const TopWinnersPage = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', padding: '2rem', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ minHeight: '100vh', padding: '2rem', display: 'flex', flexDirection: 'column', position: 'relative', overflowX: 'hidden', overflowY: 'auto' }}>
+      <style>{`
+        /* Cyberpunk Custom Scrollbar */
+        ::-webkit-scrollbar {
+          width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+          background: rgba(10, 15, 30, 0.8);
+        }
+        ::-webkit-scrollbar-thumb {
+          background: linear-gradient(180deg, var(--accent-cyan), var(--accent-magenta));
+          border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(180deg, #00f0ff, #ff007f);
+          box-shadow: 0 0 10px var(--accent-cyan);
+        }
+      `}</style>
       {/* Cyberpunk Title Header */}
       <div style={{ textAlign: 'center', marginBottom: '4rem', zIndex: 10 }}>
         <div style={{ display: 'inline-block', padding: '6px 18px', background: 'rgba(0, 240, 255, 0.1)', border: '1px solid var(--accent-cyan)', borderRadius: '30px', color: 'var(--accent-cyan)', fontSize: '0.85rem', fontWeight: 'bold', letterSpacing: '3px', marginBottom: '1rem' }}>

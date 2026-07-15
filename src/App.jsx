@@ -13,7 +13,7 @@ import TopWinnersPage from './components/TopWinnersPage';
 
 function AppContent() {
   const location = useLocation();
-  const isLanding = location.pathname === '/' || location.pathname === '/winners';
+  const isLanding = location.pathname === '/';
 
   return (
     <>
