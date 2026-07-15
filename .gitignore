@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Event Reports (Local Only - Do Not Commit/Push)
+final.txt
