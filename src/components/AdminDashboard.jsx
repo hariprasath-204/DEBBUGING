@@ -305,7 +305,7 @@ const AdminDashboard = () => {
   };
 
   const handleResetRound = async () => {
-    if (window.confirm("WARNING: Are you sure you want to RESET THE ROUND TIMER? This resets event status to waiting and clears active editor sessions, while PRESERVING all participant scores and completed missions.")) {
+    if (window.confirm("WARNING: Are you sure you want to RESET THE ROUND TIMER? This resets event status to waiting and clears active editor sessions, while PRESERVING all participant scores, time taken, and tab switch/copy counts.")) {
       setIsLoading(true);
       try {
         const usersSnap = await getDocs(collection(db, 'users'));
@@ -315,15 +315,12 @@ const AdminDashboard = () => {
             isFinished: false,
             currentCode: '',
             finalCode: '',
-            tabSwitches: 0,
-            copyPasteCount: 0,
-            selectedQuestionId: null,
-            elapsedTimeMs: 0
+            selectedQuestionId: null
           }));
         });
         await Promise.all(updatePromises);
         await updateDoc(doc(db, 'settings', 'event'), { status: 'waiting', startTime: null, endTime: null });
-        showPopup("Round has been reset successfully (Scores preserved).", "success");
+        showPopup("Round has been reset successfully (Scores, time & tab counts preserved).", "success");
       } catch (err) {
         console.error(err);
         showPopup("Failed to reset round.", "error");
@@ -710,11 +707,11 @@ const AdminDashboard = () => {
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.8rem', background: 'var(--bg-deep-navy)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}>
                           <div>
                             <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Start Time</span>
-                            <strong>{activeSubData.startTime ? new Date(activeSubData.startTime).toLocaleTimeString() : 'N/A'}</strong>
+                            <strong>{activeSubData.startTime ? new Date(activeSubData.startTime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : 'N/A'}</strong>
                           </div>
                           <div>
                             <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>End Time</span>
-                            <strong>{activeSubData.endTime ? new Date(activeSubData.endTime).toLocaleTimeString() : 'N/A'}</strong>
+                            <strong>{activeSubData.endTime ? new Date(activeSubData.endTime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) : 'N/A'}</strong>
                           </div>
                           <div>
                             <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Taken Time</span>
