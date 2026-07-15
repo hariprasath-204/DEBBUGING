@@ -148,15 +148,15 @@ const LandingPage = () => {
 
           {/* 3D Perspective Cyber Floor Grid */}
           <div style={{
-            position: 'absolute', bottom: 0, left: '-30%', width: '160%', height: '48vh',
-            transform: 'perspective(650px) rotateX(68deg)',
+            position: 'absolute', bottom: 0, left: '-30%', width: '160%', height: '62vh',
+            transform: 'perspective(650px) rotateX(72deg)',
             transformOrigin: 'bottom center',
-            background: 'linear-gradient(rgba(0, 240, 255, 0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.22) 1px, transparent 1px)',
+            background: 'linear-gradient(rgba(0, 240, 255, 0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.25) 1px, transparent 1px)',
             backgroundSize: '48px 48px',
             animation: 'gridScroll 3s linear infinite',
-            maskImage: 'linear-gradient(to bottom, transparent 0%, black 60%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 60%)',
-            boxShadow: 'inset 0 120px 120px -30px var(--bg-main)'
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 50%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 50%)',
+            boxShadow: 'inset 0 140px 140px -30px var(--bg-main)'
           }} />
 
           {/* Laser Scan Beam */}
@@ -165,7 +165,7 @@ const LandingPage = () => {
             background: 'linear-gradient(90deg, transparent, #00f0ff, #ff00ff, #00f0ff, transparent)',
             boxShadow: '0 0 25px #00f0ff, 0 0 15px #ff00ff',
             animation: 'laserScan 8s ease-in-out infinite',
-            opacity: 0.6
+            opacity: 0.65
           }} />
         </div>
 
@@ -187,24 +187,24 @@ const LandingPage = () => {
 
             {/* College panel */}
             <div style={{
-              border: '1px solid var(--accent-cyan)',
-              borderTop: '2px solid var(--accent-cyan)',
-              padding: '0.75rem 2.4rem',
-              marginBottom: '1.4rem',
-              background: 'transparent',
-              boxShadow: '0 0 22px rgba(0,240,255,0.2)',
-              borderRadius: '3px',
+              border: '1px solid rgba(0, 240, 255, 0.35)',
+              padding: '0.65rem 2.2rem',
+              marginBottom: '1.6rem',
+              background: 'rgba(0, 240, 255, 0.05)',
+              boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
+              borderRadius: '6px',
+              backdropFilter: 'blur(10px)'
             }}>
               <p style={{
-                fontSize: '1.15rem', color: 'var(--text-primary)', margin: 0,
-                letterSpacing: '3px', fontFamily: 'var(--font-heading)',
+                fontSize: '1.05rem', color: 'var(--text-primary)', margin: 0,
+                letterSpacing: '3.5px', fontFamily: 'var(--font-heading)',
                 fontWeight: '700', textTransform: 'uppercase'
               }}>
                 Ayya Nadar Janaki Ammal College
               </p>
               <p style={{
-                fontSize: '0.95rem', color: 'var(--accent-cyan)', margin: '4px 0 0 0',
-                letterSpacing: '2px', fontFamily: 'var(--font-heading)',
+                fontSize: '0.85rem', color: 'var(--accent-cyan)', margin: '4px 0 0 0',
+                letterSpacing: '2.5px', fontFamily: 'var(--font-heading)',
                 fontWeight: '500', textTransform: 'uppercase'
               }}>
                 Department of Computer Applications
@@ -213,31 +213,33 @@ const LandingPage = () => {
 
             {/* SOFTTECH */}
             <h1 style={{
-              fontSize: 'clamp(5rem, 15vw, 11rem)',
-              margin: 0, lineHeight: 0.88,
+              fontSize: 'clamp(3.4rem, 8vw, 6.4rem)',
+              margin: '0 0 0.15rem 0', lineHeight: 0.95,
               fontFamily: 'var(--font-heading)',
-              background: 'linear-gradient(90deg, #00F0FF 0%, #9D00FF 50%, #FF00FF 100%)',
+              background: 'linear-gradient(135deg, #ffffff 0%, #00F0FF 45%, #B026FF 80%, #FF007F 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              filter: 'drop-shadow(0 0 28px rgba(0,240,255,0.6)) drop-shadow(0 0 60px rgba(157,0,255,0.4))',
-              letterSpacing: '4px', fontWeight: '900'
+              filter: 'drop-shadow(0 0 22px rgba(0,240,255,0.55))',
+              letterSpacing: '14px', fontWeight: '900',
+              textTransform: 'uppercase'
             }}>SOFTTECH</h1>
 
             {/* ASSOCIATION */}
-            <h1 style={{
-              fontSize: 'clamp(2.8rem, 8vw, 6.5rem)',
-              margin: '0 0 0.5rem 0',
+            <h2 style={{
+              fontSize: 'clamp(1.3rem, 3.2vw, 2.5rem)',
+              margin: '0 0 1.3rem 0',
               fontFamily: 'var(--font-heading)',
-              color: '#FF00FF',
-              textShadow: '0 0 25px rgba(255,0,255,0.9), 0 0 60px rgba(255,0,255,0.4)',
-              letterSpacing: '10px', fontWeight: '700'
-            }}>ASSOCIATION</h1>
+              color: '#00F0FF',
+              textShadow: '0 0 14px rgba(0,240,255,0.8), 0 0 35px rgba(0,240,255,0.35)',
+              letterSpacing: '22px', fontWeight: '600',
+              textTransform: 'uppercase'
+            }}>ASSOCIATION</h2>
 
             {/* Subtitle */}
             <p style={{
-              color: 'var(--text-secondary)', letterSpacing: '5px', fontSize: '0.82rem',
-              marginBottom: '1.4rem', textTransform: 'uppercase',
-              fontFamily: 'var(--font-body)', fontWeight: '400'
+              color: 'var(--text-secondary)', letterSpacing: '6px', fontSize: '0.82rem',
+              marginBottom: '1.6rem', textTransform: 'uppercase',
+              fontFamily: 'var(--font-mono)', fontWeight: '500'
             }}>
               THE ULTIMATE DEBUGGING CHALLENGE
             </p>

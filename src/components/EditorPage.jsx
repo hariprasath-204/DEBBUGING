@@ -315,6 +315,20 @@ const EditorPage = () => {
     const startTime = questionStartTimeRef.current || eventStartTimeRef.current || endTime;
     const takenTimeMs = Math.max(0, new Date(endTime).getTime() - new Date(startTime).getTime());
 
+    const formatLocalTimeStr = (ts) => {
+      if (!ts) return 'N/A';
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return 'N/A';
+      return d.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+    };
+
     try {
       const userDocSnap = await getDoc(doc(db, 'users', userId));
       let userData = {};
@@ -343,6 +357,8 @@ const EditorPage = () => {
         submittedCode: codeRef.current,
         startTime: startTime,
         endTime: endTime,
+        startTimeStr: formatLocalTimeStr(startTime),
+        endTimeStr: formatLocalTimeStr(endTime),
         takenTimeMs: takenTimeMs,
         submittedAt: endTime
       };
