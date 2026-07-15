@@ -22,8 +22,8 @@ const EditorPage = () => {
 
   const userId = localStorage.getItem('debugEventUserId');
   const userName = localStorage.getItem('debugEventUserName');
-  const [phaseLanguages, setPhaseLanguages] = useState({ easy: 'c', medium: 'cpp', hard: 'java' });
-  const activeLanguage = question ? (phaseLanguages[question.phase] || 'cpp') : 'cpp';
+  const phaseMap = { easy: 'c', medium: 'cpp', hard: 'java', c: 'c', cpp: 'cpp', python: 'python', java: 'java' };
+  const activeLanguage = question ? (phaseMap[question.phase] || question.phase || 'c') : 'c';
 
   const [violations, setViolations] = useState({ tabSwitches: 0, copyPasteCount: 0 });
 
@@ -86,11 +86,13 @@ const EditorPage = () => {
         }
 
         if (targetQuestion) {
-          const phaseLang = phaseLangs[targetQuestion.phase] || 'cpp';
+          const pMap = { easy: 'c', medium: 'cpp', hard: 'java', c: 'c', cpp: 'cpp', python: 'python', java: 'java' };
+          const phaseLang = pMap[targetQuestion.phase] || targetQuestion.phase || 'c';
           setQuestion(targetQuestion);
           const initialCode = targetQuestion.variants?.[phaseLang]?.initialCode ||
-                              targetQuestion.variants?.cpp?.initialCode ||
                               targetQuestion.variants?.c?.initialCode ||
+                              targetQuestion.variants?.cpp?.initialCode ||
+                              targetQuestion.variants?.python?.initialCode ||
                               targetQuestion.variants?.java?.initialCode ||
                               targetQuestion.initialCode ||
                               '// No code provided.';
@@ -217,8 +219,9 @@ const EditorPage = () => {
     if (!question) return;
     if (window.confirm("Are you sure you want to reset your code back to the original buggy template? Any unsaved edits will be discarded.")) {
       const initialCode = question.variants?.[activeLanguage]?.initialCode ||
-                         question.variants?.cpp?.initialCode ||
                          question.variants?.c?.initialCode ||
+                         question.variants?.cpp?.initialCode ||
+                         question.variants?.python?.initialCode ||
                          question.variants?.java?.initialCode ||
                          question.initialCode ||
                          '';
@@ -487,7 +490,7 @@ const EditorPage = () => {
             <div style={{ padding: '0.5rem 1rem', background: 'var(--bg-panel-hover)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)' }}>
               
               <div style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                ROUND LANGUAGE: {activeLanguage === 'cpp' ? 'C++' : activeLanguage.toUpperCase()} (LOCKED FOR {question?.phase?.toUpperCase() || 'ROUND'})
+                STAGE LANGUAGE: {activeLanguage === 'cpp' ? 'C++' : activeLanguage.toUpperCase()} (MISSION: {question?.title?.toUpperCase() || 'STAGE'})
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem' }}>

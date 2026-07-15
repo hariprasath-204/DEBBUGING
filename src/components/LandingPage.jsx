@@ -280,9 +280,9 @@ const LandingPage = () => {
               ) : null}
 
               <div style={{ background: 'rgba(0, 240, 255, 0.08)', border: '1px solid var(--accent-cyan)', padding: '0.75rem', borderRadius: '4px', textAlign: 'center' }}>
-                <div style={{ color: 'var(--accent-cyan)', fontSize: '0.75rem', letterSpacing: '1px', fontFamily: 'var(--font-heading)', marginBottom: '4px' }}>ROUND LANGUAGES ASSIGNED AUTOMATICALLY</div>
+                <div style={{ color: 'var(--accent-cyan)', fontSize: '0.75rem', letterSpacing: '1px', fontFamily: 'var(--font-heading)', marginBottom: '4px' }}>MISSION PROGRESSION STAGES</div>
                 <div style={{ color: 'var(--text-primary)', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>
-                  EASY: {(langSettings.easy || 'c') === 'cpp' ? 'C++' : (langSettings.easy || 'c').toUpperCase()} &nbsp;|&nbsp; MEDIUM: {(langSettings.medium || 'cpp') === 'cpp' ? 'C++' : (langSettings.medium || 'cpp').toUpperCase()} &nbsp;|&nbsp; HARD: {(langSettings.hard || 'java') === 'cpp' ? 'C++' : (langSettings.hard || 'java').toUpperCase()}
+                  1. C &nbsp;➔&nbsp; 2. C++ &nbsp;➔&nbsp; 3. PYTHON &nbsp;➔&nbsp; 4. JAVA
                 </div>
               </div>
               <button

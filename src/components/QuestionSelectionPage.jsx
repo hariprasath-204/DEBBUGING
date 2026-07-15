@@ -10,13 +10,12 @@ import { clearAllLocalDrafts } from '../utils/drafts';
 const QuestionSelectionPage = () => {
   const [loading, setLoading] = useState(true);
 
-  const [questions, setQuestions] = useState({ easy: [], medium: [], hard: [] });
-  const [selectedPhase, setSelectedPhase] = useState(null);
+  const [questions, setQuestions] = useState({ c: [], cpp: [], python: [], java: [] });
+  const [selectedPhase, setSelectedPhase] = useState('c');
   const [popup, setPopup] = useState(null);
   
   const navigate = useNavigate();
   const userId = localStorage.getItem('debugEventUserId');
-  const [phaseLanguages, setPhaseLanguages] = useState({ easy: 'c', medium: 'cpp', hard: 'java' });
 
   useEffect(() => {
     if (!userId) {
@@ -56,28 +55,18 @@ const QuestionSelectionPage = () => {
         completedQs = userData.completedQuestions || [];
       }
 
-      // Listen to phase language configuration from Firestore
-      const unsubLang = onSnapshot(doc(db, 'settings', 'language'), (langConfigSnap) => {
-        let phaseLangs = { easy: 'c', medium: 'cpp', hard: 'java' };
-        if (langConfigSnap.exists()) {
-          const d = langConfigSnap.data();
-          if (d.easy) phaseLangs.easy = d.easy;
-          if (d.medium) phaseLangs.medium = d.medium;
-          if (d.hard) phaseLangs.hard = d.hard;
-          setPhaseLanguages(phaseLangs);
-        }
-      });
-
-      // Fetch all questions
+      // Fetch all questions and categorize into c, cpp, python, java
       const qSnap = await getDocs(collection(db, 'questions'));
-      const qData = { easy: [], medium: [], hard: [] };
+      const phaseMap = { easy: 'c', medium: 'cpp', hard: 'java', c: 'c', cpp: 'cpp', python: 'python', java: 'java' };
+      const qData = { c: [], cpp: [], python: [], java: [] };
       let totalQuestionsCount = 0;
       
       qSnap.forEach(doc => {
         const data = doc.data();
-        if (data.phase && qData[data.phase]) {
+        const p = phaseMap[data.phase] || data.phase;
+        if (qData[p]) {
           totalQuestionsCount++;
-          qData[data.phase].push({ id: doc.id, isCompleted: completedQs.includes(doc.id), ...data });
+          qData[p].push({ id: doc.id, isCompleted: completedQs.includes(doc.id), ...data, phase: p });
         }
       });
 
@@ -134,6 +123,23 @@ const QuestionSelectionPage = () => {
     });
   };
 
+  const isPhaseUnlocked = (phase) => {
+    if (phase === 'c') return true;
+    if (phase === 'cpp') {
+      return questions.c.some(q => q.isCompleted) || questions.c.length === 0;
+    }
+    if (phase === 'python') {
+      const cppUnlocked = questions.c.some(q => q.isCompleted) || questions.c.length === 0;
+      return cppUnlocked && (questions.cpp.some(q => q.isCompleted) || questions.cpp.length === 0);
+    }
+    if (phase === 'java') {
+      const cppUnlocked = questions.c.some(q => q.isCompleted) || questions.c.length === 0;
+      const pyUnlocked = cppUnlocked && (questions.cpp.some(q => q.isCompleted) || questions.cpp.length === 0);
+      return pyUnlocked && (questions.python.some(q => q.isCompleted) || questions.python.length === 0);
+    }
+    return false;
+  };
+
   if (loading) return <LoadingOverlay isLoading={true} />;
 
   return (
@@ -144,28 +150,39 @@ const QuestionSelectionPage = () => {
       <div style={{ width: '100%', maxWidth: '1000px' }}>
           <h1 className="gradient-title" style={{ textAlign: 'center', marginBottom: '2rem', fontSize: '2.5rem' }}>SELECT YOUR MISSION</h1>
           
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', justifyContent: 'center' }}>
-            {['easy', 'medium', 'hard'].map(phase => {
-              const langLabel = (phaseLanguages[phase] || '').toUpperCase() === 'CPP' ? 'C++' : (phaseLanguages[phase] || '').toUpperCase();
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {['c', 'cpp', 'python', 'java'].map(phase => {
+              const langLabels = { c: 'C', cpp: 'C++', python: 'PYTHON', java: 'JAVA' };
+              const unlocked = isPhaseUnlocked(phase);
               return (
               <button 
                 key={phase}
-                onClick={() => setSelectedPhase(phase)}
+                onClick={() => {
+                  if (!unlocked) {
+                    const prereq = phase === 'cpp' ? 'C Language' : phase === 'python' ? 'C++ Language' : 'Python Language';
+                    setPopup({ message: `🔒 Stage Locked! Complete a mission in ${prereq} first to unlock this stage.`, type: "warning" });
+                    return;
+                  }
+                  setSelectedPhase(phase);
+                }}
                 style={{
-                  padding: '1rem 2.5rem',
-                  background: selectedPhase === phase ? 'rgba(0, 240, 255, 0.15)' : 'rgba(22, 32, 87, 0.6)',
-                  border: `2px solid ${selectedPhase === phase ? 'var(--accent-cyan)' : 'var(--border-subtle)'}`,
-                  color: selectedPhase === phase ? 'var(--accent-cyan)' : 'var(--text-primary)',
+                  padding: '1rem 2.2rem',
+                  background: selectedPhase === phase ? 'rgba(0, 240, 255, 0.15)' : unlocked ? 'rgba(22, 32, 87, 0.6)' : 'rgba(15, 23, 48, 0.3)',
+                  border: `2px solid ${selectedPhase === phase ? 'var(--accent-cyan)' : unlocked ? 'var(--border-subtle)' : 'rgba(255,255,255,0.08)'}`,
+                  color: selectedPhase === phase ? 'var(--accent-cyan)' : unlocked ? 'var(--text-primary)' : 'var(--text-muted)',
                   borderRadius: 'var(--radius-md)',
                   fontFamily: 'var(--font-heading)',
                   fontSize: '1.1rem',
                   textTransform: 'uppercase',
                   letterSpacing: '1.5px',
                   boxShadow: selectedPhase === phase ? '0 0 20px var(--accent-cyan-glow)' : 'none',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  cursor: unlocked ? 'pointer' : 'not-allowed',
+                  opacity: unlocked ? 1 : 0.6
                 }}
               >
-                {phase} ({langLabel})
+                {!unlocked && <span style={{ marginRight: '8px' }}>🔒</span>}
+                {langLabels[phase]}
               </button>
               );
             })}
@@ -174,7 +191,7 @@ const QuestionSelectionPage = () => {
           {selectedPhase && (
             <div className="glass-panel" style={{ padding: '2rem', animation: 'slideUpFade 0.4s ease forwards' }}>
               <h2 style={{ color: 'var(--accent-cyan)', marginBottom: '1.5rem', textTransform: 'uppercase' }}>
-                {selectedPhase} MISSIONS — {phaseLanguages[selectedPhase]?.toUpperCase() === 'CPP' ? 'C++' : phaseLanguages[selectedPhase]?.toUpperCase()} LANGUAGE
+                STAGE: {selectedPhase === 'cpp' ? 'C++' : selectedPhase.toUpperCase()} MISSIONS
               </h2>
               
               {questions[selectedPhase].length === 0 ? (

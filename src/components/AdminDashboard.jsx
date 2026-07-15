@@ -18,15 +18,16 @@ const AdminDashboard = () => {
 
   // Question Form State
   const [formData, setFormData] = useState({
-    title: '', description: '', expectedOutput: '', points: 100, phase: 'easy',
+    title: '', description: '', expectedOutput: '', points: 100, phase: 'c',
     variants: {
       c: { initialCode: '', correctCode: '', errorLines: '' },
       cpp: { initialCode: '', correctCode: '', errorLines: '' },
+      python: { initialCode: '', correctCode: '', errorLines: '' },
       java: { initialCode: '', correctCode: '', errorLines: '' }
     }
   });
   const [status, setStatus] = useState('');
-  const [variantTab, setVariantTab] = useState('cpp');
+  const [variantTab, setVariantTab] = useState('c');
   const [questionsList, setQuestionsList] = useState([]);
   const [editingQuestionId, setEditingQuestionId] = useState(null);
 
@@ -65,8 +66,8 @@ const AdminDashboard = () => {
   }, [eventStatus, eventEndTime]);
 
   // Settings State
-  const [langSettings, setLangSettings] = useState({ c: true, cpp: true, java: true });
-  const [phaseLangs, setPhaseLangs] = useState({ easy: 'c', medium: 'cpp', hard: 'java', apiKey: '28152502bdcf827c763a92f0bf7ed806' });
+  const [langSettings, setLangSettings] = useState({ c: true, cpp: true, python: true, java: true });
+  const [phaseLangs, setPhaseLangs] = useState({ easy: 'c', medium: 'cpp', hard: 'java', c: 'c', cpp: 'cpp', python: 'python', java: 'java', apiKey: '28152502bdcf827c763a92f0bf7ed806' });
   
   // Live Data
   const [liveUsers, setLiveUsers] = useState([]);
@@ -130,7 +131,7 @@ const AdminDashboard = () => {
   const handleQuestionChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     if (e.target.name === 'phase') {
-      const phaseLangMap = { easy: 'c', medium: 'cpp', hard: 'java' };
+      const phaseLangMap = { easy: 'c', medium: 'cpp', hard: 'java', c: 'c', cpp: 'cpp', python: 'python', java: 'java' };
       if (phaseLangMap[e.target.value]) {
         setVariantTab(phaseLangMap[e.target.value]);
       }
@@ -146,11 +147,12 @@ const AdminDashboard = () => {
     setIsLoading(true);
     setStatus('Saving...');
     try {
-      const phaseLangMap = { easy: 'c', medium: 'cpp', hard: 'java' };
-      const targetLang = phaseLangMap[formData.phase] || 'cpp';
-      const fallbackVariant = formData.variants[targetLang].initialCode ? formData.variants[targetLang] :
-                              (formData.variants.cpp.initialCode ? formData.variants.cpp :
-                              (formData.variants.c.initialCode ? formData.variants.c : formData.variants.java));
+      const phaseLangMap = { easy: 'c', medium: 'cpp', hard: 'java', c: 'c', cpp: 'cpp', python: 'python', java: 'java' };
+      const targetLang = phaseLangMap[formData.phase] || 'c';
+      const fallbackVariant = formData.variants[targetLang]?.initialCode ? formData.variants[targetLang] :
+                              (formData.variants.c?.initialCode ? formData.variants.c :
+                              (formData.variants.cpp?.initialCode ? formData.variants.cpp :
+                              (formData.variants.python?.initialCode ? formData.variants.python : formData.variants.java)));
 
       const processedVariants = { ...formData.variants };
       for (const lang in processedVariants) {
@@ -179,8 +181,8 @@ const AdminDashboard = () => {
       }
 
       setFormData({
-        title: '', description: '', expectedOutput: '', points: 100, phase: 'easy',
-        variants: { c: { initialCode: '', correctCode: '', errorLines: '' }, cpp: { initialCode: '', correctCode: '', errorLines: '' }, java: { initialCode: '', correctCode: '', errorLines: '' } }
+        title: '', description: '', expectedOutput: '', points: 100, phase: 'c',
+        variants: { c: { initialCode: '', correctCode: '', errorLines: '' }, cpp: { initialCode: '', correctCode: '', errorLines: '' }, python: { initialCode: '', correctCode: '', errorLines: '' }, java: { initialCode: '', correctCode: '', errorLines: '' } }
       });
     } catch (error) {
       console.error(error);
@@ -192,15 +194,18 @@ const AdminDashboard = () => {
   };
 
   const handleEditQuestion = (q) => {
+    const pMap = { easy: 'c', medium: 'cpp', hard: 'java', c: 'c', cpp: 'cpp', python: 'python', java: 'java' };
+    const p = pMap[q.phase] || q.phase || 'c';
     setFormData({
       title: q.title || '',
       description: q.description || '',
       expectedOutput: q.expectedOutput || '',
       points: q.points || 100,
-      phase: q.phase || 'easy',
+      phase: p,
       variants: {
         c: { initialCode: q.variants?.c?.initialCode || '', correctCode: q.variants?.c?.correctCode || '', errorLines: q.variants?.c?.errorLines || '' },
         cpp: { initialCode: q.variants?.cpp?.initialCode || '', correctCode: q.variants?.cpp?.correctCode || '', errorLines: q.variants?.cpp?.errorLines || '' },
+        python: { initialCode: q.variants?.python?.initialCode || '', correctCode: q.variants?.python?.correctCode || '', errorLines: q.variants?.python?.errorLines || '' },
         java: { initialCode: q.variants?.java?.initialCode || '', correctCode: q.variants?.java?.correctCode || '', errorLines: q.variants?.java?.errorLines || '' }
       }
     });
@@ -383,11 +388,12 @@ const AdminDashboard = () => {
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 2 }}><label>TITLE</label><input type="text" name="title" className="input-field" value={formData.title} onChange={handleQuestionChange} required /></div>
                 <div style={{ flex: 1 }}>
-                  <label>PHASE (DIFFICULTY)</label>
+                  <label>MISSION STAGE (LANGUAGE)</label>
                   <select name="phase" className="input-field" value={formData.phase} onChange={handleQuestionChange} required>
-                    <option value="easy">EASY</option>
-                    <option value="medium">MEDIUM</option>
-                    <option value="hard">HARD</option>
+                    <option value="c">1. C LANGUAGE</option>
+                    <option value="cpp">2. C++ LANGUAGE</option>
+                    <option value="python">3. PYTHON LANGUAGE</option>
+                    <option value="java">4. JAVA LANGUAGE</option>
                   </select>
                 </div>
               </div>
@@ -395,16 +401,16 @@ const AdminDashboard = () => {
               
               <div style={{ border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '1rem', marginTop: '1rem' }}>
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                  {['c', 'cpp', 'java'].map(lang => (
+                  {['c', 'cpp', 'python', 'java'].map(lang => (
                     <button key={lang} type="button" onClick={() => setVariantTab(lang)}
                       style={{ padding: '5px 15px', background: variantTab === lang ? 'var(--accent-cyan)' : 'transparent', color: variantTab === lang ? 'var(--bg-deep-navy)' : 'var(--text-primary)', border: '1px solid var(--accent-cyan)', cursor: 'pointer', textTransform: 'uppercase' }}>
-                      {lang}
+                      {lang === 'cpp' ? 'C++' : lang}
                     </button>
                   ))}
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                  <div style={{ flex: 1 }}><label>BUGGY CODE (INITIAL)</label><textarea name="initialCode" className="input-field" value={formData.variants[variantTab].initialCode} onChange={(e) => handleVariantChange(e, variantTab)} rows="6" required style={{ fontFamily: 'var(--font-mono)' }} /></div>
-                  <div style={{ flex: 1 }}><label>CORRECT CODE (For Logic)</label><textarea name="correctCode" className="input-field" value={formData.variants[variantTab].correctCode} onChange={(e) => handleVariantChange(e, variantTab)} rows="6" required style={{ fontFamily: 'var(--font-mono)' }} /></div>
+                  <div style={{ flex: 1 }}><label>BUGGY CODE (INITIAL)</label><textarea name="initialCode" className="input-field" value={formData.variants[variantTab].initialCode} onChange={(e) => handleVariantChange(e, variantTab)} rows="6" required wrap="off" style={{ fontFamily: 'var(--font-mono)', whiteSpace: 'pre', overflow: 'scroll', overflowX: 'scroll', overflowY: 'scroll' }} /></div>
+                  <div style={{ flex: 1 }}><label>CORRECT CODE (For Logic)</label><textarea name="correctCode" className="input-field" value={formData.variants[variantTab].correctCode} onChange={(e) => handleVariantChange(e, variantTab)} rows="6" required wrap="off" style={{ fontFamily: 'var(--font-mono)', whiteSpace: 'pre', overflow: 'scroll', overflowX: 'scroll', overflowY: 'scroll' }} /></div>
                 </div>
                 <div style={{ marginTop: '1rem' }}><label>ERROR LINES (Comma separated)</label><input type="text" name="errorLines" className="input-field" value={formData.variants[variantTab].errorLines} onChange={(e) => handleVariantChange(e, variantTab)} required placeholder="e.g. 2, 5, 8" /></div>
               </div>
@@ -416,7 +422,7 @@ const AdminDashboard = () => {
                 {editingQuestionId && (
                   <button type="button" className="btn-secondary" onClick={() => {
                     setEditingQuestionId(null);
-                    setFormData({ title: '', description: '', expectedOutput: '', points: 100, phase: 'easy', variants: { c: { initialCode: '', correctCode: '', errorLines: '' }, cpp: { initialCode: '', correctCode: '', errorLines: '' }, java: { initialCode: '', correctCode: '', errorLines: '' } } });
+                    setFormData({ title: '', description: '', expectedOutput: '', points: 100, phase: 'c', variants: { c: { initialCode: '', correctCode: '', errorLines: '' }, cpp: { initialCode: '', correctCode: '', errorLines: '' }, python: { initialCode: '', correctCode: '', errorLines: '' }, java: { initialCode: '', correctCode: '', errorLines: '' } } });
                   }}>CANCEL</button>
                 )}
               </div>
@@ -521,35 +527,28 @@ const AdminDashboard = () => {
       case 'languages':
         return (
           <div className="glass-panel" style={{ padding: '2rem' }}>
-            <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>ROUND LANGUAGE & API CONFIGURATION</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Configure which programming language is assigned to each round phase (Participants do not select compiler).</p>
+            <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>SEQUENTIAL LANGUAGE & API CONFIGURATION</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>The progression order is fixed: 1. C ➔ 2. C++ ➔ 3. Python ➔ 4. Java. You can configure the API Key below.</p>
             
             <form onSubmit={handleSavePhaseLanguages} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '600px', marginBottom: '3rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '2.5rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center' }}>
-                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>EASY ROUND LANGUAGE</label>
-                <select className="input-field" value={phaseLangs.easy} onChange={e => setPhaseLangs({ ...phaseLangs, easy: e.target.value })}>
-                  <option value="c">C Language (Only C)</option>
-                  <option value="cpp">C++ Language</option>
-                  <option value="java">Java Language</option>
-                </select>
+                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>STAGE 1 LANGUAGE</label>
+                <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>C Language (Fixed)</div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center' }}>
-                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>MEDIUM ROUND LANGUAGE</label>
-                <select className="input-field" value={phaseLangs.medium} onChange={e => setPhaseLangs({ ...phaseLangs, medium: e.target.value })}>
-                  <option value="cpp">C++ Language (Only C++)</option>
-                  <option value="c">C Language</option>
-                  <option value="java">Java Language</option>
-                </select>
+                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>STAGE 2 LANGUAGE</label>
+                <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>C++ Language (Fixed)</div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center' }}>
-                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>HARD ROUND LANGUAGE</label>
-                <select className="input-field" value={phaseLangs.hard} onChange={e => setPhaseLangs({ ...phaseLangs, hard: e.target.value })}>
-                  <option value="java">Java Language (Only Java)</option>
-                  <option value="cpp">C++ Language</option>
-                  <option value="c">C Language</option>
-                </select>
+                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>STAGE 3 LANGUAGE</label>
+                <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>Python Language (Fixed)</div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center' }}>
+                <label style={{ color: 'var(--accent-cyan)', fontWeight: 'bold' }}>STAGE 4 LANGUAGE</label>
+                <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>Java Language (Fixed)</div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center' }}>
@@ -558,13 +557,13 @@ const AdminDashboard = () => {
               </div>
 
               <div>
-                <button type="submit" className="btn-primary">SAVE ROUND & API CONFIGURATION</button>
+                <button type="submit" className="btn-primary">SAVE API CONFIGURATION</button>
               </div>
             </form>
 
-            <h3 className="glow-text-cyan" style={{ marginBottom: '1rem' }}>LEGACY COMPILER AVAILABILITY</h3>
+            <h3 className="glow-text-cyan" style={{ marginBottom: '1rem' }}>STAGE COMPILER AVAILABILITY</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {['c', 'cpp', 'java'].map(lang => (
+              {['c', 'cpp', 'python', 'java'].map(lang => (
                 <div key={lang} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <button onClick={() => handleLanguageToggle(lang)} className={langSettings[lang] ? 'btn-primary' : 'btn-secondary'} style={{ width: '150px' }}>
                     {langSettings[lang] ? 'ENABLED' : 'DISABLED'}
@@ -792,7 +791,7 @@ const AdminDashboard = () => {
                     </div>
 
                     <div style={{ display: 'grid', gap: '1rem' }}>
-                      {['easy', 'medium', 'hard'].map(phase => {
+                      {['c', 'cpp', 'python', 'java', 'easy', 'medium', 'hard'].map(phase => {
                         const phaseSubmissions = Object.values(selectedConclusionUser.submissions || {}).filter(s => s.phase === phase);
                         if (phaseSubmissions.length === 0) return null;
                         
