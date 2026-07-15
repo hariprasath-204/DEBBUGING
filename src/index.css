@@ -41,13 +41,6 @@
 }
 
 /* Global Reset & Base */
-* {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M1 1 L18 8 L10 10 L14 18 L11 19 L7 11 L1 15 Z' fill='%23040711' stroke='%2300F0FF' stroke-width='1.5' stroke-linejoin='round' /%3E%3Cpath d='M3 4 L14 9 L9 10 L12 16 L10 17 L7 11 L3 14 Z' fill='%2300F0FF' /%3E%3C/svg%3E") 0 0, auto !important;
-}
-
-button, a, input, select, textarea, [role="button"], .clickable, .btn-primary {
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M1 1 L18 8 L10 10 L14 18 L11 19 L7 11 L1 15 Z' fill='%231f071a' stroke='%23FF00FF' stroke-width='1.5' stroke-linejoin='round' /%3E%3Cpath d='M3 4 L14 9 L9 10 L12 16 L10 17 L7 11 L3 14 Z' fill='%23FF00FF' /%3E%3C/svg%3E") 0 0, pointer !important;
-}
 
 html, body, #root {
   height: 100%;
