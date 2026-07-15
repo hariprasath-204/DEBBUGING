@@ -37,7 +37,7 @@ const Leaderboard = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  // Trigger bottom-to-top reveal after data loads
+  // Trigger reveal after data loads
   useEffect(() => {
     if (!loading && users.length > 0) {
       setTimeout(() => setRevealed(true), 100);
@@ -45,146 +45,166 @@ const Leaderboard = () => {
   }, [loading, users]);
 
   return (
-    <div style={{ maxWidth: '1150px', margin: '0 auto', padding: '2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <h1 className="glow-text-cyan" style={{ margin: 0, fontSize: '2.5rem', letterSpacing: '4px' }}>
-          🏆 GLOBAL LEADERBOARD
-        </h1>
-        <Link to="/winners" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 22px', fontSize: '0.95rem', textDecoration: 'none' }}>
-          <Sparkles size={18} /> 🏆 TOP 3 WINNERS SHOWCASE
-        </Link>
-      </div>
+    <div style={{ minHeight: '100vh', padding: '2rem', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+      <div style={{ maxWidth: '1150px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <h1 className="glow-text-cyan" style={{ margin: 0, fontSize: '2.5rem', letterSpacing: '4px' }}>
+            🏆 GLOBAL LEADERBOARD
+          </h1>
+          <Link to="/winners" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 22px', fontSize: '0.95rem', textDecoration: 'none' }}>
+            <Sparkles size={18} /> 🏆 TOP 3 WINNERS SHOWCASE
+          </Link>
+        </div>
 
-      <style>{`
-        @keyframes slideInFromBottom {
-          from { opacity: 0; transform: translateY(40px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .lb-row {
-          opacity: 0;
-          transform: translateY(40px);
-        }
-        .lb-row.visible {
-          animation: slideInFromBottom 0.5s ease forwards;
-        }
-        .rank-badge {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 38px; height: 38px;
-          border-radius: 50%;
-          font-weight: bold;
-          font-size: 1rem;
-        }
-      `}</style>
+        <style>{`
+          /* Cyberpunk Custom Scrollbar */
+          .table-scroll-container::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+          }
+          .table-scroll-container::-webkit-scrollbar-track {
+            background: rgba(10, 15, 30, 0.85);
+            border-radius: 8px;
+          }
+          .table-scroll-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--accent-cyan), var(--accent-primary));
+            border-radius: 8px;
+            border: 2px solid rgba(10, 15, 30, 0.85);
+          }
+          .table-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #00f0ff, #ff007f);
+            box-shadow: 0 0 12px var(--accent-cyan);
+          }
 
-      <div className="glass-panel" style={{ overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead>
-            <tr style={{ background: 'var(--bg-panel-hover)', color: 'var(--accent-cyan)', fontSize: '0.85rem', letterSpacing: '1px' }}>
-              <th style={{ padding: '1rem' }}>RANK</th>
-              <th style={{ padding: '1rem' }}>NAME</th>
-              <th style={{ padding: '1rem' }}>ROLL NO</th>
-              <th style={{ padding: '1rem' }}>SCORE</th>
-              <th style={{ padding: '1rem' }}>EXECS</th>
-              <th style={{ padding: '1rem' }}>TIME TAKEN</th>
-              <th style={{ padding: '1rem' }}>WARNINGS</th>
-              <th style={{ padding: '1rem' }}>STATUS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan="8" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading Data...</td></tr>
-            ) : (
-              // Reverse to render bottom-to-top (last in DOM = lowest rank, reveals first)
-              [...users].reverse().map((user, revIdx) => {
-                const index = users.length - 1 - revIdx; // actual rank index
-                const hasWarnings = (user.tabSwitches || 0) > 0 || (user.copyPasteCount || 0) > 0;
-                const isTop3 = index < 3;
-                const rank = index + 1;
+          @keyframes slideInFromBottom {
+            from { opacity: 0; transform: translateY(25px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+          .lb-row {
+            opacity: 0;
+            transform: translateY(25px);
+          }
+          .lb-row.visible {
+            animation: slideInFromBottom 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+          .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 1rem;
+          }
+        `}</style>
 
-                // Delay: rank #last reveals first (delay=0), rank #1 reveals last
-                const delay = (revIdx * 120);
+        <div className="glass-panel table-scroll-container" style={{ overflowY: 'auto', overflowX: 'auto', maxHeight: 'calc(100vh - 160px)', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--bg-panel-hover)', boxShadow: '0 2px 10px rgba(0, 0, 0, 0.5)' }}>
+              <tr style={{ color: 'var(--accent-cyan)', fontSize: '0.85rem', letterSpacing: '1px' }}>
+                <th style={{ padding: '1rem' }}>RANK</th>
+                <th style={{ padding: '1rem' }}>NAME</th>
+                <th style={{ padding: '1rem' }}>ROLL NO</th>
+                <th style={{ padding: '1rem' }}>SCORE</th>
+                <th style={{ padding: '1rem' }}>EXECS</th>
+                <th style={{ padding: '1rem' }}>TIME TAKEN</th>
+                <th style={{ padding: '1rem' }}>WARNINGS</th>
+                <th style={{ padding: '1rem' }}>STATUS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan="8" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading Data...</td></tr>
+              ) : (
+                // Render top-to-bottom (Rank #1 at the top down to #last at the bottom)
+                users.map((user, index) => {
+                  const hasWarnings = (user.tabSwitches || 0) > 0 || (user.copyPasteCount || 0) > 0;
+                  const isTop3 = index < 3;
+                  const rank = index + 1;
 
-                let rowBg = 'transparent';
-                if (index === 0) rowBg = 'rgba(255, 215, 0, 0.08)';
-                else if (index === 1) rowBg = 'rgba(192, 192, 192, 0.06)';
-                else if (index === 2) rowBg = 'rgba(205, 127, 50, 0.06)';
+                  // Cascade delay for top-to-bottom reveal
+                  const delay = Math.min(index * 50, 1000);
 
-                return (
-                  <tr
-                    key={user.id}
-                    className={`lb-row${revealed ? ' visible' : ''}`}
-                    style={{
-                      borderBottom: '1px solid var(--border-subtle)',
-                      background: rowBg,
-                      animationDelay: `${delay}ms`,
-                    }}
-                  >
-                    {/* RANK */}
-                    <td style={{ padding: '1rem' }}>
-                      {isTop3 ? (
-                        <span className="rank-badge" style={{
-                          background: `${MEDAL_COLORS[index]}22`,
-                          border: `2px solid ${MEDAL_COLORS[index]}`,
-                          color: MEDAL_COLORS[index],
-                          fontSize: '1.2rem'
-                        }}>
-                          {MEDAL[index]}
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-secondary)' }}>#{rank}</span>
-                      )}
-                    </td>
+                  let rowBg = 'transparent';
+                  if (index === 0) rowBg = 'rgba(255, 215, 0, 0.08)';
+                  else if (index === 1) rowBg = 'rgba(192, 192, 192, 0.06)';
+                  else if (index === 2) rowBg = 'rgba(205, 127, 50, 0.06)';
 
-                    {/* NAME */}
-                    <td style={{ padding: '1rem', fontWeight: 'bold', color: isTop3 ? MEDAL_COLORS[index] : 'var(--text-primary)', fontSize: isTop3 ? '1.05rem' : '1rem' }}>
-                      {user.name}
-                    </td>
+                  return (
+                    <tr
+                      key={user.id}
+                      className={`lb-row${revealed ? ' visible' : ''}`}
+                      style={{
+                        borderBottom: '1px solid var(--border-subtle)',
+                        background: rowBg,
+                        animationDelay: `${delay}ms`,
+                      }}
+                    >
+                      {/* RANK */}
+                      <td style={{ padding: '1rem' }}>
+                        {isTop3 ? (
+                          <span className="rank-badge" style={{
+                            background: `${MEDAL_COLORS[index]}22`,
+                            border: `2px solid ${MEDAL_COLORS[index]}`,
+                            color: MEDAL_COLORS[index],
+                            fontSize: '1.2rem'
+                          }}>
+                            {MEDAL[index]}
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--text-secondary)', fontWeight: 'bold' }}>#{rank}</span>
+                        )}
+                      </td>
 
-                    {/* ROLL NO */}
-                    <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{user.rollNo}</td>
+                      {/* NAME */}
+                      <td style={{ padding: '1rem', fontWeight: 'bold', color: isTop3 ? MEDAL_COLORS[index] : 'var(--text-primary)', fontSize: isTop3 ? '1.05rem' : '1rem' }}>
+                        {user.name || 'Anonymous'}
+                      </td>
 
-                    {/* SCORE */}
-                    <td style={{ padding: '1rem', fontWeight: 'bold', color: user.score < 0 ? 'var(--accent-magenta)' : 'var(--text-primary)' }}>
-                      {user.score}
-                    </td>
+                      {/* ROLL NO */}
+                      <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{user.rollNo || 'N/A'}</td>
 
-                    {/* EXECS */}
-                    <td style={{ padding: '1rem', color: 'var(--accent-cyan)' }}>
-                      {user.totalSubmissionsCount || 0}
-                    </td>
+                      {/* SCORE */}
+                      <td style={{ padding: '1rem', fontWeight: 'bold', color: (user.score || 0) < 0 ? 'var(--accent-magenta)' : 'var(--text-primary)' }}>
+                        {user.score !== undefined ? user.score : 0}
+                      </td>
 
-                    {/* TIME TAKEN */}
-                    <td style={{ padding: '1rem' }}>
-                      {user.elapsedTimeMs ? (
-                        <span style={{ color: 'var(--text-secondary)' }}>
-                          {Math.floor(user.elapsedTimeMs / 60000)}m {Math.floor((user.elapsedTimeMs % 60000) / 1000)}s
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-secondary)' }}>N/A</span>
-                      )}
-                    </td>
+                      {/* EXECS */}
+                      <td style={{ padding: '1rem', color: 'var(--accent-cyan)' }}>
+                        {user.totalSubmissionsCount || 0}
+                      </td>
 
-                    {/* WARNINGS */}
-                    <td style={{ padding: '1rem', fontSize: '0.85rem', color: hasWarnings ? 'var(--accent-pink)' : 'var(--text-secondary)' }}>
-                      Tabs: {user.tabSwitches || 0} (-{(user.tabSwitches || 0) * 2} pts) / Copy: {user.copyPasteCount || 0}
-                    </td>
+                      {/* TIME TAKEN */}
+                      <td style={{ padding: '1rem' }}>
+                        {user.elapsedTimeMs ? (
+                          <span style={{ color: 'var(--text-secondary)' }}>
+                            {Math.floor(user.elapsedTimeMs / 60000)}m {Math.floor((user.elapsedTimeMs % 60000) / 1000)}s
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--text-secondary)' }}>N/A</span>
+                        )}
+                      </td>
 
-                    {/* STATUS */}
-                    <td style={{ padding: '1rem' }}>
-                      {user.isFinished ? (
-                        <span style={{ color: 'var(--accent-cyan)', fontSize: '0.8rem' }}>✓ FINISHED</span>
-                      ) : (
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>ACTIVE</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                      {/* WARNINGS */}
+                      <td style={{ padding: '1rem', fontSize: '0.85rem', color: hasWarnings ? 'var(--accent-pink)' : 'var(--text-secondary)' }}>
+                        Tabs: {user.tabSwitches || 0} (-{(user.tabSwitches || 0) * 2} pts) / Copy: {user.copyPasteCount || 0}
+                      </td>
+
+                      {/* STATUS */}
+                      <td style={{ padding: '1rem' }}>
+                        {user.isFinished ? (
+                          <span style={{ color: 'var(--accent-cyan)', fontSize: '0.8rem', fontWeight: 'bold' }}>✓ FINISHED</span>
+                        ) : (
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>ACTIVE</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
