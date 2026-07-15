@@ -25,6 +25,26 @@ const JDOODLE_KEYS = [
   {
     clientId: "3e8706c0cafdf8ff216561a0d3304d59",
     clientSecret: "7b15e29aefe3c416a105d85f544fab38d7707e5f479d586189cedfecd5dddbc1"
+  },
+  {
+    clientId: "18e0a38b4e6695a1bba4f3a3381e174f",
+    clientSecret: "228d6d9f6a1ad274de5db67988ec6fdb4cd52db34b3d93184d8e53bdb594b7a9"
+  },
+  {
+    clientId: "5f45c84173c7098c031404a9674d6c70",
+    clientSecret: "a91dfa30ca471cff624337eb0dcf80cfa22300f80ac9a7483d9c08bb1bcd66fb"
+  },
+  {
+    clientId: "982a4209bc5bff19d1477e5a828cfaa7",
+    clientSecret: "233b90363b565cec8868e8175e713efdcae02ee361c28f1c01299609b71871c2"
+  },
+  {
+    clientId: "4da2716404770c9e712cfea86cb360e",
+    clientSecret: "a4bf05d8b551544e80746fc149301d0570ee586cedd67ac1fcca78db0ec66d21"
+  },
+  {
+    clientId: "1a12909b9e823337a62eeb3ecd23ee7f",
+    clientSecret: "d23dfc7e285be4244bcac4069507284b512ce530bce1a9913d662055ba52e52d"
   }
   // Add additional 20+ JDoodle { clientId, clientSecret } objects right below:
 ];
