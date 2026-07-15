@@ -6,6 +6,7 @@ import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
 import { Code } from 'lucide-react';
 import { clearAllLocalDrafts } from '../utils/drafts';
+import { getNow, syncClock } from '../utils/timeSync';
 
 const QuestionSelectionPage = () => {
   const [loading, setLoading] = useState(true);
@@ -23,6 +24,8 @@ const QuestionSelectionPage = () => {
       return;
     }
 
+    syncClock();
+
     const unsubEvent = onSnapshot(doc(db, 'settings', 'event'), (eventSnap) => {
       if (eventSnap.exists()) {
         const data = eventSnap.data();
@@ -31,6 +34,12 @@ const QuestionSelectionPage = () => {
           navigate('/waiting');
         } else if (data.status === 'ended' || data.status === 'stopped') {
           navigate('/thank-you');
+        } else if (data.status === 'active' && data.endTime) {
+          const end = new Date(data.endTime).getTime();
+          if (end - getNow() <= 0) {
+            updateDoc(doc(db, 'users', userId), { isFinished: true, selectedQuestionId: null }).catch(() => {});
+            navigate('/timer-finished');
+          }
         }
       }
     });
@@ -38,9 +47,17 @@ const QuestionSelectionPage = () => {
     const checkState = async () => {
       // Check Event Status
       const eventSnap = await getDoc(doc(db, 'settings', 'event'));
-      if (eventSnap.exists() && eventSnap.data().status !== 'active') {
-        navigate('/waiting');
-        return;
+      if (eventSnap.exists()) {
+        const evData = eventSnap.data();
+        if (evData.status !== 'active') {
+          navigate('/waiting');
+          return;
+        }
+        if (evData.endTime && new Date(evData.endTime).getTime() - getNow() <= 0) {
+          updateDoc(doc(db, 'users', userId), { isFinished: true, selectedQuestionId: null }).catch(() => {});
+          navigate('/timer-finished');
+          return;
+        }
       }
 
       // Check User's existing selection

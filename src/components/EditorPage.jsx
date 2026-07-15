@@ -35,6 +35,7 @@ const EditorPage = () => {
   const eventStartTimeRef = useRef(null);
   const questionStartTimeRef = useRef(null);
   const hasSubmittedRef = useRef(false);
+  const timerIntervalRef = useRef(null);
 
   // Sync state to ref for auto-save and submission closures
   useEffect(() => {
@@ -144,12 +145,14 @@ const EditorPage = () => {
           if (data.startTime) eventStartTimeRef.current = data.startTime;
           // Setup timer
           const end = new Date(data.endTime).getTime();
+          if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
           const updateTimer = () => {
             const now = getNow();
             const distance = end - now;
             
-            if (distance < 0) {
+            if (distance <= 0) {
               setTimeLeft("00:00");
+              if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
               if (!hasSubmittedRef.current) {
                 handleSubmit(true, '/timer-finished');
               }
@@ -160,8 +163,7 @@ const EditorPage = () => {
             }
           };
           updateTimer();
-          const timerInterval = setInterval(updateTimer, 1000);
-          return () => clearInterval(timerInterval);
+          timerIntervalRef.current = setInterval(updateTimer, 1000);
         }
       }
     });
@@ -211,6 +213,7 @@ const EditorPage = () => {
 
     return () => {
       unsubEvent();
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       clearInterval(autoSaveInterval);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       document.removeEventListener("paste", handleCopyPaste);
@@ -261,13 +264,11 @@ const EditorPage = () => {
   };
 
   const handleSubmit = async (isAutoSubmit = false, customRedirect = null) => {
-    if (!question || isSubmitting || hasSubmittedRef.current) return;
-    hasSubmittedRef.current = true;
-    setIsSubmitting(true);
-
     const targetUrl = customRedirect || (isAutoSubmit ? '/timer-finished' : null);
 
     if (targetUrl) {
+      if (hasSubmittedRef.current) return;
+      hasSubmittedRef.current = true;
       ignoreCheatRef.current = true;
       setPopup({
         message: targetUrl === '/thank-you'
@@ -275,8 +276,20 @@ const EditorPage = () => {
           : "TIME IS UP! Your code has been automatically submitted.",
         type: "warning"
       });
-      setTimeout(() => navigate(targetUrl), 1800);
+      if (userId) {
+        updateDoc(doc(db, 'users', userId), {
+          isFinished: true,
+          selectedQuestionId: null,
+          currentCode: codeRef.current || ''
+        }).catch(() => {});
+      }
+      setTimeout(() => navigate(targetUrl), 1500);
+      if (!question) return;
     }
+
+    if (!question || isSubmitting || hasSubmittedRef.current) return;
+    hasSubmittedRef.current = true;
+    setIsSubmitting(true);
 
     let userOutput = '';
     if (!targetUrl) {

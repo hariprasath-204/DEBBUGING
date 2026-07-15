@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, updateDoc } from 'firebase/firestore';
 import { clearFullUserSession } from '../utils/drafts';
 
 const TimerFinishedPage = () => {
@@ -27,10 +27,18 @@ const TimerFinishedPage = () => {
 
     let unsubUser = () => {};
     if (userId) {
-      unsubUser = onSnapshot(doc(db, "users", userId), (userSnap) => {
+      unsubUser = onSnapshot(doc(db, "users", userId), async (userSnap) => {
         if (userSnap.exists()) {
           const userData = userSnap.data();
           if (userData && !userData.isFinished) {
+            const eventSnap = await getDoc(doc(db, "settings", "event"));
+            if (eventSnap.exists()) {
+              const ev = eventSnap.data();
+              if (ev.endTime && new Date(ev.endTime).getTime() - Date.now() <= 0) {
+                updateDoc(doc(db, "users", userId), { isFinished: true, selectedQuestionId: null }).catch(() => {});
+                return;
+              }
+            }
             navigate('/selection');
           }
         }
