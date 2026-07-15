@@ -58,27 +58,6 @@ const TopWinnersPage = () => {
 
   return (
     <div style={{ minHeight: '100vh', padding: '2rem', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
-      {/* Top Navigation Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem', zIndex: 10 }}>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <Link to="/leaderboard" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 18px' }}>
-            <ArrowLeft size={18} /> GLOBAL LEADERBOARD
-          </Link>
-          <Link to="/admin" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 18px' }}>
-            <Trophy size={18} /> ADMIN DASHBOARD
-          </Link>
-        </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <button 
-            onClick={triggerRevealSequence}
-            className="btn-primary" 
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 22px', fontSize: '0.95rem' }}
-          >
-            <Sparkles size={18} /> 🎉 LAUNCH WINNER REVEAL
-          </button>
-        </div>
-      </div>
-
       {/* Cyberpunk Title Header */}
       <div style={{ textAlign: 'center', marginBottom: '4rem', zIndex: 10 }}>
         <div style={{ display: 'inline-block', padding: '6px 18px', background: 'rgba(0, 240, 255, 0.1)', border: '1px solid var(--accent-cyan)', borderRadius: '30px', color: 'var(--accent-cyan)', fontSize: '0.85rem', fontWeight: 'bold', letterSpacing: '3px', marginBottom: '1rem' }}>
@@ -200,6 +179,28 @@ const TopWinnersPage = () => {
           })}
         </div>
       )}
+
+      {/* Bottom Reveal Button */}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '1rem', marginBottom: '3rem', zIndex: 10 }}>
+        <button 
+          onClick={triggerRevealSequence}
+          className="btn-primary" 
+          style={{ 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            gap: '12px', 
+            padding: '16px 38px', 
+            fontSize: '1.15rem', 
+            fontWeight: 'bold', 
+            letterSpacing: '2px',
+            boxShadow: '0 0 25px rgba(0, 240, 255, 0.4)',
+            borderRadius: '40px',
+            cursor: 'pointer'
+          }}
+        >
+          <Sparkles size={22} /> 🎉 LAUNCH WINNER REVEAL
+        </button>
+      </div>
 
       {/* Background Cyberpunk Spotlight Glow */}
       <div style={{ position: 'absolute', top: '-15%', left: '50%', transform: 'translateX(-50%)', width: '900px', height: '600px', background: 'radial-gradient(circle, rgba(0, 240, 255, 0.15) 0%, rgba(255, 0, 255, 0.08) 50%, transparent 70%)', filter: 'blur(80px)', zIndex: 1, pointerEvents: 'none' }}></div>
