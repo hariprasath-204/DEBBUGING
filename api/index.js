@@ -135,6 +135,17 @@ let JDOODLE_KEYS = [
   {
     clientId: "9f2dd28002c61669a6ad40bed46b19b3",
     clientSecret: "fd365b49e35fa273a1c678af84d58e19bd3f8aab98f700d2136d5c42005e4b9f"
+  },
+  {
+    clientId: "9382bb4b33c6d7d54591ab1156a0416c",
+    clientSecret: "3c5d039783e89e6942141b11fe921c09d217e3e89c0219bf0d7f5973d49f46e8"
+  }, {
+    clientId: "4683a8489fbd7ca86613c84f1206c8a0",
+    clientSecret: "d35724cff65bc3b1b046045739cb065b2d2c330b7b76bfd47decf1a2e26c9f8"
+  },
+  {
+    clientId: "bfed6776eb31dbda2bedd391e7d0f3f1",
+    clientSecret: "28c18fe94d2f3e8ad7d8855a63cc590373e94217b78e15287d930fb53aac6d3c"
   }
 ];
 
