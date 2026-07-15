@@ -111,6 +111,7 @@ const LandingPage = () => {
         display: 'flex', flexDirection: 'column',
         alignItems: 'center',
         overflow: 'hidden',
+        background: 'radial-gradient(ellipse at 15% 25%, #1f0c3a 0%, transparent 55%), radial-gradient(ellipse at 85% 30%, #081d42 0%, transparent 55%), linear-gradient(135deg, #15082a 0%, #08112c 50%, #061838 100%)'
       }}>
 
         {/* ── INTERACTIVE & ANIMATED CYBER BACKGROUND ── */}
@@ -146,25 +147,17 @@ const LandingPage = () => {
             animation: 'orbFloat2 12s ease-in-out infinite'
           }} />
 
-          {/* Top Edge Cyan Laser Border Line */}
-          <div style={{
-            position: 'absolute', top: 0, left: 0, width: '100%', height: '2px',
-            background: 'linear-gradient(90deg, #00f0ff, #7b2cbf, #ff00ff, #00f0ff)',
-            boxShadow: '0 0 15px rgba(0, 240, 255, 0.8), 0 0 30px rgba(0, 240, 255, 0.4)',
-            zIndex: 1
-          }} />
-
           {/* 3D Perspective Cyber Floor Grid */}
           <div style={{
-            position: 'absolute', bottom: 0, left: '-25%', width: '150%', height: '55vh',
-            transform: 'perspective(700px) rotateX(70deg)',
+            position: 'absolute', bottom: 0, left: '-30%', width: '160%', height: '60vh',
+            transform: 'perspective(750px) rotateX(75deg)',
             transformOrigin: 'bottom center',
             background: 'linear-gradient(rgba(0, 240, 255, 0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.22) 1px, transparent 1px)',
-            backgroundSize: '48px 48px',
-            animation: 'gridScroll 3s linear infinite',
+            backgroundSize: '64px 64px',
+            animation: 'gridScroll 3.5s linear infinite',
             maskImage: 'linear-gradient(to bottom, transparent 0%, black 50%)',
             WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 50%)',
-            boxShadow: 'inset 0 120px 120px -30px var(--bg-main)'
+            boxShadow: 'inset 0 140px 140px -40px #061838'
           }} />
 
           {/* Laser Scan Beam */}
@@ -196,11 +189,11 @@ const LandingPage = () => {
             {/* College panel */}
             <div style={{
               border: '1px solid #00F0FF',
-              padding: '0.65rem 2.4rem',
-              marginBottom: '1.6rem',
-              background: 'rgba(0, 240, 255, 0.04)',
+              padding: '0.65rem 2.8rem',
+              marginBottom: '2.2rem',
+              background: 'rgba(0, 240, 255, 0.03)',
               boxShadow: '0 0 18px rgba(0, 240, 255, 0.2)',
-              borderRadius: '2px'
+              borderRadius: '1px'
             }}>
               <p style={{
                 fontSize: '1rem', color: '#FFFFFF', margin: 0,
@@ -220,32 +213,32 @@ const LandingPage = () => {
 
             {/* SOFTTECH */}
             <h1 style={{
-              fontSize: 'clamp(3.8rem, 8.5vw, 6.8rem)',
-              margin: '0 0 0.1rem 0', lineHeight: 0.95,
+              fontSize: 'clamp(3.2rem, 7.5vw, 5.8rem)',
+              margin: '0', lineHeight: 1.05,
               fontFamily: 'var(--font-orbitron)',
-              background: 'linear-gradient(90deg, #00F0FF 0%, #7B2cbf 45%, #FF00FF 100%)',
+              background: 'linear-gradient(90deg, #00f0ff 0%, #682ae9 45%, #ff00ff 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               filter: 'drop-shadow(0 0 25px rgba(0,240,255,0.6)) drop-shadow(0 0 45px rgba(255,0,255,0.4))',
-              letterSpacing: '8px', fontWeight: '900',
+              letterSpacing: '10px', fontWeight: '900',
               textTransform: 'uppercase'
             }}>SOFTTECH</h1>
 
             {/* ASSOCIATION */}
             <h2 style={{
-              fontSize: 'clamp(2.2rem, 5vw, 4.1rem)',
-              margin: '0 0 1.4rem 0',
+              fontSize: 'clamp(1.8rem, 4.4vw, 3.5rem)',
+              margin: '-0.3rem 0 1.6rem 0',
               fontFamily: 'var(--font-orbitron)',
               color: '#FF00FF',
-              textShadow: '0 0 16px rgba(255,0,255,0.85), 0 0 40px rgba(255,0,255,0.4)',
-              letterSpacing: '14px', fontWeight: '800',
+              textShadow: '0 0 20px rgba(255, 0, 255, 0.9), 0 0 40px rgba(255,0,255,0.4)',
+              letterSpacing: '18px', fontWeight: '800',
               textTransform: 'uppercase'
             }}>ASSOCIATION</h2>
 
             {/* Subtitle */}
             <p style={{
-              color: '#94a3b8', letterSpacing: '6px', fontSize: '0.85rem',
-              marginBottom: '1.8rem', textTransform: 'uppercase',
+              color: '#94a3b8', letterSpacing: '7px', fontSize: '0.82rem',
+              marginBottom: '2rem', textTransform: 'uppercase',
               fontFamily: 'var(--font-orbitron)', fontWeight: '600'
             }}>
               ✦ THE ULTIMATE DEBUGGING CHALLENGE ✦
@@ -255,11 +248,11 @@ const LandingPage = () => {
             <button
               className="btn-primary"
               style={{
-                fontSize: '1rem', padding: '14px 50px', letterSpacing: '3px',
+                fontSize: '0.95rem', padding: '13px 46px', letterSpacing: '4px',
                 fontFamily: 'var(--font-orbitron)', fontWeight: '700',
                 color: '#00F0FF', background: 'rgba(0, 240, 255, 0.08)',
                 border: '1px solid #00F0FF', borderRadius: '4px',
-                boxShadow: '0 0 18px rgba(0, 240, 255, 0.3), inset 0 0 10px rgba(0, 240, 255, 0.1)',
+                boxShadow: '0 0 20px rgba(0, 240, 255, 0.35), inset 0 0 10px rgba(0, 240, 255, 0.1)',
                 textTransform: 'uppercase'
               }}
               onClick={() => setShowModal(true)}
