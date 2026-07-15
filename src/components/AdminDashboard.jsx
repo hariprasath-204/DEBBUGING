@@ -303,7 +303,7 @@ const AdminDashboard = () => {
   };
 
   const handleResetRound = async () => {
-    if (window.confirm("WARNING: Are you sure you want to RESET THE ROUND? This clears all submissions and scores, but keeps users registered.")) {
+    if (window.confirm("WARNING: Are you sure you want to RESET THE ROUND TIMER? This resets event status to waiting and clears active editor sessions, while PRESERVING all participant scores and completed missions.")) {
       setIsLoading(true);
       try {
         const usersSnap = await getDocs(collection(db, 'users'));
@@ -313,22 +313,15 @@ const AdminDashboard = () => {
             isFinished: false,
             currentCode: '',
             finalCode: '',
-            score: 0,
             tabSwitches: 0,
             copyPasteCount: 0,
             selectedQuestionId: null,
-            clearedErrors: 0,
-            remainingErrors: 0,
-            totalErrors: 0,
-            elapsedTimeMs: 0,
-            completedQuestions: [],
-            cumulativeClearedErrors: 0,
-            cumulativeTotalErrors: 0
+            elapsedTimeMs: 0
           }));
         });
         await Promise.all(updatePromises);
         await updateDoc(doc(db, 'settings', 'event'), { status: 'waiting', startTime: null, endTime: null });
-        showPopup("Round has been reset successfully.", "success");
+        showPopup("Round has been reset successfully (Scores preserved).", "success");
       } catch (err) {
         console.error(err);
         showPopup("Failed to reset round.", "error");
@@ -519,7 +512,7 @@ const AdminDashboard = () => {
             </div>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '2rem' }}>
               <button onClick={handleResetRound} className="sidebar-btn" style={{ color: 'var(--accent-pink)', border: '1px solid var(--accent-pink)', maxWidth: '250px', justifyContent: 'center' }}><RefreshCw size={18} style={{ marginRight: '8px' }}/> RESET ROUND</button>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>Clears all submissions and scores, but keeps users registered for another round.</p>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>Resets round status to WAITING and clears active editor sessions while PRESERVING participant scores and completed missions.</p>
             </div>
           </div>
         );

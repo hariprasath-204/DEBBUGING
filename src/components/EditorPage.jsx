@@ -46,31 +46,9 @@ const EditorPage = () => {
       return;
     }
 
-    // 1. Fetch Question & Admin Round Language Mapping
+    // 1. Fetch Question
     const fetchQuestion = async () => {
       try {
-        let phaseLangs = { easy: 'c', medium: 'cpp', hard: 'java' };
-        const langConfigSnap = await getDoc(doc(db, 'settings', 'language'));
-        if (langConfigSnap.exists()) {
-          const d = langConfigSnap.data();
-          if (d.easy) phaseLangs.easy = d.easy;
-          if (d.medium) phaseLangs.medium = d.medium;
-          if (d.hard) phaseLangs.hard = d.hard;
-          setPhaseLanguages(phaseLangs);
-        }
-
-        // Listen to phase language configuration in real-time
-        onSnapshot(doc(db, 'settings', 'language'), (snap) => {
-          if (snap.exists()) {
-            const d = snap.data();
-            setPhaseLanguages({
-              easy: d.easy || 'c',
-              medium: d.medium || 'cpp',
-              hard: d.hard || 'java'
-            });
-          }
-        });
-
         let targetQuestion = null;
         if (questionId && questionId !== 'default_question') {
           const docSnap = await getDoc(doc(db, "questions", questionId));
