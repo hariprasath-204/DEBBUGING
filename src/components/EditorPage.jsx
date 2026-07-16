@@ -149,6 +149,7 @@ const EditorPage = () => {
           const end = new Date(data.endTime).getTime();
           if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
           const updateTimer = () => {
+            if (isNaN(end) || end <= 0) return;
             const now = getNow();
             const distance = end - now;
             

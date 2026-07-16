@@ -36,7 +36,7 @@ const QuestionSelectionPage = () => {
           navigate('/thank-you');
         } else if (data.status === 'active' && data.endTime) {
           const end = new Date(data.endTime).getTime();
-          if (end - getNow() <= 0) {
+          if (!isNaN(end) && end > 0 && end - getNow() <= 0) {
             updateDoc(doc(db, 'users', userId), { isFinished: true, selectedQuestionId: null }).catch(() => {});
             navigate('/timer-finished');
           }
@@ -44,19 +44,33 @@ const QuestionSelectionPage = () => {
       }
     });
 
+    const unsubUser = onSnapshot(doc(db, 'users', userId), (userSnap) => {
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        if (userData && userData.selectedQuestionId) {
+          navigate(`/editor/${userData.selectedQuestionId}`);
+        }
+      }
+    });
+
     const checkState = async () => {
       // Check Event Status
       const eventSnap = await getDoc(doc(db, 'settings', 'event'));
+      let isTimeExpired = false;
       if (eventSnap.exists()) {
         const evData = eventSnap.data();
         if (evData.status !== 'active') {
           navigate('/waiting');
           return;
         }
-        if (evData.endTime && new Date(evData.endTime).getTime() - getNow() <= 0) {
-          updateDoc(doc(db, 'users', userId), { isFinished: true, selectedQuestionId: null }).catch(() => {});
-          navigate('/timer-finished');
-          return;
+        if (evData.endTime) {
+          const end = new Date(evData.endTime).getTime();
+          if (!isNaN(end) && end > 0 && end - getNow() <= 0) {
+            isTimeExpired = true;
+            updateDoc(doc(db, 'users', userId), { isFinished: true, selectedQuestionId: null }).catch(() => {});
+            navigate('/timer-finished');
+            return;
+          }
         }
       }
 
@@ -90,10 +104,14 @@ const QuestionSelectionPage = () => {
       if (userSnap.exists() && userSnap.data().isFinished) {
         if (totalQuestionsCount > 0 && completedQs.length >= totalQuestionsCount) {
           navigate('/all-completed');
-        } else {
+          return;
+        } else if (isTimeExpired) {
           navigate('/timer-finished');
+          return;
+        } else {
+          // If time is NOT expired and not all questions are finished, this is a stale isFinished flag from previous run. Auto-heal:
+          await updateDoc(doc(db, 'users', userId), { isFinished: false }).catch(() => {});
         }
-        return;
       }
 
       if (totalQuestionsCount > 0 && completedQs.length >= totalQuestionsCount) {
@@ -111,6 +129,7 @@ const QuestionSelectionPage = () => {
 
     return () => {
       if (unsubEvent) unsubEvent();
+      if (unsubUser) unsubUser();
     };
   }, [navigate, userId]);
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, onSnapshot, getDoc, updateDoc } from 'firebase/firestore';
 import { clearFullUserSession } from '../utils/drafts';
+import { getNow } from '../utils/timeSync';
 
 const TimerFinishedPage = () => {
   const navigate = useNavigate();
@@ -16,11 +17,23 @@ const TimerFinishedPage = () => {
     // Listen for event status and user reset
     const unsubEvent = onSnapshot(doc(db, "settings", "event"), (snap) => {
       if (snap.exists()) {
-        const status = snap.data().status;
+        const ev = snap.data();
+        const status = ev.status;
         if (status === 'ended' || status === 'stopped') {
           navigate('/thank-you');
         } else if (status === 'waiting') {
           navigate('/waiting');
+        } else if (status === 'active') {
+          const end = ev.endTime ? new Date(ev.endTime).getTime() : 0;
+          if (ev.endTime && !isNaN(end) && end > 0 && end - getNow() > 0) {
+            if (userId) {
+              getDoc(doc(db, "users", userId)).then(uSnap => {
+                if (uSnap.exists() && !uSnap.data().isFinished) {
+                  navigate('/selection');
+                }
+              }).catch(() => {});
+            }
+          }
         }
       }
     });
@@ -34,7 +47,8 @@ const TimerFinishedPage = () => {
             const eventSnap = await getDoc(doc(db, "settings", "event"));
             if (eventSnap.exists()) {
               const ev = eventSnap.data();
-              if (ev.endTime && new Date(ev.endTime).getTime() - Date.now() <= 0) {
+              const end = ev.endTime ? new Date(ev.endTime).getTime() : 0;
+              if (ev.endTime && !isNaN(end) && end > 0 && end - getNow() <= 0) {
                 updateDoc(doc(db, "users", userId), { isFinished: true, selectedQuestionId: null }).catch(() => {});
                 return;
               }

@@ -89,7 +89,11 @@ const AdminDashboard = () => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setEventStatus(data.status);
-        if (data.durationMinutes) setDurationMinutes(data.durationMinutes);
+        if (data.durationMinutes !== undefined && data.durationMinutes !== null && !isNaN(parseFloat(data.durationMinutes)) && parseFloat(data.durationMinutes) > 0) {
+          setDurationMinutes(data.durationMinutes);
+        } else if (!durationMinutes || parseFloat(durationMinutes) <= 0) {
+          setDurationMinutes(60);
+        }
         setEventEndTime(data.endTime || null);
       } else {
         setDoc(eventDocRef, { status: 'waiting', endTime: null, durationMinutes: 60 });
@@ -342,11 +346,16 @@ const AdminDashboard = () => {
   };
 
   const handleStartEvent = async () => {
-    if (window.confirm(`Start event for ${durationMinutes} minutes? All users in waiting room will enter the IDE.`)) {
+    const mins = parseFloat(durationMinutes);
+    if (!mins || isNaN(mins) || mins <= 0) {
+      showPopup("Please enter a valid duration in minutes greater than 0.", "error");
+      return;
+    }
+    if (window.confirm(`Start event for ${mins} minutes? All users in waiting room will enter the IDE.`)) {
       setIsLoading(true);
       await syncClock();
       const now = getNow();
-      const endTime = new Date(now + durationMinutes * 60000);
+      const endTime = new Date(now + mins * 60000);
       try {
         const usersSnap = await getDocs(collection(db, 'users'));
         const updatePromises = [];
@@ -362,7 +371,7 @@ const AdminDashboard = () => {
       }
       await updateDoc(doc(db, 'settings', 'event'), { 
         status: 'active', 
-        durationMinutes: parseInt(durationMinutes), 
+        durationMinutes: mins, 
         startTime: now,
         endTime: endTime.toISOString(),
         roundId: now
@@ -372,7 +381,11 @@ const AdminDashboard = () => {
   };
 
   const handleUpdateTimer = async () => {
-    const mins = parseInt(durationMinutes) || 5;
+    const mins = parseFloat(durationMinutes);
+    if (!mins || isNaN(mins) || mins <= 0) {
+      showPopup("Please enter a valid duration in minutes greater than 0.", "error");
+      return;
+    }
     if (window.confirm(`Update remaining timer to ${mins} minutes for all active users?`)) {
       setIsLoading(true);
       await syncClock();
