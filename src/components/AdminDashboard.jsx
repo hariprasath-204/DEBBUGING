@@ -362,7 +362,27 @@ const AdminDashboard = () => {
         usersSnap.forEach(docSnap => {
           updatePromises.push(updateDoc(doc(db, 'users', docSnap.id), {
             isFinished: false,
-            selectedQuestionId: null
+            score: 0,
+            points: 0,
+            elapsedTimeMs: 0,
+            takenTimeMs: 0,
+            totalSubmissionsCount: 0,
+            tabSwitches: 0,
+            copyPasteCount: 0,
+            currentCode: '',
+            finalCode: '',
+            submissions: {},
+            completedQuestions: [],
+            selectedQuestionId: null,
+            selectedLanguage: null,
+            langSubmissionsCount: { c: 0, cpp: 0, python: 0, java: 0 },
+            cumulativeClearedErrors: 0,
+            cumulativeTotalErrors: 0,
+            clearedErrors: 0,
+            totalErrors: 0,
+            remainingErrors: 0,
+            currentLinesCount: 0,
+            targetLinesCount: 0
           }));
         });
         await Promise.all(updatePromises);
