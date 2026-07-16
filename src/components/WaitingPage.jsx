@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { clearAllLocalDrafts } from '../utils/drafts';
+import { syncClock } from '../utils/timeSync';
 
 const WaitingPage = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const WaitingPage = () => {
       return;
     }
 
+    syncClock();
     clearAllLocalDrafts();
 
     // Subscribe to global event status

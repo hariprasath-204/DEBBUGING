@@ -11,23 +11,26 @@ const TimerFinishedPage = () => {
   const userId = localStorage.getItem('debugEventUserId');
 
   useEffect(() => {
-    // Clear user session from browser storage once time is up
-    clearFullUserSession();
+    syncClock();
 
     // Listen for event status and user reset
-    const unsubEvent = onSnapshot(doc(db, "settings", "event"), (snap) => {
+    const unsubEvent = onSnapshot(doc(db, "settings", "event"), async (snap) => {
       if (snap.exists()) {
         const ev = snap.data();
         const status = ev.status;
         if (status === 'ended' || status === 'stopped') {
+          clearFullUserSession();
           navigate('/thank-you');
         } else if (status === 'waiting') {
+          clearFullUserSession();
           navigate('/waiting');
         } else if (status === 'active') {
+          await syncClock();
           const end = ev.endTime ? new Date(ev.endTime).getTime() : 0;
           if (ev.endTime && !isNaN(end) && end > 0 && end - getNow() > 0) {
-            if (userId) {
-              getDoc(doc(db, "users", userId)).then(uSnap => {
+            const currentUserId = localStorage.getItem('debugEventUserId');
+            if (currentUserId) {
+              getDoc(doc(db, "users", currentUserId)).then(uSnap => {
                 if (uSnap.exists() && !uSnap.data().isFinished) {
                   navigate('/selection');
                 }
@@ -39,17 +42,19 @@ const TimerFinishedPage = () => {
     });
 
     let unsubUser = () => {};
-    if (userId) {
-      unsubUser = onSnapshot(doc(db, "users", userId), async (userSnap) => {
+    const currentUserId = localStorage.getItem('debugEventUserId');
+    if (currentUserId) {
+      unsubUser = onSnapshot(doc(db, "users", currentUserId), async (userSnap) => {
         if (userSnap.exists()) {
           const userData = userSnap.data();
           if (userData && !userData.isFinished) {
             const eventSnap = await getDoc(doc(db, "settings", "event"));
             if (eventSnap.exists()) {
               const ev = eventSnap.data();
+              await syncClock();
               const end = ev.endTime ? new Date(ev.endTime).getTime() : 0;
               if (ev.endTime && !isNaN(end) && end > 0 && end - getNow() <= 0) {
-                updateDoc(doc(db, "users", userId), { isFinished: true, selectedQuestionId: null }).catch(() => {});
+                updateDoc(doc(db, "users", currentUserId), { isFinished: true, selectedQuestionId: null }).catch(() => {});
                 return;
               }
             }

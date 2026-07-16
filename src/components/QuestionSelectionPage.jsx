@@ -26,7 +26,7 @@ const QuestionSelectionPage = () => {
 
     syncClock();
 
-    const unsubEvent = onSnapshot(doc(db, 'settings', 'event'), (eventSnap) => {
+    const unsubEvent = onSnapshot(doc(db, 'settings', 'event'), async (eventSnap) => {
       if (eventSnap.exists()) {
         const data = eventSnap.data();
         if (data.status === 'waiting') {
@@ -35,6 +35,7 @@ const QuestionSelectionPage = () => {
         } else if (data.status === 'ended' || data.status === 'stopped') {
           navigate('/thank-you');
         } else if (data.status === 'active' && data.endTime) {
+          await syncClock();
           const end = new Date(data.endTime).getTime();
           if (!isNaN(end) && end > 0 && end - getNow() <= 0) {
             updateDoc(doc(db, 'users', userId), { isFinished: true, selectedQuestionId: null }).catch(() => {});
@@ -54,6 +55,7 @@ const QuestionSelectionPage = () => {
     });
 
     const checkState = async () => {
+      await syncClock();
       // Check Event Status
       const eventSnap = await getDoc(doc(db, 'settings', 'event'));
       let isTimeExpired = false;
