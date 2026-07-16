@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { doc, onSnapshot, getDoc, updateDoc } from 'firebase/firestore';
 import { clearFullUserSession } from '../utils/drafts';
-import { getNow } from '../utils/timeSync';
+import { getNow, syncClock } from '../utils/timeSync';
 
 const TimerFinishedPage = () => {
   const navigate = useNavigate();
