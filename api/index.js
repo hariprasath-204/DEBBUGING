@@ -288,11 +288,15 @@ app.post('/api/compile', async (req, res) => {
   }
 
   const compLower = compiler.toLowerCase();
+  const isJava = compLower === 'java' || compLower === 'javac' || compLower.includes('openjdk');
+  const isPython = compLower === 'python' || compLower === 'python3' || compLower.includes('python');
 
-  // Use JDoodle specifically for Java/Javac to get full detailed compiler errors.
+  // Use JDoodle specifically for Java and Python to get full detailed compiler errors/output.
   // Loops through JDOODLE_KEYS array; automatically falls back to next key if current key fails.
-  if (compLower === 'java' || compLower === 'javac' || compLower.includes('openjdk')) {
-    let lastErrorDetail = "Failed to execute Java program on JDoodle.";
+  if (isJava || isPython) {
+    const jdLanguage = isJava ? "java" : "python3";
+    const jdVersionIndex = isJava ? "4" : "4";
+    let lastErrorDetail = `Failed to execute ${isJava ? 'Java' : 'Python'} program on JDoodle.`;
     const dynamicKeys = Array.isArray(req.body.jdoodleKeys) ? req.body.jdoodleKeys : [];
     const mergedKeys = [...JDOODLE_KEYS];
     for (const dk of dynamicKeys) {
@@ -310,8 +314,8 @@ app.post('/api/compile', async (req, res) => {
           clientId,
           clientSecret,
           script: code,
-          language: "java",
-          versionIndex: "4"
+          language: jdLanguage,
+          versionIndex: jdVersionIndex
         };
 
         const jdResp = await axios.post('https://api.jdoodle.com/v1/execute', jdoodlePayload, {
@@ -335,7 +339,18 @@ app.post('/api/compile', async (req, res) => {
         }
 
         const output = jdResp.data?.output || "No output returned.";
-        const isError = jdResp.data?.statusCode !== 200 || output.includes('error:') || output.includes('Exception in thread');
+        const isError = jdResp.data?.statusCode !== 200 || 
+          output.includes('error:') || 
+          output.includes('Exception in thread') || 
+          output.includes('Traceback (most recent call last):') || 
+          output.includes('SyntaxError:') || 
+          output.includes('NameError:') || 
+          output.includes('TypeError:') || 
+          output.includes('IndexError:') || 
+          output.includes('ValueError:') || 
+          output.includes('AttributeError:') || 
+          output.includes('IndentationError:');
+
         if (jdResp.data?.statusCode === 200) {
           JDOODLE_KEY_STATUS[clientId] = { status: 'non-finished', lastError: null, checkedAt: Date.now() };
         }
@@ -362,7 +377,7 @@ app.post('/api/compile', async (req, res) => {
     // If all keys in JDOODLE_KEYS have been tried and failed
     console.error("All JDoodle API keys exhausted or failed.");
     return res.status(500).json({
-      error: "Java compilation failed. All JDoodle API keys exhausted or unavailable.",
+      error: `${isJava ? 'Java' : 'Python'} compilation failed. All JDoodle API keys exhausted or unavailable.`,
       detail: lastErrorDetail
     });
   }
@@ -374,8 +389,7 @@ app.post('/api/compile', async (req, res) => {
     "gcc-head-c": "gcc-15",
     "c++": "g++-15",
     "cpp": "g++-15",
-    "gcc-head": "g++-15",
-    "python": "python-3.14"
+    "gcc-head": "g++-15"
   };
 
   const ocCompiler = ONLINE_COMPILER_LANG[compLower] || compiler;
