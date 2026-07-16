@@ -409,7 +409,7 @@ const AdminDashboard = () => {
   };
 
   const handleResetRound = async () => {
-    if (window.confirm("WARNING: Are you sure you want to RESET THE ROUND TIMER? This resets event status to waiting and clears active editor sessions, while PRESERVING all participant scores, time taken, and tab switch/copy counts.")) {
+    if (window.confirm("WARNING: Are you sure you want to RESET THE ROUND? This resets event status to WAITING and CLEARS all participant scores, time taken, warnings (tab/copy counts), and submission code while preserving registered user names and roll numbers.")) {
       setIsLoading(true);
       try {
         const usersSnap = await getDocs(collection(db, 'users'));
@@ -417,14 +417,32 @@ const AdminDashboard = () => {
         usersSnap.forEach(docSnap => {
           updatePromises.push(updateDoc(doc(db, 'users', docSnap.id), {
             isFinished: false,
+            score: 0,
+            points: 0,
+            elapsedTimeMs: 0,
+            takenTimeMs: 0,
+            totalSubmissionsCount: 0,
+            tabSwitches: 0,
+            copyPasteCount: 0,
             currentCode: '',
             finalCode: '',
-            selectedQuestionId: null
+            submissions: {},
+            completedQuestions: [],
+            selectedQuestionId: null,
+            selectedLanguage: null,
+            langSubmissionsCount: { c: 0, cpp: 0, python: 0, java: 0 },
+            cumulativeClearedErrors: 0,
+            cumulativeTotalErrors: 0,
+            clearedErrors: 0,
+            totalErrors: 0,
+            remainingErrors: 0,
+            currentLinesCount: 0,
+            targetLinesCount: 0
           }));
         });
         await Promise.all(updatePromises);
         await updateDoc(doc(db, 'settings', 'event'), { status: 'waiting', startTime: null, endTime: null });
-        showPopup("Round has been reset successfully (Scores, time & tab counts preserved).", "success");
+        showPopup("Round has been reset successfully (All scores, time, warnings, and code submissions cleared).", "success");
       } catch (err) {
         console.error(err);
         showPopup("Failed to reset round.", "error");
@@ -615,7 +633,7 @@ const AdminDashboard = () => {
             </div>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', marginTop: '2rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '2rem' }}>
               <button onClick={handleResetRound} className="sidebar-btn" style={{ color: 'var(--accent-pink)', border: '1px solid var(--accent-pink)', maxWidth: '250px', justifyContent: 'center' }}><RefreshCw size={18} style={{ marginRight: '8px' }}/> RESET ROUND</button>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>Resets round status to WAITING and clears active editor sessions while PRESERVING participant scores and completed missions.</p>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>Resets round status to WAITING and CLEARS all participant scores, time taken, warnings, and code submissions while keeping registered users intact.</p>
             </div>
           </div>
         );
