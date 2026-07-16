@@ -1,9 +1,7 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { clearFullUserSession } from '../utils/drafts';
 
 const ThankYouPage = () => {
-  const navigate = useNavigate();
 
   useEffect(() => {
     clearFullUserSession();
@@ -17,16 +15,6 @@ const ThankYouPage = () => {
         <p style={{ color: 'var(--text-primary)', marginBottom: '2rem' }}>
           Thank you for participating in the Debugging Challenge. The event has officially ended.
         </p>
-        <button
-          onClick={() => {
-            clearFullUserSession();
-            navigate('/');
-          }}
-          className="btn-secondary"
-          style={{ padding: '10px 24px', fontSize: '0.9rem', color: 'var(--accent-cyan)', borderColor: 'var(--accent-cyan)' }}
-        >
-          LOGOUT / NEXT PARTICIPANT
-        </button>
       </div>
     </div>
   );

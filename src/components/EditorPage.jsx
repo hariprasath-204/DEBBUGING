@@ -541,7 +541,7 @@ const EditorPage = () => {
             <div style={{ padding: '0.5rem 1rem', background: 'var(--bg-panel-hover)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)' }}>
               
               <div style={{ color: 'var(--accent-cyan)', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                STAGE LANGUAGE: {activeLanguage === 'cpp' ? 'C++' : activeLanguage.toUpperCase()} (MISSION: {question?.title?.toUpperCase() || 'STAGE'})
+                STAGE LANGUAGE: {activeLanguage === 'cpp' ? 'C++' : activeLanguage.toUpperCase()}
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem' }}>

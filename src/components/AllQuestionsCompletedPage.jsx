@@ -54,16 +54,6 @@ const AllQuestionsCompletedPage = () => {
           <div style={{ width: '15px', height: '15px', borderRadius: '50%', background: 'var(--accent-cyan)', animation: 'pulse 1.5s infinite' }}></div>
           <div style={{ width: '15px', height: '15px', borderRadius: '50%', background: 'var(--accent-pink)', animation: 'pulse 1.5s infinite 0.5s' }}></div>
         </div>
-        <button
-          onClick={() => {
-            clearFullUserSession();
-            navigate('/');
-          }}
-          className="btn-secondary"
-          style={{ padding: '10px 24px', fontSize: '0.9rem', color: 'var(--accent-cyan)', borderColor: 'var(--accent-cyan)' }}
-        >
-          LOGOUT / NEXT PARTICIPANT
-        </button>
       </div>
       <style>{`
         @keyframes pulse {
