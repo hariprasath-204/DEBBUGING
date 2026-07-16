@@ -730,7 +730,7 @@ const AdminDashboard = () => {
                           <strong>#{idx + 1}</strong> ID: {item.clientId ? `${item.clientId.slice(0, 8)}...${item.clientId.slice(-4)}` : 'N/A'}
                         </div>
                         <div style={{ fontSize: '0.75rem', color: item.status === 'finished' ? 'var(--accent-magenta)' : '#00f59b', marginTop: '4px' }}>
-                          {item.status === 'finished' ? (item.errorReason || 'EXHAUSTED / LIMIT REACHED') : `ACTIVE | Credits Used Today: ${item.used || 0}/200`}
+                          {item.status === 'finished' ? (item.errorReason || 'EXHAUSTED / LIMIT REACHED') : `ACTIVE | Credits Used Today: ${item.used || 0}/22`}
                         </div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -767,7 +767,7 @@ const AdminDashboard = () => {
                       <div key={idx} style={{ background: 'var(--bg-deep-navy)', padding: '0.8rem 1rem', borderRadius: '6px', border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-primary)' }}>ID: {item.clientId.slice(0, 10)}...{item.clientId.slice(-4)}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#00f59b', marginTop: '4px' }}>Credits Used Today: <strong>{item.used} / 200</strong></div>
+                          <div style={{ fontSize: '0.75rem', color: '#00f59b', marginTop: '4px' }}>Credits Used Today: <strong>{item.used} / 22</strong></div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <span style={{ fontSize: '0.75rem', padding: '3px 8px', borderRadius: '4px', background: 'rgba(0, 245, 155, 0.1)', color: '#00f59b', border: '1px solid rgba(0, 245, 155, 0.3)' }}>NON-FINISHED</span>

@@ -146,6 +146,38 @@ let JDOODLE_KEYS = [
   {
     clientId: "bfed6776eb31dbda2bedd391e7d0f3f1",
     clientSecret: "28c18fe94d2f3e8ad7d8855a63cc590373e94217b78e15287d930fb53aac6d3c"
+  },
+  {
+    clientId: "95128b10793f2e978785b5c7a48b2532",
+    clientSecret: "bd6ac8bc7d5e6d89f1172ff2ce489aa38e7050cb722085bcde0ad37afee933d4"
+  },
+  {
+    clientId: "a78dff5add084e9f4acecc3eccf0b35c",
+    clientSecret: "fe489d0a03ea51ad459d535345cf5fd14f41cc3ce095bfeb3fb56d1f10709b28"
+  },
+  {
+    clientId: "e3c76c74d57b8dd2f9b40f577078d679",
+    clientSecret: "a001032cc04a284282659e9385c71ca6df9ded290aef9550faa84aabdf78d2d"
+  },
+  {
+    clientId: "29b2cb0b825c059c417661b557145e6c",
+    clientSecret: "39f05789a92f7e6f13307106d90eba402c8dee4033d8372f383e24e85cf72e2a"
+  },
+  {
+    clientId: "70599b1ca20da775cf63e6d6548551a4",
+    clientSecret: "48e732af6d87709c970fc73012b6e4d55b9d4947b6e07172c2e2f3c4f8d2393c"
+  },
+  {
+    clientId: "7145d4b497a13c10957c917b6d3fccc9",
+    clientSecret: "58865878c01c13936e81750b97838379039c8c0b5af7dc06c5aea6de4337d046"
+  },
+  {
+    clientId: "ae6954b908c906f88cdf29c15a88bbbb",
+    clientSecret: "63be1070edd3f10acc0411abcff7319f94d12d4571ee3353635b46491cc215e9"
+  },
+  {
+    clientId: "5d34444cf02750332fb8326009fce9da",
+    clientSecret: "3f173d36e4a3e641a60d9d0bc5279b030b505ecc60270c9a0a0bdfe8e2e2faad"
   }
 ];
 
@@ -215,9 +247,9 @@ app.post('/api/jdoodle/status', async (req, res) => {
         const resp = await axios.post('https://api.jdoodle.com/v1/credit-spent', { clientId, clientSecret }, { timeout: 10000 });
         if (resp.data && typeof resp.data.used === 'number') {
           used = resp.data.used;
-          if (used >= 200) {
+          if (used >= 22) {
             status = 'finished';
-            errorReason = `Daily credit quota limit reached (${used}/200 used)`;
+            errorReason = `Daily credit quota limit reached (${used}/22 used)`;
           } else if (status !== 'finished') {
             status = 'non-finished';
             errorReason = null;
@@ -226,14 +258,14 @@ app.post('/api/jdoodle/status', async (req, res) => {
         } else if (resp.data?.statusCode === 429 || resp.data?.statusCode === 401 || resp.data?.error) {
           status = 'finished';
           errorReason = resp.data?.error || `Unauthorized or Limit Exceeded (${resp.data?.statusCode})`;
-          JDOODLE_KEY_STATUS[clientId] = { status, used: 200, lastError: errorReason, checkedAt: Date.now() };
+          JDOODLE_KEY_STATUS[clientId] = { status, used: 22, lastError: errorReason, checkedAt: Date.now() };
         }
       } catch (err) {
         const errMsg = err?.response?.data?.error || err?.message;
         if (errMsg && (errMsg.toLowerCase().includes('daily limit') || errMsg.toLowerCase().includes('quota') || errMsg.toLowerCase().includes('401'))) {
           status = 'finished';
           errorReason = errMsg;
-          JDOODLE_KEY_STATUS[clientId] = { status, used: 200, lastError: errorReason, checkedAt: Date.now() };
+          JDOODLE_KEY_STATUS[clientId] = { status, used: 22, lastError: errorReason, checkedAt: Date.now() };
         } else {
           // Keep active status if it's just a rate limit/network timeout when checking credit status
           status = JDOODLE_KEY_STATUS[clientId]?.status || 'non-finished';
