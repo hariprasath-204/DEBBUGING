@@ -109,7 +109,7 @@ const AdminDashboard = () => {
   const [adminCategoryFilter, setAdminCategoryFilter] = useState('ALL');
   const [reportType, setReportType] = useState('scoresheet'); // 'scoresheet' or 'winners'
   const [reportEventName, setReportEventName] = useState('CODATHAN - DEBUGGING EVENT');
-  const [judgeSignatures, setJudgeSignatures] = useState(['Staff Signature', 'Event Judge Signature', 'HOD Signature']);
+  const [judgeSignatures, setJudgeSignatures] = useState(['Staff Signature']);
   const [newSigTitle, setNewSigTitle] = useState('');
   const [esignMap, setEsignMap] = useState({}); // { [sigTitle]: 'data:image/png;base64,...' }
   const [drawingSigTitle, setDrawingSigTitle] = useState(null);
