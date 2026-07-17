@@ -430,3 +430,10 @@ tr:last-child td {
     display: table-footer-group;
   }
 }
+
+/* Force exact Times New Roman font for Official Print Area and PDF generation */
+#print-area,
+#print-area * {
+  font-family: "Times New Roman", Times, serif !important;
+}
+
