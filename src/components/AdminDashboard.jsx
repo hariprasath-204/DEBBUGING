@@ -1151,15 +1151,15 @@ const AdminDashboard = () => {
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak:    { mode: ['css', 'legacy'], after: '.html2pdf__page-break' }
+            pagebreak:    { mode: ['css'], after: '.html2pdf__page-break' }
           };
           
           html2pdf().set(opt).from(element).save();
         };
 
         const renderSharedPrintableSection = () => {
-          const PAGE_1_ROWS = 15;
-          const PAGE_N_ROWS = 18;
+          const PAGE_1_ROWS = 10;
+          const PAGE_N_ROWS = 15;
           const tableChunks = [];
           
           if (displayUsers.length === 0) {
@@ -1177,10 +1177,10 @@ const AdminDashboard = () => {
           }
 
           const lastChunk = tableChunks[tableChunks.length - 1];
-          const putSignaturesOnNewPage = lastChunk && lastChunk.rows.length > 13;
+          const putSignaturesOnNewPage = lastChunk && lastChunk.rows.length > 8;
 
           const renderTableHeader = () => (
-            <thead className="avoid-break" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+            <thead style={{ display: 'table-header-group' }}>
               <tr style={{ borderBottom: '2px solid black', background: '#f8fafc', color: 'black', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                 <th style={{ width: '9%', padding: '11px 8px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Rank</th>
                 <th style={{ width: '32%', padding: '11px 12px', color: 'black', border: '1.5px solid black', textAlign: 'left', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Participant Name</th>
