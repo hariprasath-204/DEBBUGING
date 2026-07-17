@@ -436,6 +436,7 @@ tr:last-child td {
 #print-area * {
   font-family: "Times New Roman", Times, serif !important;
   box-sizing: border-box;
+  color: black !important;
 }
 
 #print-area table {
@@ -443,6 +444,14 @@ tr:last-child td {
   border-collapse: collapse !important;
   page-break-inside: auto !important;
   break-inside: auto !important;
+  table-layout: fixed !important;
+}
+
+#print-area th,
+#print-area td {
+  vertical-align: middle !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
 }
 
 #print-area tr {
@@ -461,6 +470,17 @@ tr:last-child td {
 #print-area .signatures-container {
   page-break-inside: avoid !important;
   break-inside: avoid !important;
+}
+
+/* Explicit class for clean page breaks inside html2pdf and browser print */
+.html2pdf__page-break {
+  page-break-before: always !important;
+  break-before: page !important;
+  clear: both !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
 }
 
 
