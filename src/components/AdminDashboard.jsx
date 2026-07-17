@@ -1182,20 +1182,20 @@ const AdminDashboard = () => {
           const renderTableHeader = () => (
             <thead style={{ display: 'table-header-group' }}>
               <tr style={{ borderBottom: '2px solid black', background: '#f8fafc', color: 'black', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                <th style={{ width: '9%', padding: '11px 8px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Rank</th>
+                <th style={{ width: '10%', padding: '11px 6px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>Rank</th>
                 <th style={{ width: '32%', padding: '11px 12px', color: 'black', border: '1.5px solid black', textAlign: 'left', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Participant Name</th>
                 <th style={{ width: '21%', padding: '11px 8px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Roll No / Lot</th>
                 <th style={{ width: '13%', padding: '11px 8px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Errors Fixed</th>
-                <th style={{ width: '13%', padding: '11px 8px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Time Taken</th>
+                <th style={{ width: '12%', padding: '11px 8px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Time Taken</th>
                 <th style={{ width: '12%', padding: '11px 8px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Total Score</th>
               </tr>
             </thead>
           );
 
           const renderSignatures = () => (
-            <div className="avoid-break signatures-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '2.8rem', paddingBottom: '0.8rem', flexWrap: 'wrap', gap: '2rem', pageBreakInside: 'avoid', breakInside: 'avoid', color: 'black', width: '100%' }}>
+            <div className="avoid-break signatures-container" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: '3rem', paddingBottom: '0.8rem', flexWrap: 'wrap', gap: '3rem', pageBreakInside: 'avoid', breakInside: 'avoid', color: 'black', width: '100%' }}>
               {judgeSignatures.map((sigTitle, i) => (
-                <div key={i} className="avoid-break" style={{ flex: '1 1 200px', textAlign: 'center', pageBreakInside: 'avoid', breakInside: 'avoid', margin: '0 10px' }}>
+                <div key={i} className="avoid-break" style={{ textAlign: 'center', minWidth: '200px', pageBreakInside: 'avoid', breakInside: 'avoid', margin: '0 10px' }}>
                   {esignMap[sigTitle] ? (
                     <img src={esignMap[sigTitle]} alt={sigTitle} style={{ height: '75px', maxWidth: '220px', objectFit: 'contain', margin: '0 auto', display: 'block', marginBottom: '6px' }} />
                   ) : (
@@ -1214,7 +1214,7 @@ const AdminDashboard = () => {
             <div id="print-area" style={{ background: 'white', color: 'black', padding: '1.2rem', fontFamily: '"Times New Roman", Times, serif', boxSizing: 'border-box' }}>
               {tableChunks.map((chunk, cIdx) => (
                 <React.Fragment key={chunk.pageNum}>
-                  {chunk.isFirstPage ? (
+                  {chunk.isFirstPage && (
                     <>
                       {/* College Header with Logos matching official PDF */}
                       <div className="avoid-break" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2.5px solid black', paddingBottom: '1.2rem', marginBottom: '1.5rem', color: 'black', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
@@ -1245,12 +1245,6 @@ const AdminDashboard = () => {
                         </h3>
                       </div>
                     </>
-                  ) : (
-                    /* Running Header for Subsequent Pages */
-                    <div className="avoid-break" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid black', paddingBottom: '0.6rem', marginBottom: '1.2rem', color: 'black', fontSize: '10pt', fontWeight: 'bold' }}>
-                      <span style={{ textTransform: 'uppercase' }}>{reportEventName}</span>
-                      <span>{reportType === 'scoresheet' ? `${adminCategoryFilter === 'ALL' ? 'Overall' : adminCategoryFilter} ScoreSheet` : 'Top 3 Winners'} (Page {chunk.pageNum})</span>
-                    </div>
                   )}
 
                   {/* Table Chunk for this Page */}
@@ -1269,7 +1263,7 @@ const AdminDashboard = () => {
                           const cat = getStudentCategory(user.rollNo);
                           return (
                             <tr key={user.id} className="avoid-break" style={{ borderBottom: '1px solid black', color: 'black', pageBreakInside: 'avoid', breakInside: 'avoid', pageBreakAfter: 'auto' }}>
-                              <td style={{ width: '9%', padding: '9px 8px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
+                              <td style={{ width: '10%', padding: '9px 6px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
                                 {reportType === 'scoresheet' ? `#${globalIndex + 1}` : (globalIndex === 0 ? '1' : globalIndex === 1 ? '2' : '3')}
                               </td>
                               <td style={{ width: '32%', padding: '9px 12px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'left', wordBreak: 'normal', overflowWrap: 'break-word', verticalAlign: 'middle', fontSize: '10.5pt', lineHeight: '1.3' }}>
@@ -1281,7 +1275,7 @@ const AdminDashboard = () => {
                               <td style={{ width: '13%', padding: '9px 8px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
                                 {(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)} / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}
                               </td>
-                              <td style={{ width: '13%', padding: '9px 8px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
+                              <td style={{ width: '12%', padding: '9px 8px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
                                 {user.elapsedTimeMs ? `${Math.floor(user.elapsedTimeMs / 60000)}m ${Math.floor((user.elapsedTimeMs % 60000) / 1000)}s` : 'N/A'}
                               </td>
                               <td style={{ width: '12%', padding: '9px 8px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '11pt' }}>
@@ -1306,10 +1300,6 @@ const AdminDashboard = () => {
               {putSignaturesOnNewPage && (
                 <>
                   <div className="html2pdf__page-break"></div>
-                  <div className="avoid-break" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid black', paddingBottom: '0.6rem', marginBottom: '2rem', color: 'black', fontSize: '10pt', fontWeight: 'bold' }}>
-                    <span style={{ textTransform: 'uppercase' }}>{reportEventName}</span>
-                    <span>Official Signatures & Certification</span>
-                  </div>
                   {renderSignatures()}
                 </>
               )}
