@@ -1158,7 +1158,7 @@ const AdminDashboard = () => {
         };
 
         const renderSharedPrintableSection = () => {
-          const PAGE_1_ROWS = 10;
+          const PAGE_1_ROWS = 15;
           const PAGE_N_ROWS = 15;
           const tableChunks = [];
           
@@ -1177,17 +1177,17 @@ const AdminDashboard = () => {
           }
 
           const lastChunk = tableChunks[tableChunks.length - 1];
-          const putSignaturesOnNewPage = lastChunk && lastChunk.rows.length > 8;
+          const putSignaturesOnNewPage = false;
 
           const renderTableHeader = () => (
             <thead style={{ display: 'table-header-group' }}>
               <tr style={{ borderBottom: '2px solid black', background: '#f8fafc', color: 'black', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                <th style={{ width: '10%', padding: '11px 6px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>Rank</th>
-                <th style={{ width: '32%', padding: '11px 12px', color: 'black', border: '1.5px solid black', textAlign: 'left', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Participant Name</th>
-                <th style={{ width: '21%', padding: '11px 8px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Roll No / Lot</th>
-                <th style={{ width: '13%', padding: '11px 8px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Errors Fixed</th>
-                <th style={{ width: '12%', padding: '11px 8px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Time Taken</th>
-                <th style={{ width: '12%', padding: '11px 8px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Total Score</th>
+                <th style={{ width: '10%', padding: '9px 6px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>Rank</th>
+                <th style={{ width: '32%', padding: '9px 10px', color: 'black', border: '1.5px solid black', textAlign: 'left', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Participant Name</th>
+                <th style={{ width: '21%', padding: '9px 6px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Roll No / Lot</th>
+                <th style={{ width: '13%', padding: '9px 6px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Errors Fixed</th>
+                <th style={{ width: '12%', padding: '9px 6px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Time Taken</th>
+                <th style={{ width: '12%', padding: '9px 6px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Total Score</th>
               </tr>
             </thead>
           );
@@ -1263,22 +1263,22 @@ const AdminDashboard = () => {
                           const cat = getStudentCategory(user.rollNo);
                           return (
                             <tr key={user.id} className="avoid-break" style={{ borderBottom: '1px solid black', color: 'black', pageBreakInside: 'avoid', breakInside: 'avoid', pageBreakAfter: 'auto' }}>
-                              <td style={{ width: '10%', padding: '9px 6px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
+                              <td style={{ width: '10%', padding: '7px 6px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
                                 {reportType === 'scoresheet' ? `#${globalIndex + 1}` : (globalIndex === 0 ? '1' : globalIndex === 1 ? '2' : '3')}
                               </td>
-                              <td style={{ width: '32%', padding: '9px 12px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'left', wordBreak: 'normal', overflowWrap: 'break-word', verticalAlign: 'middle', fontSize: '10.5pt', lineHeight: '1.3' }}>
+                              <td style={{ width: '32%', padding: '7px 10px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'left', wordBreak: 'normal', overflowWrap: 'break-word', verticalAlign: 'middle', fontSize: '10.5pt', lineHeight: '1.3' }}>
                                 {user.name || 'Anonymous'}
                               </td>
-                              <td style={{ width: '21%', padding: '9px 8px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
+                              <td style={{ width: '21%', padding: '7px 6px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
                                 {user.rollNo || 'N/A'} {cat !== 'OTHER' && `(${cat})`}
                               </td>
-                              <td style={{ width: '13%', padding: '9px 8px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
+                              <td style={{ width: '13%', padding: '7px 6px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
                                 {(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)} / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}
                               </td>
-                              <td style={{ width: '12%', padding: '9px 8px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
+                              <td style={{ width: '12%', padding: '7px 6px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
                                 {user.elapsedTimeMs ? `${Math.floor(user.elapsedTimeMs / 60000)}m ${Math.floor((user.elapsedTimeMs % 60000) / 1000)}s` : 'N/A'}
                               </td>
-                              <td style={{ width: '12%', padding: '9px 8px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '11pt' }}>
+                              <td style={{ width: '12%', padding: '7px 6px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '11pt' }}>
                                 {user.score !== undefined ? user.score : 0}
                               </td>
                             </tr>
