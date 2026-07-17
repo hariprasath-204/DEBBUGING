@@ -1247,14 +1247,16 @@ const AdminDashboard = () => {
             {/* Staff & Judge Signatures across Right Side */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: '4.5rem', paddingBottom: '1.5rem', flexWrap: 'wrap', gap: '3.5rem', pageBreakInside: 'avoid', color: 'black' }}>
               {judgeSignatures.map((sigTitle, i) => (
-                <div key={i} style={{ textAlign: 'center', minWidth: '180px' }}>
+                <div key={i} style={{ textAlign: 'center', minWidth: '220px' }}>
                   {esignMap[sigTitle] ? (
-                    <img src={esignMap[sigTitle]} alt={sigTitle} style={{ height: '50px', objectFit: 'contain', margin: '0 auto', display: 'block', marginBottom: '4px' }} />
+                    <img src={esignMap[sigTitle]} alt={sigTitle} style={{ height: '100px', maxWidth: '240px', objectFit: 'contain', margin: '0 auto', display: 'block', marginBottom: '8px' }} />
                   ) : (
-                    <div style={{ height: '35px' }}></div>
+                    <>
+                      <div style={{ height: '50px' }}></div>
+                      <div style={{ borderBottom: '1.5px solid black', width: '100%', marginBottom: '8px' }}></div>
+                    </>
                   )}
-                  <div style={{ borderBottom: '1.5px solid black', width: '100%', marginBottom: '8px' }}></div>
-                  <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: 'black' }}>{sigTitle}</div>
+                  <div style={{ fontWeight: 'bold', fontSize: '1.05rem', color: 'black' }}>{sigTitle}</div>
                 </div>
               ))}
             </div>
@@ -1381,8 +1383,8 @@ const AdminDashboard = () => {
 
                         {/* Preview of E-Sign if exists */}
                         {esignMap[sig] ? (
-                          <div style={{ background: 'white', padding: '6px', borderRadius: '4px', textAlign: 'center', position: 'relative' }}>
-                            <img src={esignMap[sig]} alt={sig} style={{ height: '48px', objectFit: 'contain', margin: '0 auto', display: 'block' }} />
+                          <div style={{ background: 'white', padding: '10px', borderRadius: '4px', textAlign: 'center', position: 'relative' }}>
+                            <img src={esignMap[sig]} alt={sig} style={{ height: '80px', maxWidth: '100%', objectFit: 'contain', margin: '0 auto', display: 'block' }} />
                             <button
                               onClick={() => setEsignMap(prev => { const copy = { ...prev }; delete copy[sig]; return copy; })}
                               style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(255,0,0,0.8)', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.7rem', padding: '2px 6px', cursor: 'pointer' }}
