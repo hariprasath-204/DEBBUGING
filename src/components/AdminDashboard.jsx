@@ -1158,8 +1158,8 @@ const AdminDashboard = () => {
         };
 
         const renderSharedPrintableSection = () => {
-          const PAGE_1_ROWS = 15;
-          const PAGE_N_ROWS = 15;
+          const PAGE_1_ROWS = 18;
+          const PAGE_N_ROWS = 24;
           const tableChunks = [];
           
           if (displayUsers.length === 0) {
@@ -1182,29 +1182,29 @@ const AdminDashboard = () => {
           const renderTableHeader = () => (
             <thead style={{ display: 'table-header-group' }}>
               <tr style={{ borderBottom: '2px solid black', background: '#f8fafc', color: 'black', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                <th style={{ width: '10%', padding: '9px 6px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>Rank</th>
-                <th style={{ width: '32%', padding: '9px 10px', color: 'black', border: '1.5px solid black', textAlign: 'left', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Participant Name</th>
-                <th style={{ width: '21%', padding: '9px 6px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Roll No / Lot</th>
-                <th style={{ width: '13%', padding: '9px 6px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Errors Fixed</th>
-                <th style={{ width: '12%', padding: '9px 6px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Time Taken</th>
-                <th style={{ width: '12%', padding: '9px 6px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10.5pt', verticalAlign: 'middle' }}>Total Score</th>
+                <th style={{ width: '10%', padding: '8px 5px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10pt', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>Rank</th>
+                <th style={{ width: '32%', padding: '8px 8px', color: 'black', border: '1.5px solid black', textAlign: 'left', fontWeight: 'bold', fontSize: '10pt', verticalAlign: 'middle' }}>Participant Name</th>
+                <th style={{ width: '21%', padding: '8px 5px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10pt', verticalAlign: 'middle' }}>Roll No / Lot</th>
+                <th style={{ width: '13%', padding: '8px 5px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10pt', verticalAlign: 'middle' }}>Errors Fixed</th>
+                <th style={{ width: '12%', padding: '8px 5px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10pt', verticalAlign: 'middle' }}>Time Taken</th>
+                <th style={{ width: '12%', padding: '8px 5px', color: 'black', border: '1.5px solid black', textAlign: 'center', fontWeight: 'bold', fontSize: '10pt', verticalAlign: 'middle' }}>Total Score</th>
               </tr>
             </thead>
           );
 
           const renderSignatures = () => (
-            <div className="avoid-break signatures-container" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: '3rem', paddingBottom: '0.8rem', flexWrap: 'wrap', gap: '3rem', pageBreakInside: 'avoid', breakInside: 'avoid', color: 'black', width: '100%' }}>
+            <div className="avoid-break signatures-container" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: '2.5rem', paddingBottom: '0.6rem', flexWrap: 'wrap', gap: '3rem', pageBreakInside: 'avoid', breakInside: 'avoid', color: 'black', width: '100%' }}>
               {judgeSignatures.map((sigTitle, i) => (
-                <div key={i} className="avoid-break" style={{ textAlign: 'center', minWidth: '200px', pageBreakInside: 'avoid', breakInside: 'avoid', margin: '0 10px' }}>
+                <div key={i} className="avoid-break" style={{ textAlign: 'center', minWidth: '190px', pageBreakInside: 'avoid', breakInside: 'avoid', margin: '0 10px' }}>
                   {esignMap[sigTitle] ? (
-                    <img src={esignMap[sigTitle]} alt={sigTitle} style={{ height: '75px', maxWidth: '220px', objectFit: 'contain', margin: '0 auto', display: 'block', marginBottom: '6px' }} />
+                    <img src={esignMap[sigTitle]} alt={sigTitle} style={{ height: '70px', maxWidth: '210px', objectFit: 'contain', margin: '0 auto', display: 'block', marginBottom: '5px' }} />
                   ) : (
                     <>
-                      <div style={{ height: '60px' }}></div>
-                      <div style={{ borderBottom: '1.5px solid black', width: '85%', margin: '0 auto 6px auto' }}></div>
+                      <div style={{ height: '55px' }}></div>
+                      <div style={{ borderBottom: '1.5px solid black', width: '85%', margin: '0 auto 5px auto' }}></div>
                     </>
                   )}
-                  <div style={{ fontWeight: 'bold', fontSize: '10.5pt', color: 'black' }}>{sigTitle}</div>
+                  <div style={{ fontWeight: 'bold', fontSize: '10pt', color: 'black' }}>{sigTitle}</div>
                 </div>
               ))}
             </div>
@@ -1253,7 +1253,7 @@ const AdminDashboard = () => {
                     <tbody>
                       {chunk.rows.length === 0 ? (
                         <tr className="avoid-break" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                          <td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: 'black', border: '1px solid black', fontSize: '10.5pt' }}>
+                          <td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: 'black', border: '1px solid black', fontSize: '10pt' }}>
                             No participants found for this report criteria.
                           </td>
                         </tr>
@@ -1263,22 +1263,22 @@ const AdminDashboard = () => {
                           const cat = getStudentCategory(user.rollNo);
                           return (
                             <tr key={user.id} className="avoid-break" style={{ borderBottom: '1px solid black', color: 'black', pageBreakInside: 'avoid', breakInside: 'avoid', pageBreakAfter: 'auto' }}>
-                              <td style={{ width: '10%', padding: '7px 6px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
+                              <td style={{ width: '10%', padding: '6px 5px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10pt' }}>
                                 {reportType === 'scoresheet' ? `#${globalIndex + 1}` : (globalIndex === 0 ? '1' : globalIndex === 1 ? '2' : '3')}
                               </td>
-                              <td style={{ width: '32%', padding: '7px 10px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'left', wordBreak: 'normal', overflowWrap: 'break-word', verticalAlign: 'middle', fontSize: '10.5pt', lineHeight: '1.3' }}>
+                              <td style={{ width: '32%', padding: '6px 8px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'left', wordBreak: 'normal', overflowWrap: 'break-word', verticalAlign: 'middle', fontSize: '10pt', lineHeight: '1.25' }}>
                                 {user.name || 'Anonymous'}
                               </td>
-                              <td style={{ width: '21%', padding: '7px 6px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
+                              <td style={{ width: '21%', padding: '6px 5px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10pt' }}>
                                 {user.rollNo || 'N/A'} {cat !== 'OTHER' && `(${cat})`}
                               </td>
-                              <td style={{ width: '13%', padding: '7px 6px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
+                              <td style={{ width: '13%', padding: '6px 5px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10pt' }}>
                                 {(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)} / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}
                               </td>
-                              <td style={{ width: '12%', padding: '7px 6px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
+                              <td style={{ width: '12%', padding: '6px 5px', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10pt' }}>
                                 {user.elapsedTimeMs ? `${Math.floor(user.elapsedTimeMs / 60000)}m ${Math.floor((user.elapsedTimeMs % 60000) / 1000)}s` : 'N/A'}
                               </td>
-                              <td style={{ width: '12%', padding: '7px 6px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '11pt' }}>
+                              <td style={{ width: '12%', padding: '6px 5px', fontWeight: 'bold', color: 'black', border: '1px solid black', textAlign: 'center', verticalAlign: 'middle', fontSize: '10.5pt' }}>
                                 {user.score !== undefined ? user.score : 0}
                               </td>
                             </tr>
