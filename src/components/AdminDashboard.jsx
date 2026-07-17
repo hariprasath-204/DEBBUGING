@@ -18,6 +18,11 @@ const AdminDashboard = () => {
   const [selectedSubUserId, setSelectedSubUserId] = useState(null);
   const [selectedSubPhase, setSelectedSubPhase] = useState('c');
   const [adminCategoryFilter, setAdminCategoryFilter] = useState('ALL');
+  const [reportType, setReportType] = useState('scoresheet'); // 'scoresheet' or 'winners'
+  const [reportEventName, setReportEventName] = useState('CODATHAN - DEBUGGING EVENT');
+  const [judgeSignatures, setJudgeSignatures] = useState(['Staff Signature', 'Event Judge Signature', 'HOD Signature']);
+  const [newSigTitle, setNewSigTitle] = useState('');
+  
   
   const showPopup = (message, type = 'info') => setPopup({ message, type });
 
@@ -1014,114 +1019,278 @@ const AdminDashboard = () => {
         );
 
       case 'results':
-        const sortedUsers = getSortedParticipantsByCategory(liveUsers, adminCategoryFilter);
+        const filteredUsers = getSortedParticipantsByCategory(liveUsers, adminCategoryFilter);
+        const displayUsers = reportType === 'winners' ? filteredUsers.slice(0, 3) : filteredUsers;
         const ugCount = getSortedParticipantsByCategory(liveUsers, 'UG').length;
         const pgCount = getSortedParticipantsByCategory(liveUsers, 'PG').length;
         const allCount = getSortedParticipantsByCategory(liveUsers, 'ALL').length;
+
+        const handleAddJudgeSig = () => {
+          if (newSigTitle.trim()) {
+            setJudgeSignatures([...judgeSignatures, newSigTitle.trim()]);
+            setNewSigTitle('');
+          }
+        };
+
+        const handleRemoveJudgeSig = (idxToRemove) => {
+          setJudgeSignatures(judgeSignatures.filter((_, idx) => idx !== idxToRemove));
+        };
+
         return (
           <div className="glass-panel" style={{ padding: '2rem' }}>
-            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-              <h2 className="glow-text-cyan" style={{ margin: 0 }}>RESULTS & PDF REPORT</h2>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  onClick={() => setAdminCategoryFilter('ALL')}
-                  className={adminCategoryFilter === 'ALL' ? 'btn-primary' : 'btn-secondary'}
-                  style={{ padding: '6px 14px', fontSize: '0.85rem' }}
-                >
-                  ALL ({allCount})
+            {/* ── Screen Control Panel (no-print) ───────────────────────── */}
+            <div className="no-print" style={{ marginBottom: '2rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                  <h2 className="glow-text-cyan" style={{ margin: 0, fontSize: '1.6rem' }}>OFFICIAL PDF REPORT GENERATOR</h2>
+                  <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
+                    Generate college-formatted ScoreSheets and Top 3 Winner lists with Judge signature blocks matching NAAC/ISO format.
+                  </p>
+                </div>
+                <button onClick={() => window.print()} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px' }}>
+                  <FileDown size={19} /> DOWNLOAD & PRINT OFFICIAL PDF
                 </button>
-                <button
-                  onClick={() => setAdminCategoryFilter('UG')}
-                  className={adminCategoryFilter === 'UG' ? 'btn-primary' : 'btn-secondary'}
-                  style={{ padding: '6px 14px', fontSize: '0.85rem', borderColor: '#00f0ff', color: adminCategoryFilter === 'UG' ? '#040711' : '#00f0ff', background: adminCategoryFilter === 'UG' ? '#00f0ff' : 'transparent' }}
-                >
-                  UG ({ugCount})
-                </button>
-                <button
-                  onClick={() => setAdminCategoryFilter('PG')}
-                  className={adminCategoryFilter === 'PG' ? 'btn-primary' : 'btn-secondary'}
-                  style={{ padding: '6px 14px', fontSize: '0.85rem', borderColor: '#ff00ff', color: adminCategoryFilter === 'PG' ? '#040711' : '#ff00ff', background: adminCategoryFilter === 'PG' ? '#ff00ff' : 'transparent' }}
-                >
-                  PG ({pgCount})
-                </button>
-                <button onClick={() => window.print()} className="btn-primary" style={{ marginLeft: '1rem' }}><FileDown size={18} style={{ marginRight: '8px' }}/> DOWNLOAD PDF</button>
               </div>
-            </div>
-            <div id="print-area">
-              <h1 style={{ textAlign: 'center', marginBottom: '0.3rem' }}>
-                {adminCategoryFilter === 'UG' ? 'OFFICIAL UG LEADERBOARD & EVALUATION REPORT (UNDERGRADUATE)' : adminCategoryFilter === 'PG' ? 'OFFICIAL PG LEADERBOARD & EVALUATION REPORT (POSTGRADUATE)' : 'OFFICIAL EVENT LEADERBOARD & EVALUATION REPORT (COMBINED)'}
-              </h1>
-              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                {adminCategoryFilter === 'UG' ? 'Filtered by Undergraduate students (e.g. 24UCA101 format)' : adminCategoryFilter === 'PG' ? 'Filtered by Postgraduate students (e.g. 25PCA101, 26PCA101 format)' : 'Showing all registered participants across UG & PG.'}
-              </p>
-              
-              {/* Comprehensive Scoring System Breakdown Card */}
-              <div style={{ background: 'var(--bg-deep-navy)', padding: '1.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '2rem' }}>
-                <h3 style={{ color: 'var(--accent-cyan)', marginBottom: '1rem', fontSize: '1.1rem' }}>
-                  SCORING SYSTEM & EVALUATION CRITERIA
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', fontSize: '0.88rem', lineHeight: '1.5', color: 'var(--text-secondary)' }}>
-                  <div style={{ background: 'rgba(0, 240, 255, 0.04)', padding: '1rem', borderRadius: '6px', border: '1px solid rgba(0, 240, 255, 0.15)' }}>
-                    <strong style={{ color: 'var(--accent-cyan)', display: 'block', marginBottom: '0.3rem' }}>1. BASE OUTPUT SCORE (+POINTS GIVEN)</strong>
-                    Awarded when code compiles and program output exactly matches the Expected Output. Incorrect output yields 0 points.
-                  </div>
-                  <div style={{ background: 'rgba(0, 245, 155, 0.04)', padding: '1rem', borderRadius: '6px', border: '1px solid rgba(0, 245, 155, 0.15)' }}>
-                    <strong style={{ color: '#00f59b', display: 'block', marginBottom: '0.3rem' }}>2. NO EFFICIENCY BONUS</strong>
-                    Participants are awarded exact mission points without bonus calculations or line count deductions upon successful submission.
-                  </div>
-                  <div style={{ background: 'rgba(244, 63, 94, 0.04)', padding: '1rem', borderRadius: '6px', border: '1px solid rgba(244, 63, 94, 0.15)' }}>
-                    <strong style={{ color: 'var(--accent-pink)', display: 'block', marginBottom: '0.3rem' }}>3. TAB SWITCH PENALTY (-2 PTS / SWITCH)</strong>
-                    Every time a participant switches tabs or loses browser window focus, a -2 point deduction is applied directly to their score.
-                  </div>
-                  <div style={{ background: 'rgba(255, 0, 85, 0.04)', padding: '1rem', borderRadius: '6px', border: '1px solid rgba(255, 0, 85, 0.15)' }}>
-                    <strong style={{ color: 'var(--accent-magenta)', display: 'block', marginBottom: '0.3rem' }}>4. NO DISQUALIFICATION FLAG</strong>
-                    Tab switching and copy/pasting apply continuous point deductions and staff warnings without automatic disqualification.
+
+              {/* Controls Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', background: 'var(--bg-deep-navy)', padding: '1.2rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                {/* 1. Report Type Selector */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--accent-cyan)', fontWeight: 'bold', marginBottom: '8px', letterSpacing: '1px' }}>
+                    1. REPORT FORMAT TYPE
+                  </label>
+                  <div style={{ display: 'flex', gap: '0.6rem' }}>
+                    <button
+                      onClick={() => setReportType('scoresheet')}
+                      className={reportType === 'scoresheet' ? 'btn-primary' : 'btn-secondary'}
+                      style={{ flex: 1, padding: '8px 12px', fontSize: '0.85rem' }}
+                    >
+                      📊 Full ScoreSheet
+                    </button>
+                    <button
+                      onClick={() => setReportType('winners')}
+                      className={reportType === 'winners' ? 'btn-primary' : 'btn-secondary'}
+                      style={{ flex: 1, padding: '8px 12px', fontSize: '0.85rem', background: reportType === 'winners' ? 'linear-gradient(135deg, #ffd700, #ff8800)' : 'transparent', color: reportType === 'winners' ? '#000' : 'var(--text-primary)', borderColor: reportType === 'winners' ? '#ffd700' : 'var(--border-subtle)' }}
+                    >
+                      🏆 Top 3 Winners Sheet
+                    </button>
                   </div>
                 </div>
-                <div style={{ marginTop: '0.8rem', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                  * Tie-Breaker Policy: When participants achieve identical total scores, ranking is decided by faster submission time.
+
+                {/* 2. Category Filter */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--accent-cyan)', fontWeight: 'bold', marginBottom: '8px', letterSpacing: '1px' }}>
+                    2. STUDENT CATEGORY
+                  </label>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button
+                      onClick={() => setAdminCategoryFilter('ALL')}
+                      className={adminCategoryFilter === 'ALL' ? 'btn-primary' : 'btn-secondary'}
+                      style={{ flex: 1, padding: '8px 10px', fontSize: '0.82rem' }}
+                    >
+                      ALL ({allCount})
+                    </button>
+                    <button
+                      onClick={() => setAdminCategoryFilter('UG')}
+                      className={adminCategoryFilter === 'UG' ? 'btn-primary' : 'btn-secondary'}
+                      style={{ flex: 1, padding: '8px 10px', fontSize: '0.82rem', borderColor: '#00f0ff', color: adminCategoryFilter === 'UG' ? '#040711' : '#00f0ff', background: adminCategoryFilter === 'UG' ? '#00f0ff' : 'transparent' }}
+                    >
+                      UG ({ugCount})
+                    </button>
+                    <button
+                      onClick={() => setAdminCategoryFilter('PG')}
+                      className={adminCategoryFilter === 'PG' ? 'btn-primary' : 'btn-secondary'}
+                      style={{ flex: 1, padding: '8px 10px', fontSize: '0.82rem', borderColor: '#ff00ff', color: adminCategoryFilter === 'PG' ? '#040711' : '#ff00ff', background: adminCategoryFilter === 'PG' ? '#ff00ff' : 'transparent' }}
+                    >
+                      PG ({pgCount})
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3. Event Title Input */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--accent-cyan)', fontWeight: 'bold', marginBottom: '8px', letterSpacing: '1px' }}>
+                    3. EVENT TITLE HEADER
+                  </label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={reportEventName}
+                    onChange={(e) => setReportEventName(e.target.value)}
+                    placeholder="e.g. CODATHAN - DEBUGGING EVENT"
+                    style={{ padding: '8px 12px', fontSize: '0.9rem' }}
+                  />
+                </div>
+
+                {/* 4. Judge Signatures Management */}
+                <div style={{ gridColumn: '1 / -1', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--accent-cyan)', fontWeight: 'bold', marginBottom: '8px', letterSpacing: '1px' }}>
+                    4. JUDGE & STAFF SIGNATURE BLOCKS (FOR PRINTED SHEET)
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', marginBottom: '10px' }}>
+                    {judgeSignatures.map((sig, i) => (
+                      <div key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(0, 240, 255, 0.12)', border: '1px solid var(--accent-cyan)', padding: '5px 12px', borderRadius: '20px', fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                        <span>✍️ {sig}</span>
+                        <button onClick={() => handleRemoveJudgeSig(i)} style={{ background: 'transparent', border: 'none', color: 'var(--accent-pink)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}>
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.6rem', maxWidth: '500px' }}>
+                    <input
+                      type="text"
+                      className="input-field"
+                      value={newSigTitle}
+                      onChange={(e) => setNewSigTitle(e.target.value)}
+                      placeholder="Add judge or staff title (e.g. Dr. A. Sharma - Judge 1)"
+                      style={{ padding: '8px 12px', fontSize: '0.88rem' }}
+                    />
+                    <button onClick={handleAddJudgeSig} className="btn-secondary" style={{ padding: '8px 16px', whiteSpace: 'nowrap' }}>
+                      + Add Signature Box
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Printable Area (#print-area) exact to @pdf format ─────── */}
+            <div id="print-area" style={{ background: 'white', color: 'black', padding: '1rem' }}>
+              {/* College Header with Logos matching official PDF */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2.5px solid black', paddingBottom: '1.2rem', marginBottom: '1.5rem', color: 'black' }}>
+                <img src="/college-logo.png" alt="College Logo" style={{ width: '90px', height: '90px', objectFit: 'contain' }} />
+                <div style={{ textAlign: 'center', flex: 1, padding: '0 1rem', color: 'black' }}>
+                  <div style={{ fontWeight: '900', fontSize: '1.18rem', letterSpacing: '3px' }}>SOFTECH</div>
+                  <div style={{ fontWeight: '800', fontSize: '1.08rem', margin: '3px 0' }}>DEPARTMENT OF COMPUTER APPLICATIONS</div>
+                  <div style={{ fontWeight: '900', fontSize: '1.35rem', margin: '4px 0' }}>AYYA NADAR JANAKI AMMAL COLLEGE</div>
+                  <div style={{ fontSize: '0.68rem', lineHeight: '1.35', fontWeight: '500', maxWidth: '680px', margin: '0 auto' }}>
+                    (Autonomous, Affiliated to Madurai Kamaraj University, Madurai, Re-accredited (4th Cycle) with 'A+' Grade
+                    (CGPA 3.48 out of 4) by NAAC, Recognized as College of Excellence and Mentor Institution by UGC, STAR College by DBT
+                    and Ranked 72nd at National Level in NIRF 2025 and DST-FIST (2023) Supported & An ISO 9001:2015 & ISO 21001:2018 Certified Institution)
+                  </div>
+                  <div style={{ fontWeight: '800', fontSize: '0.88rem', marginTop: '4px' }}>SIVAKASI - 626 124.</div>
+                </div>
+                <img src="/dept-logo.png" alt="Dept Logo" style={{ width: '90px', height: '90px', objectFit: 'contain' }} />
+              </div>
+
+              {/* Event & Sheet Title Subheading */}
+              <div style={{ textAlign: 'center', marginBottom: '1.8rem', color: 'black' }}>
+                <h2 style={{ fontSize: '1.35rem', fontWeight: 'bold', margin: '0 0 0.4rem 0', color: 'black', textTransform: 'uppercase' }}>
+                  {reportEventName}
+                </h2>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0, color: 'black', textDecoration: 'underline' }}>
+                  {reportType === 'scoresheet'
+                    ? `${adminCategoryFilter === 'ALL' ? 'Overall' : adminCategoryFilter} ScoreSheet`
+                    : `Top 3 Winners (${adminCategoryFilter === 'ALL' ? 'Overall' : adminCategoryFilter})`}
+                </h3>
+              </div>
+
+              {/* Screen-Only Scoring Breakdown Info (no-print) */}
+              <div className="no-print" style={{ background: 'var(--bg-deep-navy)', padding: '1.2rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '2rem' }}>
+                <h4 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.6rem 0', fontSize: '0.95rem' }}>
+                  ℹ️ Official Scoring Criteria (Hidden when printed):
+                </h4>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.8rem' }}>
+                  <div>• Base Output: +Points on exact match</div>
+                  <div>• Penalty: -2 pts per Tab Switch</div>
+                  <div>• Tie-Breaker: Fastest completion time</div>
                 </div>
               </div>
 
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              {/* Official Table */}
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: 'black' }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid var(--accent-cyan)' }}>
-                    <th style={{ padding: '1rem' }}>RANK</th>
-                    <th style={{ padding: '1rem' }}>LOT / ROLL NO</th>
-                    <th style={{ padding: '1rem' }}>NAME</th>
-                    <th style={{ padding: '1rem' }}>TOTAL SCORE</th>
-                    <th style={{ padding: '1rem' }}>ERRORS FIXED</th>
-                    <th style={{ padding: '1rem' }}>TIME TAKEN</th>
-                    <th style={{ padding: '1rem' }}>CHEATING FLAGS</th>
+                  <tr style={{ borderBottom: '2px solid black', background: 'rgba(0,0,0,0.04)', color: 'black' }}>
+                    {reportType === 'scoresheet' ? (
+                      <>
+                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Team / Rank</th>
+                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Participant Name</th>
+                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Roll No / Lot</th>
+                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Language</th>
+                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Errors Fixed</th>
+                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Time Taken</th>
+                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Warnings</th>
+                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Total Score</th>
+                      </>
+                    ) : (
+                      <>
+                        <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Rank</th>
+                        <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Participant Name</th>
+                        <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Roll No / Lot</th>
+                        <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Language</th>
+                        <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Errors Fixed</th>
+                        <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Time Taken</th>
+                        <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Total Score</th>
+                      </>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedUsers.map((user, idx) => {
-                    const cat = getStudentCategory(user.rollNo);
-                    return (
-                    <tr key={user.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '1rem', fontWeight: 'bold' }}>#{idx + 1}</td>
-                      <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>{user.rollNo}</span>
-                        {cat === 'UG' && <span style={{ padding: '1px 6px', borderRadius: '10px', fontSize: '0.7rem', background: 'rgba(0, 240, 255, 0.15)', color: '#00f0ff', border: '1px solid #00f0ff' }}>UG</span>}
-                        {cat === 'PG' && <span style={{ padding: '1px 6px', borderRadius: '10px', fontSize: '0.7rem', background: 'rgba(255, 0, 255, 0.15)', color: '#ff00ff', border: '1px solid #ff00ff' }}>PG</span>}
-                      </td>
-                      <td style={{ padding: '1rem', fontWeight: 'bold' }}>{user.name}</td>
-                      <td style={{ padding: '1rem', fontWeight: 'bold', color: user.score < 0 ? 'var(--accent-magenta)' : 'var(--accent-cyan)' }}>{user.score}</td>
-                      <td style={{ padding: '1rem' }}>
-                        {(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)} / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        {user.elapsedTimeMs ? `${Math.floor(user.elapsedTimeMs / 60000)}m ${Math.floor((user.elapsedTimeMs % 60000) / 1000)}s` : 'N/A'}
-                      </td>
-                      <td style={{ padding: '1rem', color: (user.tabSwitches > 2 || user.copyPasteCount > 2) ? 'var(--accent-magenta)' : 'var(--text-secondary)' }}>
-                        Tabs: {user.tabSwitches || 0} | Copy: {user.copyPasteCount || 0}
+                  {displayUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={reportType === 'scoresheet' ? "8" : "7"} style={{ padding: '2rem', textAlign: 'center', color: 'black', border: '1px solid black' }}>
+                        No participants found for this report criteria.
                       </td>
                     </tr>
-                  );
-                })}
+                  ) : (
+                    displayUsers.map((user, idx) => {
+                      const cat = getStudentCategory(user.rollNo);
+                      return (
+                        <tr key={user.id} style={{ borderBottom: '1px solid black', color: 'black' }}>
+                          {reportType === 'scoresheet' ? (
+                            <>
+                              <td style={{ padding: '10px', fontWeight: 'bold', color: 'black', border: '1px solid black' }}>#{idx + 1}</td>
+                              <td style={{ padding: '10px', fontWeight: 'bold', color: 'black', border: '1px solid black' }}>{user.name || 'Anonymous'}</td>
+                              <td style={{ padding: '10px', color: 'black', border: '1px solid black' }}>
+                                {user.rollNo || 'N/A'} {cat !== 'OTHER' && `(${cat})`}
+                              </td>
+                              <td style={{ padding: '10px', textTransform: 'uppercase', color: 'black', border: '1px solid black' }}>{user.selectedLanguage || 'C'}</td>
+                              <td style={{ padding: '10px', color: 'black', border: '1px solid black' }}>
+                                {(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)} / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}
+                              </td>
+                              <td style={{ padding: '10px', color: 'black', border: '1px solid black' }}>
+                                {user.elapsedTimeMs ? `${Math.floor(user.elapsedTimeMs / 60000)}m ${Math.floor((user.elapsedTimeMs % 60000) / 1000)}s` : 'N/A'}
+                              </td>
+                              <td style={{ padding: '10px', color: 'black', border: '1px solid black' }}>
+                                Tabs: {user.tabSwitches || 0} | Copy: {user.copyPasteCount || 0}
+                              </td>
+                              <td style={{ padding: '10px', fontWeight: 'bold', color: 'black', border: '1px solid black', fontSize: '1.05rem' }}>{user.score !== undefined ? user.score : 0}</td>
+                            </>
+                          ) : (
+                            <>
+                              <td style={{ padding: '12px', fontWeight: 'bold', color: 'black', border: '1px solid black', fontSize: '1.1rem' }}>
+                                {idx === 0 ? '1' : idx === 1 ? '2' : '3'}
+                              </td>
+                              <td style={{ padding: '12px', fontWeight: 'bold', color: 'black', border: '1px solid black', fontSize: '1.05rem' }}>{user.name || 'Anonymous'}</td>
+                              <td style={{ padding: '12px', color: 'black', border: '1px solid black' }}>
+                                {user.rollNo || 'N/A'} {cat !== 'OTHER' && `(${cat})`}
+                              </td>
+                              <td style={{ padding: '12px', textTransform: 'uppercase', color: 'black', border: '1px solid black' }}>{user.selectedLanguage || 'C'}</td>
+                              <td style={{ padding: '12px', color: 'black', border: '1px solid black' }}>
+                                {(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)} / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}
+                              </td>
+                              <td style={{ padding: '12px', color: 'black', border: '1px solid black' }}>
+                                {user.elapsedTimeMs ? `${Math.floor(user.elapsedTimeMs / 60000)}m ${Math.floor((user.elapsedTimeMs % 60000) / 1000)}s` : 'N/A'}
+                              </td>
+                              <td style={{ padding: '12px', fontWeight: 'bold', color: 'black', border: '1px solid black', fontSize: '1.1rem' }}>{user.score !== undefined ? user.score : 0}</td>
+                            </>
+                          )}
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
+
+              {/* Judge Signature Blocks across Bottom */}
+              <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-end', marginTop: '4.5rem', paddingBottom: '1.5rem', flexWrap: 'wrap', gap: '3rem', pageBreakInside: 'avoid', color: 'black' }}>
+                {judgeSignatures.map((sigTitle, i) => (
+                  <div key={i} style={{ textAlign: 'center', minWidth: '200px' }}>
+                    <div style={{ borderBottom: '1.5px solid black', width: '100%', marginBottom: '8px', height: '35px' }}></div>
+                    <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: 'black' }}>{sigTitle}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         );

@@ -394,15 +394,18 @@ tr:last-child td {
 }
 
 @media print {
-  body {
+  body, html, #root {
     background: white !important;
     color: black !important;
+    overflow: visible !important;
+    height: auto !important;
   }
   .glass-panel {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     color: black !important;
+    padding: 0 !important;
   }
   .no-print {
     display: none !important;
@@ -410,5 +413,20 @@ tr:last-child td {
   * {
     color: black !important;
     text-shadow: none !important;
+  }
+  table {
+    page-break-inside: auto;
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tfoot {
+    display: table-footer-group;
   }
 }
