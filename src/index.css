@@ -477,7 +477,7 @@ tr:last-child td {
   page-break-before: always !important;
   break-before: page !important;
   clear: both !important;
-  height: 0 !important;
+  height: 1px !important;
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;

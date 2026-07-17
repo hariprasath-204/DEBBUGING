@@ -1151,7 +1151,7 @@ const AdminDashboard = () => {
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak:    { mode: ['css'], after: '.html2pdf__page-break' }
+            pagebreak:    { mode: ['css'], before: '.html2pdf__page-break' }
           };
           
           html2pdf().set(opt).from(element).save();
