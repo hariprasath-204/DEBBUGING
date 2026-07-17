@@ -7,7 +7,94 @@ import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
 import { syncClock, getNow } from '../utils/timeSync';
 import { sortParticipants, getStudentCategory, getSortedParticipantsByCategory } from '../utils/ranking';
-import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2, RefreshCw, Edit, Award, Sparkles, GraduationCap } from 'lucide-react';
+import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2, RefreshCw, Edit, Award, Sparkles, GraduationCap, PenTool, Upload, CheckCircle, Image, X } from 'lucide-react';
+
+const SignatureDrawingPad = ({ sigTitle, onClose, onSave }) => {
+  const canvasRef = React.useRef(null);
+  const [isDrawing, setIsDrawing] = React.useState(false);
+
+  const startDrawing = (e) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+    const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+  };
+
+  const draw = (e) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+    const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const handleSave = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dataUrl = canvas.toDataURL('image/png');
+    onSave(sigTitle, dataUrl);
+  };
+
+  return (
+    <div className="no-print" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
+      <div style={{ background: 'var(--bg-deep-navy)', border: '2px solid var(--accent-cyan)', borderRadius: 'var(--radius-sm)', padding: '1.5rem', width: '90%', maxWidth: '500px', boxShadow: '0 0 30px rgba(0, 240, 255, 0.3)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h3 className="glow-text-cyan" style={{ margin: 0, fontSize: '1.1rem' }}>✍️ Draw Signature: {sigTitle}</h3>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={20} /></button>
+        </div>
+        <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '0.8rem' }}>
+          Use mouse or finger to draw your digital signature inside the white box below:
+        </p>
+        <div style={{ background: 'white', borderRadius: '4px', border: '2px dashed #999', overflow: 'hidden', marginBottom: '1rem' }}>
+          <canvas
+            ref={canvasRef}
+            width={450}
+            height={180}
+            style={{ display: 'block', width: '100%', height: '180px', cursor: 'crosshair', touchAction: 'none' }}
+            onMouseDown={startDrawing}
+            onMouseMove={draw}
+            onMouseUp={stopDrawing}
+            onMouseLeave={stopDrawing}
+            onTouchStart={startDrawing}
+            onTouchMove={draw}
+            onTouchEnd={stopDrawing}
+          />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+          <button onClick={clearCanvas} className="btn-secondary" style={{ flex: 1, padding: '10px' }}>
+            Clear Pad
+          </button>
+          <button onClick={handleSave} className="btn-primary" style={{ flex: 1, padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            <CheckCircle size={16} /> Save & Apply E-Sign
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('questions');
@@ -22,6 +109,18 @@ const AdminDashboard = () => {
   const [reportEventName, setReportEventName] = useState('CODATHAN - DEBUGGING EVENT');
   const [judgeSignatures, setJudgeSignatures] = useState(['Staff Signature', 'Event Judge Signature', 'HOD Signature']);
   const [newSigTitle, setNewSigTitle] = useState('');
+  const [esignMap, setEsignMap] = useState({}); // { [sigTitle]: 'data:image/png;base64,...' }
+  const [drawingSigTitle, setDrawingSigTitle] = useState(null);
+
+  const handleFileUpload = (sigTitle, e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setEsignMap(prev => ({ ...prev, [sigTitle]: event.target.result }));
+    };
+    reader.readAsDataURL(file);
+  };
   
   
   const showPopup = (message, type = 'info') => setPopup({ message, type });
@@ -1019,6 +1118,7 @@ const AdminDashboard = () => {
         );
 
       case 'results':
+      case 'esign':
         const filteredUsers = getSortedParticipantsByCategory(liveUsers, adminCategoryFilter);
         const displayUsers = reportType === 'winners' ? filteredUsers.slice(0, 3) : filteredUsers;
         const ugCount = getSortedParticipantsByCategory(liveUsers, 'UG').length;
@@ -1036,15 +1136,155 @@ const AdminDashboard = () => {
           setJudgeSignatures(judgeSignatures.filter((_, idx) => idx !== idxToRemove));
         };
 
+        const renderSharedPrintableSection = () => (
+          <div id="print-area" style={{ background: 'white', color: 'black', padding: '1rem' }}>
+            {/* College Header with Logos matching official PDF */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2.5px solid black', paddingBottom: '1.2rem', marginBottom: '1.5rem', color: 'black' }}>
+              <img src="/college-logo.png" alt="College Logo" style={{ width: '90px', height: '90px', objectFit: 'contain' }} />
+              <div style={{ textAlign: 'center', flex: 1, padding: '0 1rem', color: 'black' }}>
+                <div style={{ fontWeight: '900', fontSize: '1.18rem', letterSpacing: '3px' }}>SOFTECH</div>
+                <div style={{ fontWeight: '800', fontSize: '1.08rem', margin: '3px 0' }}>DEPARTMENT OF COMPUTER APPLICATIONS</div>
+                <div style={{ fontWeight: '900', fontSize: '1.35rem', margin: '4px 0' }}>AYYA NADAR JANAKI AMMAL COLLEGE</div>
+                <div style={{ fontSize: '0.68rem', lineHeight: '1.35', fontWeight: '500', maxWidth: '680px', margin: '0 auto' }}>
+                  (Autonomous, Affiliated to Madurai Kamaraj University, Madurai, Re-accredited (4th Cycle) with 'A+' Grade
+                  (CGPA 3.48 out of 4) by NAAC, Recognized as College of Excellence and Mentor Institution by UGC, STAR College by DBT
+                  and Ranked 72nd at National Level in NIRF 2025 and DST-FIST (2023) Supported & An ISO 9001:2015 & ISO 21001:2018 Certified Institution)
+                </div>
+                <div style={{ fontWeight: '800', fontSize: '0.88rem', marginTop: '4px' }}>SIVAKASI - 626 124.</div>
+              </div>
+              <img src="/dept-logo.png" alt="Dept Logo" style={{ width: '90px', height: '90px', objectFit: 'contain' }} />
+            </div>
+
+            {/* Event & Sheet Title Subheading */}
+            <div style={{ textAlign: 'center', marginBottom: '1.8rem', color: 'black' }}>
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 'bold', margin: '0 0 0.4rem 0', color: 'black', textTransform: 'uppercase' }}>
+                {reportEventName}
+              </h2>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0, color: 'black', textDecoration: 'underline' }}>
+                {reportType === 'scoresheet'
+                  ? `${adminCategoryFilter === 'ALL' ? 'Overall' : adminCategoryFilter} ScoreSheet`
+                  : `Top 3 Winners (${adminCategoryFilter === 'ALL' ? 'Overall' : adminCategoryFilter})`}
+              </h3>
+            </div>
+
+            {/* Official Table - Removed Language and Warnings Columns */}
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: 'black' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid black', background: 'rgba(0,0,0,0.04)', color: 'black' }}>
+                  {reportType === 'scoresheet' ? (
+                    <>
+                      <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Team / Rank</th>
+                      <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Participant Name</th>
+                      <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Roll No / Lot</th>
+                      <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Errors Fixed</th>
+                      <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Time Taken</th>
+                      <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Total Score</th>
+                    </>
+                  ) : (
+                    <>
+                      <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Rank</th>
+                      <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Participant Name</th>
+                      <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Roll No / Lot</th>
+                      <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Errors Fixed</th>
+                      <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Time Taken</th>
+                      <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Total Score</th>
+                    </>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {displayUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: 'black', border: '1px solid black' }}>
+                      No participants found for this report criteria.
+                    </td>
+                  </tr>
+                ) : (
+                  displayUsers.map((user, idx) => {
+                    const cat = getStudentCategory(user.rollNo);
+                    return (
+                      <tr key={user.id} style={{ borderBottom: '1px solid black', color: 'black' }}>
+                        {reportType === 'scoresheet' ? (
+                          <>
+                            <td style={{ padding: '10px', fontWeight: 'bold', color: 'black', border: '1px solid black' }}>#{idx + 1}</td>
+                            <td style={{ padding: '10px', fontWeight: 'bold', color: 'black', border: '1px solid black' }}>{user.name || 'Anonymous'}</td>
+                            <td style={{ padding: '10px', color: 'black', border: '1px solid black' }}>
+                              {user.rollNo || 'N/A'} {cat !== 'OTHER' && `(${cat})`}
+                            </td>
+                            <td style={{ padding: '10px', color: 'black', border: '1px solid black' }}>
+                              {(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)} / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}
+                            </td>
+                            <td style={{ padding: '10px', color: 'black', border: '1px solid black' }}>
+                              {user.elapsedTimeMs ? `${Math.floor(user.elapsedTimeMs / 60000)}m ${Math.floor((user.elapsedTimeMs % 60000) / 1000)}s` : 'N/A'}
+                            </td>
+                            <td style={{ padding: '10px', fontWeight: 'bold', color: 'black', border: '1px solid black', fontSize: '1.05rem' }}>{user.score !== undefined ? user.score : 0}</td>
+                          </>
+                        ) : (
+                          <>
+                            <td style={{ padding: '12px', fontWeight: 'bold', color: 'black', border: '1px solid black', fontSize: '1.1rem' }}>
+                              {idx === 0 ? '1' : idx === 1 ? '2' : '3'}
+                            </td>
+                            <td style={{ padding: '12px', fontWeight: 'bold', color: 'black', border: '1px solid black', fontSize: '1.05rem' }}>{user.name || 'Anonymous'}</td>
+                            <td style={{ padding: '12px', color: 'black', border: '1px solid black' }}>
+                              {user.rollNo || 'N/A'} {cat !== 'OTHER' && `(${cat})`}
+                            </td>
+                            <td style={{ padding: '12px', color: 'black', border: '1px solid black' }}>
+                              {(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)} / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}
+                            </td>
+                            <td style={{ padding: '12px', color: 'black', border: '1px solid black' }}>
+                              {user.elapsedTimeMs ? `${Math.floor(user.elapsedTimeMs / 60000)}m ${Math.floor((user.elapsedTimeMs % 60000) / 1000)}s` : 'N/A'}
+                            </td>
+                            <td style={{ padding: '12px', fontWeight: 'bold', color: 'black', border: '1px solid black', fontSize: '1.1rem' }}>{user.score !== undefined ? user.score : 0}</td>
+                          </>
+                        )}
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+
+            {/* Staff & Judge Signatures across Right Side */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: '4.5rem', paddingBottom: '1.5rem', flexWrap: 'wrap', gap: '3.5rem', pageBreakInside: 'avoid', color: 'black' }}>
+              {judgeSignatures.map((sigTitle, i) => (
+                <div key={i} style={{ textAlign: 'center', minWidth: '180px' }}>
+                  {esignMap[sigTitle] ? (
+                    <img src={esignMap[sigTitle]} alt={sigTitle} style={{ height: '50px', objectFit: 'contain', margin: '0 auto', display: 'block', marginBottom: '4px' }} />
+                  ) : (
+                    <div style={{ height: '35px' }}></div>
+                  )}
+                  <div style={{ borderBottom: '1.5px solid black', width: '100%', marginBottom: '8px' }}></div>
+                  <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: 'black' }}>{sigTitle}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
         return (
           <div className="glass-panel" style={{ padding: '2rem' }}>
+            {drawingSigTitle && (
+              <SignatureDrawingPad
+                sigTitle={drawingSigTitle}
+                onClose={() => setDrawingSigTitle(null)}
+                onSave={(title, dataUrl) => {
+                  setEsignMap(prev => ({ ...prev, [title]: dataUrl }));
+                  setDrawingSigTitle(null);
+                }}
+              />
+            )}
+
             {/* ── Screen Control Panel (no-print) ───────────────────────── */}
             <div className="no-print" style={{ marginBottom: '2rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                  <h2 className="glow-text-cyan" style={{ margin: 0, fontSize: '1.6rem' }}>OFFICIAL PDF REPORT GENERATOR</h2>
+                  <h2 className="glow-text-cyan" style={{ margin: 0, fontSize: '1.6rem' }}>
+                    {activeTab === 'esign' ? '✍️ STAFF E-SIGN & OFFICIAL PDF STUDIO' : 'OFFICIAL PDF REPORT GENERATOR'}
+                  </h2>
                   <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
-                    Generate college-formatted ScoreSheets and Top 3 Winner lists with Judge signature blocks matching NAAC/ISO format.
+                    {activeTab === 'esign'
+                      ? 'Upload image signatures or draw digital e-signatures for judges and staff, then download clean college PDF reports.'
+                      : 'Generate college-formatted ScoreSheets and Top 3 Winner lists without blue criteria box or extra columns.'}
                   </p>
                 </div>
                 <button onClick={() => window.print()} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px' }}>
@@ -1122,28 +1362,56 @@ const AdminDashboard = () => {
                   />
                 </div>
 
-                {/* 4. Judge Signatures Management */}
+                {/* 4. Judge & Staff E-Signature Upload Studio */}
                 <div style={{ gridColumn: '1 / -1', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--accent-cyan)', fontWeight: 'bold', marginBottom: '8px', letterSpacing: '1px' }}>
-                    4. JUDGE & STAFF SIGNATURE BLOCKS (FOR PRINTED SHEET)
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--accent-cyan)', fontWeight: 'bold', marginBottom: '10px', letterSpacing: '1px' }}>
+                    4. STAFF & JUDGE E-SIGNATURES (RIGHT-ALIGNED AT BOTTOM OF PDF)
                   </label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', marginBottom: '10px' }}>
+
+                  {/* Grid of signature cards for each title */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1.2rem' }}>
                     {judgeSignatures.map((sig, i) => (
-                      <div key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(0, 240, 255, 0.12)', border: '1px solid var(--accent-cyan)', padding: '5px 12px', borderRadius: '20px', fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                        <span>✍️ {sig}</span>
-                        <button onClick={() => handleRemoveJudgeSig(i)} style={{ background: 'transparent', border: 'none', color: 'var(--accent-pink)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}>
-                          <Trash2 size={15} />
-                        </button>
+                      <div key={i} style={{ background: 'rgba(0, 240, 255, 0.05)', border: '1px solid rgba(0, 240, 255, 0.2)', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <strong style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>✍️ {sig}</strong>
+                          <button onClick={() => handleRemoveJudgeSig(i)} style={{ background: 'transparent', border: 'none', color: 'var(--accent-pink)', cursor: 'pointer', padding: 0 }} title="Remove this signature box">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+
+                        {/* Preview of E-Sign if exists */}
+                        {esignMap[sig] ? (
+                          <div style={{ background: 'white', padding: '6px', borderRadius: '4px', textAlign: 'center', position: 'relative' }}>
+                            <img src={esignMap[sig]} alt={sig} style={{ height: '48px', objectFit: 'contain', margin: '0 auto', display: 'block' }} />
+                            <button
+                              onClick={() => setEsignMap(prev => { const copy = { ...prev }; delete copy[sig]; return copy; })}
+                              style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(255,0,0,0.8)', color: 'white', border: 'none', borderRadius: '4px', fontSize: '0.7rem', padding: '2px 6px', cursor: 'pointer' }}
+                            >
+                              Clear
+                            </button>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
+                            <label className="btn-secondary" style={{ flex: 1, padding: '6px 8px', fontSize: '0.8rem', textAlign: 'center', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', margin: 0 }}>
+                              <Upload size={14} /> Upload Image
+                              <input type="file" accept="image/*" onChange={(e) => handleFileUpload(sig, e)} style={{ display: 'none' }} />
+                            </label>
+                            <button onClick={() => setDrawingSigTitle(sig)} className="btn-secondary" style={{ flex: 1, padding: '6px 8px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', borderColor: 'var(--accent-cyan)', color: 'var(--accent-cyan)' }}>
+                              <PenTool size={14} /> Draw Pad
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
+
                   <div style={{ display: 'flex', gap: '0.6rem', maxWidth: '500px' }}>
                     <input
                       type="text"
                       className="input-field"
                       value={newSigTitle}
                       onChange={(e) => setNewSigTitle(e.target.value)}
-                      placeholder="Add judge or staff title (e.g. Dr. A. Sharma - Judge 1)"
+                      placeholder="Add another judge/staff title (e.g. Dr. A. Sharma - Judge 1)"
                       style={{ padding: '8px 12px', fontSize: '0.88rem' }}
                     />
                     <button onClick={handleAddJudgeSig} className="btn-secondary" style={{ padding: '8px 16px', whiteSpace: 'nowrap' }}>
@@ -1155,145 +1423,10 @@ const AdminDashboard = () => {
             </div>
 
             {/* ── Printable Area (#print-area) exact to @pdf format ─────── */}
-            <div id="print-area" style={{ background: 'white', color: 'black', padding: '1rem' }}>
-              {/* College Header with Logos matching official PDF */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2.5px solid black', paddingBottom: '1.2rem', marginBottom: '1.5rem', color: 'black' }}>
-                <img src="/college-logo.png" alt="College Logo" style={{ width: '90px', height: '90px', objectFit: 'contain' }} />
-                <div style={{ textAlign: 'center', flex: 1, padding: '0 1rem', color: 'black' }}>
-                  <div style={{ fontWeight: '900', fontSize: '1.18rem', letterSpacing: '3px' }}>SOFTECH</div>
-                  <div style={{ fontWeight: '800', fontSize: '1.08rem', margin: '3px 0' }}>DEPARTMENT OF COMPUTER APPLICATIONS</div>
-                  <div style={{ fontWeight: '900', fontSize: '1.35rem', margin: '4px 0' }}>AYYA NADAR JANAKI AMMAL COLLEGE</div>
-                  <div style={{ fontSize: '0.68rem', lineHeight: '1.35', fontWeight: '500', maxWidth: '680px', margin: '0 auto' }}>
-                    (Autonomous, Affiliated to Madurai Kamaraj University, Madurai, Re-accredited (4th Cycle) with 'A+' Grade
-                    (CGPA 3.48 out of 4) by NAAC, Recognized as College of Excellence and Mentor Institution by UGC, STAR College by DBT
-                    and Ranked 72nd at National Level in NIRF 2025 and DST-FIST (2023) Supported & An ISO 9001:2015 & ISO 21001:2018 Certified Institution)
-                  </div>
-                  <div style={{ fontWeight: '800', fontSize: '0.88rem', marginTop: '4px' }}>SIVAKASI - 626 124.</div>
-                </div>
-                <img src="/dept-logo.png" alt="Dept Logo" style={{ width: '90px', height: '90px', objectFit: 'contain' }} />
-              </div>
-
-              {/* Event & Sheet Title Subheading */}
-              <div style={{ textAlign: 'center', marginBottom: '1.8rem', color: 'black' }}>
-                <h2 style={{ fontSize: '1.35rem', fontWeight: 'bold', margin: '0 0 0.4rem 0', color: 'black', textTransform: 'uppercase' }}>
-                  {reportEventName}
-                </h2>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0, color: 'black', textDecoration: 'underline' }}>
-                  {reportType === 'scoresheet'
-                    ? `${adminCategoryFilter === 'ALL' ? 'Overall' : adminCategoryFilter} ScoreSheet`
-                    : `Top 3 Winners (${adminCategoryFilter === 'ALL' ? 'Overall' : adminCategoryFilter})`}
-                </h3>
-              </div>
-
-              {/* Screen-Only Scoring Breakdown Info (no-print) */}
-              <div className="no-print" style={{ background: 'var(--bg-deep-navy)', padding: '1.2rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '2rem' }}>
-                <h4 style={{ color: 'var(--accent-cyan)', margin: '0 0 0.6rem 0', fontSize: '0.95rem' }}>
-                  ℹ️ Official Scoring Criteria (Hidden when printed):
-                </h4>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.8rem' }}>
-                  <div>• Base Output: +Points on exact match</div>
-                  <div>• Penalty: -2 pts per Tab Switch</div>
-                  <div>• Tie-Breaker: Fastest completion time</div>
-                </div>
-              </div>
-
-              {/* Official Table */}
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: 'black' }}>
-                <thead>
-                  <tr style={{ borderBottom: '2px solid black', background: 'rgba(0,0,0,0.04)', color: 'black' }}>
-                    {reportType === 'scoresheet' ? (
-                      <>
-                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Team / Rank</th>
-                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Participant Name</th>
-                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Roll No / Lot</th>
-                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Language</th>
-                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Errors Fixed</th>
-                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Time Taken</th>
-                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Warnings</th>
-                        <th style={{ padding: '10px', color: 'black', border: '1px solid black' }}>Total Score</th>
-                      </>
-                    ) : (
-                      <>
-                        <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Rank</th>
-                        <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Participant Name</th>
-                        <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Roll No / Lot</th>
-                        <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Language</th>
-                        <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Errors Fixed</th>
-                        <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Time Taken</th>
-                        <th style={{ padding: '12px', color: 'black', border: '1px solid black' }}>Total Score</th>
-                      </>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayUsers.length === 0 ? (
-                    <tr>
-                      <td colSpan={reportType === 'scoresheet' ? "8" : "7"} style={{ padding: '2rem', textAlign: 'center', color: 'black', border: '1px solid black' }}>
-                        No participants found for this report criteria.
-                      </td>
-                    </tr>
-                  ) : (
-                    displayUsers.map((user, idx) => {
-                      const cat = getStudentCategory(user.rollNo);
-                      return (
-                        <tr key={user.id} style={{ borderBottom: '1px solid black', color: 'black' }}>
-                          {reportType === 'scoresheet' ? (
-                            <>
-                              <td style={{ padding: '10px', fontWeight: 'bold', color: 'black', border: '1px solid black' }}>#{idx + 1}</td>
-                              <td style={{ padding: '10px', fontWeight: 'bold', color: 'black', border: '1px solid black' }}>{user.name || 'Anonymous'}</td>
-                              <td style={{ padding: '10px', color: 'black', border: '1px solid black' }}>
-                                {user.rollNo || 'N/A'} {cat !== 'OTHER' && `(${cat})`}
-                              </td>
-                              <td style={{ padding: '10px', textTransform: 'uppercase', color: 'black', border: '1px solid black' }}>{user.selectedLanguage || 'C'}</td>
-                              <td style={{ padding: '10px', color: 'black', border: '1px solid black' }}>
-                                {(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)} / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}
-                              </td>
-                              <td style={{ padding: '10px', color: 'black', border: '1px solid black' }}>
-                                {user.elapsedTimeMs ? `${Math.floor(user.elapsedTimeMs / 60000)}m ${Math.floor((user.elapsedTimeMs % 60000) / 1000)}s` : 'N/A'}
-                              </td>
-                              <td style={{ padding: '10px', color: 'black', border: '1px solid black' }}>
-                                Tabs: {user.tabSwitches || 0} | Copy: {user.copyPasteCount || 0}
-                              </td>
-                              <td style={{ padding: '10px', fontWeight: 'bold', color: 'black', border: '1px solid black', fontSize: '1.05rem' }}>{user.score !== undefined ? user.score : 0}</td>
-                            </>
-                          ) : (
-                            <>
-                              <td style={{ padding: '12px', fontWeight: 'bold', color: 'black', border: '1px solid black', fontSize: '1.1rem' }}>
-                                {idx === 0 ? '1' : idx === 1 ? '2' : '3'}
-                              </td>
-                              <td style={{ padding: '12px', fontWeight: 'bold', color: 'black', border: '1px solid black', fontSize: '1.05rem' }}>{user.name || 'Anonymous'}</td>
-                              <td style={{ padding: '12px', color: 'black', border: '1px solid black' }}>
-                                {user.rollNo || 'N/A'} {cat !== 'OTHER' && `(${cat})`}
-                              </td>
-                              <td style={{ padding: '12px', textTransform: 'uppercase', color: 'black', border: '1px solid black' }}>{user.selectedLanguage || 'C'}</td>
-                              <td style={{ padding: '12px', color: 'black', border: '1px solid black' }}>
-                                {(user.cumulativeClearedErrors || 0) + (user.clearedErrors || 0)} / {(user.cumulativeTotalErrors || 0) + (user.totalErrors || 0)}
-                              </td>
-                              <td style={{ padding: '12px', color: 'black', border: '1px solid black' }}>
-                                {user.elapsedTimeMs ? `${Math.floor(user.elapsedTimeMs / 60000)}m ${Math.floor((user.elapsedTimeMs % 60000) / 1000)}s` : 'N/A'}
-                              </td>
-                              <td style={{ padding: '12px', fontWeight: 'bold', color: 'black', border: '1px solid black', fontSize: '1.1rem' }}>{user.score !== undefined ? user.score : 0}</td>
-                            </>
-                          )}
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-
-              {/* Judge Signature Blocks across Bottom */}
-              <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-end', marginTop: '4.5rem', paddingBottom: '1.5rem', flexWrap: 'wrap', gap: '3rem', pageBreakInside: 'avoid', color: 'black' }}>
-                {judgeSignatures.map((sigTitle, i) => (
-                  <div key={i} style={{ textAlign: 'center', minWidth: '200px' }}>
-                    <div style={{ borderBottom: '1.5px solid black', width: '100%', marginBottom: '8px', height: '35px' }}></div>
-                    <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: 'black' }}>{sigTitle}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {renderSharedPrintableSection()}
           </div>
         );
+
 
       case 'tracker':
         const activeTrackerUser = liveUsers.find(u => u.id === selectedTrackerUser?.id) || null;
@@ -1509,6 +1642,7 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('questions')} className={`sidebar-btn ${activeTab === 'questions' ? 'active' : ''}`}><FileText size={18} /> Questions</button>
           <button onClick={() => setActiveTab('users')} className={`sidebar-btn ${activeTab === 'users' ? 'active' : ''}`}><Users size={18} /> User Management</button>
           <button onClick={() => setActiveTab('results')} className={`sidebar-btn ${activeTab === 'results' ? 'active' : ''}`}><FileDown size={18} /> Results & PDF</button>
+          <button onClick={() => setActiveTab('esign')} className={`sidebar-btn ${activeTab === 'esign' ? 'active' : ''}`}><PenTool size={18} /> Staff E-Sign & PDF</button>
           <button onClick={() => setActiveTab('submissions')} className={`sidebar-btn ${activeTab === 'submissions' ? 'active' : ''}`}><Code size={18} /> Submissions</button>
           <button onClick={() => setActiveTab('tracker')} className={`sidebar-btn ${activeTab === 'tracker' ? 'active' : ''}`}><MonitorPlay size={18} /> Live Code</button>
           <button onClick={() => setActiveTab('conclusion')} className={`sidebar-btn ${activeTab === 'conclusion' ? 'active' : ''}`}><Award size={18} /> Conclusion</button>
