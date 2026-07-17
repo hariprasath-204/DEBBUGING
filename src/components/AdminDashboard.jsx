@@ -6,8 +6,8 @@ import { Link } from 'react-router-dom';
 import LoadingOverlay from './LoadingOverlay';
 import PopupMessage from './PopupMessage';
 import { syncClock, getNow } from '../utils/timeSync';
-import { sortParticipants } from '../utils/ranking';
-import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2, RefreshCw, Edit, Award, Sparkles } from 'lucide-react';
+import { sortParticipants, getStudentCategory, getSortedParticipantsByCategory } from '../utils/ranking';
+import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2, RefreshCw, Edit, Award, Sparkles, GraduationCap } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('questions');
@@ -17,6 +17,7 @@ const AdminDashboard = () => {
   const [selectedTrackerUser, setSelectedTrackerUser] = useState(null);
   const [selectedSubUserId, setSelectedSubUserId] = useState(null);
   const [selectedSubPhase, setSelectedSubPhase] = useState('c');
+  const [adminCategoryFilter, setAdminCategoryFilter] = useState('ALL');
   
   const showPopup = (message, type = 'info') => setPopup({ message, type });
 
@@ -576,9 +577,15 @@ const AdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {liveUsers.map(u => (
+                    {liveUsers.map(u => {
+                      const cat = getStudentCategory(u.rollNo);
+                      return (
                       <tr key={u.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                        <td style={{ padding: '1rem' }}>{u.rollNo}</td>
+                        <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>{u.rollNo}</span>
+                          {cat === 'UG' && <span style={{ padding: '1px 6px', borderRadius: '10px', fontSize: '0.7rem', background: 'rgba(0, 240, 255, 0.15)', color: '#00f0ff', border: '1px solid #00f0ff' }}>UG</span>}
+                          {cat === 'PG' && <span style={{ padding: '1px 6px', borderRadius: '10px', fontSize: '0.7rem', background: 'rgba(255, 0, 255, 0.15)', color: '#ff00ff', border: '1px solid #ff00ff' }}>PG</span>}
+                        </td>
                         <td style={{ padding: '1rem' }}>{u.name}</td>
                         <td style={{ padding: '1rem', textTransform: 'uppercase' }}>{u.selectedLanguage || 'PENDING'}</td>
                         <td style={{ padding: '1rem' }}>
@@ -589,7 +596,8 @@ const AdminDashboard = () => {
                           <button onClick={async () => { if(window.confirm('Delete user?')) await deleteDoc(doc(db, 'users', u.id)) }} style={{ background: 'transparent', border: 'none', color: 'var(--accent-magenta)', cursor: 'pointer' }}><Trash2 size={18} /></button>
                         </td>
                       </tr>
-                    ))}
+                    );
+                  })}
                   </tbody>
                 </table>
               </div>
@@ -1006,15 +1014,46 @@ const AdminDashboard = () => {
         );
 
       case 'results':
-        const sortedUsers = sortParticipants(liveUsers);
+        const sortedUsers = getSortedParticipantsByCategory(liveUsers, adminCategoryFilter);
+        const ugCount = getSortedParticipantsByCategory(liveUsers, 'UG').length;
+        const pgCount = getSortedParticipantsByCategory(liveUsers, 'PG').length;
+        const allCount = getSortedParticipantsByCategory(liveUsers, 'ALL').length;
         return (
           <div className="glass-panel" style={{ padding: '2rem' }}>
-            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
-              <h2 className="glow-text-cyan">RESULTS & PDF</h2>
-              <button onClick={() => window.print()} className="btn-primary"><FileDown size={18} style={{ marginRight: '8px' }}/> DOWNLOAD PDF</button>
+            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <h2 className="glow-text-cyan" style={{ margin: 0 }}>RESULTS & PDF REPORT</h2>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  onClick={() => setAdminCategoryFilter('ALL')}
+                  className={adminCategoryFilter === 'ALL' ? 'btn-primary' : 'btn-secondary'}
+                  style={{ padding: '6px 14px', fontSize: '0.85rem' }}
+                >
+                  ALL ({allCount})
+                </button>
+                <button
+                  onClick={() => setAdminCategoryFilter('UG')}
+                  className={adminCategoryFilter === 'UG' ? 'btn-primary' : 'btn-secondary'}
+                  style={{ padding: '6px 14px', fontSize: '0.85rem', borderColor: '#00f0ff', color: adminCategoryFilter === 'UG' ? '#040711' : '#00f0ff', background: adminCategoryFilter === 'UG' ? '#00f0ff' : 'transparent' }}
+                >
+                  UG ({ugCount})
+                </button>
+                <button
+                  onClick={() => setAdminCategoryFilter('PG')}
+                  className={adminCategoryFilter === 'PG' ? 'btn-primary' : 'btn-secondary'}
+                  style={{ padding: '6px 14px', fontSize: '0.85rem', borderColor: '#ff00ff', color: adminCategoryFilter === 'PG' ? '#040711' : '#ff00ff', background: adminCategoryFilter === 'PG' ? '#ff00ff' : 'transparent' }}
+                >
+                  PG ({pgCount})
+                </button>
+                <button onClick={() => window.print()} className="btn-primary" style={{ marginLeft: '1rem' }}><FileDown size={18} style={{ marginRight: '8px' }}/> DOWNLOAD PDF</button>
+              </div>
             </div>
             <div id="print-area">
-              <h1 style={{ textAlign: 'center', marginBottom: '1rem' }}>OFFICIAL EVENT LEADERBOARD & EVALUATION REPORT</h1>
+              <h1 style={{ textAlign: 'center', marginBottom: '0.3rem' }}>
+                {adminCategoryFilter === 'UG' ? 'OFFICIAL UG LEADERBOARD & EVALUATION REPORT (UNDERGRADUATE)' : adminCategoryFilter === 'PG' ? 'OFFICIAL PG LEADERBOARD & EVALUATION REPORT (POSTGRADUATE)' : 'OFFICIAL EVENT LEADERBOARD & EVALUATION REPORT (COMBINED)'}
+              </h1>
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+                {adminCategoryFilter === 'UG' ? 'Filtered by Undergraduate students (e.g. 24UCA101 format)' : adminCategoryFilter === 'PG' ? 'Filtered by Postgraduate students (e.g. 25PCA101, 26PCA101 format)' : 'Showing all registered participants across UG & PG.'}
+              </p>
               
               {/* Comprehensive Scoring System Breakdown Card */}
               <div style={{ background: 'var(--bg-deep-navy)', padding: '1.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', marginBottom: '2rem' }}>
@@ -1057,10 +1096,16 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedUsers.map((user, idx) => (
+                  {sortedUsers.map((user, idx) => {
+                    const cat = getStudentCategory(user.rollNo);
+                    return (
                     <tr key={user.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                       <td style={{ padding: '1rem', fontWeight: 'bold' }}>#{idx + 1}</td>
-                      <td style={{ padding: '1rem' }}>{user.rollNo}</td>
+                      <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>{user.rollNo}</span>
+                        {cat === 'UG' && <span style={{ padding: '1px 6px', borderRadius: '10px', fontSize: '0.7rem', background: 'rgba(0, 240, 255, 0.15)', color: '#00f0ff', border: '1px solid #00f0ff' }}>UG</span>}
+                        {cat === 'PG' && <span style={{ padding: '1px 6px', borderRadius: '10px', fontSize: '0.7rem', background: 'rgba(255, 0, 255, 0.15)', color: '#ff00ff', border: '1px solid #ff00ff' }}>PG</span>}
+                      </td>
                       <td style={{ padding: '1rem', fontWeight: 'bold' }}>{user.name}</td>
                       <td style={{ padding: '1rem', fontWeight: 'bold', color: user.score < 0 ? 'var(--accent-magenta)' : 'var(--accent-cyan)' }}>{user.score}</td>
                       <td style={{ padding: '1rem' }}>
@@ -1073,7 +1118,8 @@ const AdminDashboard = () => {
                         Tabs: {user.tabSwitches || 0} | Copy: {user.copyPasteCount || 0}
                       </td>
                     </tr>
-                  ))}
+                  );
+                })}
                 </tbody>
               </table>
             </div>
@@ -1158,24 +1204,38 @@ const AdminDashboard = () => {
           </div>
         );
       case 'conclusion':
+        const conclusionUsers = getSortedParticipantsByCategory(liveUsers, adminCategoryFilter);
         return (
           <div className="glass-panel" style={{ padding: '2rem' }}>
-            <h2 className="glow-text-cyan" style={{ marginBottom: '1.5rem' }}>WINNER CONCLUSION</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <h2 className="glow-text-cyan" style={{ margin: 0 }}>WINNER CONCLUSION</h2>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button onClick={() => setAdminCategoryFilter('ALL')} className={adminCategoryFilter === 'ALL' ? 'btn-primary' : 'btn-secondary'} style={{ padding: '5px 12px', fontSize: '0.8rem' }}>ALL</button>
+                <button onClick={() => setAdminCategoryFilter('UG')} className={adminCategoryFilter === 'UG' ? 'btn-primary' : 'btn-secondary'} style={{ padding: '5px 12px', fontSize: '0.8rem', borderColor: '#00f0ff', color: adminCategoryFilter === 'UG' ? '#040711' : '#00f0ff', background: adminCategoryFilter === 'UG' ? '#00f0ff' : 'transparent' }}>UG</button>
+                <button onClick={() => setAdminCategoryFilter('PG')} className={adminCategoryFilter === 'PG' ? 'btn-primary' : 'btn-secondary'} style={{ padding: '5px 12px', fontSize: '0.8rem', borderColor: '#ff00ff', color: adminCategoryFilter === 'PG' ? '#040711' : '#ff00ff', background: adminCategoryFilter === 'PG' ? '#ff00ff' : 'transparent' }}>PG</button>
+              </div>
+            </div>
             <div style={{ display: 'flex', gap: '2rem' }}>
               <div style={{ flex: '1', borderRight: '1px solid var(--border-subtle)', paddingRight: '1rem', maxHeight: '70vh', overflowY: 'auto' }}>
-                <h3 style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>SELECT PARTICIPANT</h3>
+                <h3 style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>SELECT ({adminCategoryFilter}) PARTICIPANT</h3>
                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  {sortParticipants(liveUsers).map(user => (
+                  {conclusionUsers.map(user => {
+                    const cat = getStudentCategory(user.rollNo);
+                    return (
                     <button 
                       key={user.id} 
                       onClick={() => setSelectedConclusionUser(user)}
                       className={selectedConclusionUser?.id === user.id ? 'btn-primary' : 'btn-secondary'}
-                      style={{ textAlign: 'left', padding: '1rem', display: 'flex', justifyContent: 'space-between' }}
+                      style={{ textAlign: 'left', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                     >
-                      <span>{user.rollNo} - {user.name}</span>
+                      <div>
+                        <span>{user.rollNo} - {user.name}</span>
+                        {cat === 'UG' && <span style={{ marginLeft: '6px', padding: '1px 5px', borderRadius: '8px', fontSize: '0.65rem', background: 'rgba(0, 240, 255, 0.15)', color: '#00f0ff', border: '1px solid #00f0ff' }}>UG</span>}
+                        {cat === 'PG' && <span style={{ marginLeft: '6px', padding: '1px 5px', borderRadius: '8px', fontSize: '0.65rem', background: 'rgba(255, 0, 255, 0.15)', color: '#ff00ff', border: '1px solid #ff00ff' }}>PG</span>}
+                      </div>
                       <span style={{ color: user.score < 0 ? 'var(--accent-magenta)' : 'var(--accent-cyan)' }}>{user.score}</span>
                     </button>
-                  ))}
+                  );})}
                 </div>
               </div>
               

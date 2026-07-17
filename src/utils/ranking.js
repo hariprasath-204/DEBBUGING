@@ -36,3 +36,37 @@ export function sortParticipants(users) {
     return aTime - bTime;
   });
 }
+
+/**
+ * Determines the student category ('UG' or 'PG') based on roll number format.
+ * UG: e.g. 24UCA101 (contains 'UCA' or starts with digits + 'U')
+ * PG: e.g. 25PCA101, 26PCA101 (contains 'PCA' or starts with digits + 'P')
+ */
+export function getStudentCategory(rollNo) {
+  if (!rollNo) return 'OTHER';
+  const clean = String(rollNo).trim().toUpperCase();
+  // Check PCA / PG series
+  if (clean.includes('PCA') || /^\d*PCA/.test(clean) || /PCA/.test(clean)) {
+    return 'PG';
+  }
+  // Check UCA / UG series
+  if (clean.includes('UCA') || /^\d*UCA/.test(clean) || /UCA/.test(clean)) {
+    return 'UG';
+  }
+  // Fallback pattern matching for standard college roll numbers: digits followed by U/P
+  if (/^\d+U/i.test(clean)) return 'UG';
+  if (/^\d+P/i.test(clean)) return 'PG';
+  return 'OTHER';
+}
+
+/**
+ * Filters participants by category ('ALL', 'UG', 'PG') and sorts them using sortParticipants.
+ */
+export function getSortedParticipantsByCategory(users, category = 'ALL') {
+  let filtered = users;
+  if (category === 'UG' || category === 'PG') {
+    filtered = users.filter(u => getStudentCategory(u.rollNo) === category);
+  }
+  return sortParticipants(filtered);
+}
+
