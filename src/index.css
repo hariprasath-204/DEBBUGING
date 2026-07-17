@@ -431,9 +431,36 @@ tr:last-child td {
   }
 }
 
-/* Force exact Times New Roman font for Official Print Area and PDF generation */
+/* Force exact Times New Roman font and clean page break rules for Official Print Area and PDF generation */
 #print-area,
 #print-area * {
   font-family: "Times New Roman", Times, serif !important;
+  box-sizing: border-box;
 }
+
+#print-area table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  page-break-inside: auto !important;
+  break-inside: auto !important;
+}
+
+#print-area tr {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  page-break-after: auto !important;
+}
+
+#print-area thead {
+  display: table-header-group !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+#print-area .avoid-break,
+#print-area .signatures-container {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
 
