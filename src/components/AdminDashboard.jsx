@@ -8,6 +8,8 @@ import PopupMessage from './PopupMessage';
 import { syncClock, getNow } from '../utils/timeSync';
 import { sortParticipants, getStudentCategory, getSortedParticipantsByCategory } from '../utils/ranking';
 import { Trophy, Clock, FileText, Users, Activity, FileDown, Code, MonitorPlay, Sliders, Trash2, RefreshCw, Edit, Award, Sparkles, GraduationCap, PenTool, Upload, CheckCircle, Image, X } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
+
 
 const SignatureDrawingPad = ({ sigTitle, onClose, onSave }) => {
   const canvasRef = React.useRef(null);
@@ -1136,8 +1138,26 @@ const AdminDashboard = () => {
           setJudgeSignatures(judgeSignatures.filter((_, idx) => idx !== idxToRemove));
         };
 
+        const handleDownloadPdf = () => {
+          const element = document.getElementById('print-area');
+          if (!element) return;
+          const cleanEventName = (reportEventName || 'CODATHAN').replace(/[^a-zA-Z0-9]/g, '_');
+          const cleanReportType = reportType === 'scoresheet' ? 'ScoreSheet' : 'Winners';
+          const filename = `${cleanEventName}_${cleanReportType}_${adminCategoryFilter}.pdf`;
+          
+          const opt = {
+            margin:       [10, 10, 10, 10],
+            filename:     filename,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          };
+          
+          html2pdf().set(opt).from(element).save();
+        };
+
         const renderSharedPrintableSection = () => (
-          <div id="print-area" style={{ background: 'white', color: 'black', padding: '1rem' }}>
+          <div id="print-area" style={{ background: 'white', color: 'black', padding: '1.2rem', fontFamily: '"Times New Roman", Times, serif' }}>
             {/* College Header with Logos matching official PDF */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2.5px solid black', paddingBottom: '1.2rem', marginBottom: '1.5rem', color: 'black' }}>
               <img src="/college-logo.png" alt="College Logo" style={{ width: '90px', height: '90px', objectFit: 'contain' }} />
@@ -1289,9 +1309,11 @@ const AdminDashboard = () => {
                       : 'Generate college-formatted ScoreSheets and Top 3 Winner lists without blue criteria box or extra columns.'}
                   </p>
                 </div>
-                <button onClick={() => window.print()} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px' }}>
-                  <FileDown size={19} /> DOWNLOAD & PRINT OFFICIAL PDF
-                </button>
+                <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
+                  <button onClick={handleDownloadPdf} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px' }}>
+                    <FileDown size={19} /> DOWNLOAD OFFICIAL PDF (.PDF)
+                  </button>
+                </div>
               </div>
 
               {/* Controls Grid */}
